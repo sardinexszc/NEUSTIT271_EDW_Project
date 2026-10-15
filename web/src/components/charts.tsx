@@ -23,6 +23,11 @@ type Fmt = (v: number) => string;
 
 const axisTick = { fill: "var(--muted)", fontSize: 12 };
 const ANIMATION_MS = 400;
+
+/** Respect the OS "reduce motion" setting: draw charts without the entry animation. */
+function motionAllowed(): boolean {
+  return typeof window === "undefined" || !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
 const ROUNDED_END_V: [number, number, number, number] = [4, 4, 0, 0]; // columns: rounded top
 const ROUNDED_END_H: [number, number, number, number] = [0, 4, 4, 0]; // bars: rounded right end
 
@@ -77,6 +82,7 @@ export function ColumnChart({ data, xKey, series, format, height = 280 }: {
             fill={s.color}
             maxBarSize={24}
             animationDuration={ANIMATION_MS}
+            isAnimationActive={motionAllowed()}
             stroke="var(--surface)"
             strokeWidth={stacked ? 2 : 0}
             radius={!stacked || i === series.length - 1 ? ROUNDED_END_V : 0}
@@ -122,6 +128,7 @@ export function BarList({ data, labelKey, series, format, labelWidth = 150 }: {
             fill={s.color}
             maxBarSize={20}
             animationDuration={ANIMATION_MS}
+            isAnimationActive={motionAllowed()}
             stroke="var(--surface)"
             strokeWidth={stacked ? 2 : 0}
             radius={!stacked || i === series.length - 1 ? ROUNDED_END_H : 0}
@@ -166,6 +173,7 @@ export function GroupedColumns({ data, xKey, series, format, height = 280 }: {
             maxBarSize={20}
             radius={ROUNDED_END_V}
             animationDuration={ANIMATION_MS}
+            isAnimationActive={motionAllowed()}
           />
         ))}
       </BarChart>
@@ -212,6 +220,7 @@ export function TrendArea({ data, xKey, yKey, label, color, format, xFormat, hei
           fill={color}
           fillOpacity={0.1}
           animationDuration={ANIMATION_MS}
+            isAnimationActive={motionAllowed()}
           activeDot={{ r: 5, stroke: "var(--surface)", strokeWidth: 2, fill: color }}
         />
       </AreaChart>

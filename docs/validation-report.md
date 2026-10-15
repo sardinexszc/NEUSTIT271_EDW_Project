@@ -78,7 +78,7 @@ Testing earned its keep. Each of these was caught by a test, not by inspection:
   population could not be downloaded automatically).
 - The PSGC source predates the 2022 Maguindanao split; the split is applied through the
   SCD2 change log.
-- Six misspelled place names are equally close to two real towns and stay unmatched by
+- Seven misspelled place names are equally close to two real towns and stay unmatched by
   design, for a data steward to resolve.
 - Dashboards read a JSON snapshot of the marts; live querying needs the warehouse on
   Supabase (one file, `web/src/lib/data.ts`).
