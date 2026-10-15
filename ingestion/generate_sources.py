@@ -89,7 +89,8 @@ def name_variant(rng: random.Random, name: str) -> str:
     if len(name) > 5:  # one transposed letter
         i = rng.randrange(1, len(name) - 2)
         options.append(name[:i] + name[i + 1] + name[i] + name[i + 2:])
-    return rng.choice(options)
+    options = [o for o in options if o != name]
+    return rng.choice(options) if options else f" {name} "
 
 
 def fmt_date(rng: random.Random, d: date, style: str) -> str | float:
@@ -104,12 +105,39 @@ def fmt_date(rng: random.Random, d: date, style: str) -> str | float:
     raise ValueError(style)
 
 
-def fmt_number(rng: random.Random, n: float, defects: Defects, source: str) -> str:
-    if defects.hit(rng, 0.01, source, "missing_value"):
-        return rng.choice(["", "N/A", "-", "TBD"])
-    if defects.hit(rng, 0.03, source, "thousands_separator") and n >= 1000:
+MISSING_TOKENS = ("", "N/A", "-", "TBD")
+NDRRMC_REQUIRED = {
+    "Population": ["dead", "injured", "missing", "affected_families", "affected_persons"],
+    "Housing": ["houses_partial", "houses_total", "cost_php"],
+    "Infrastructure": ["cost_php"],
+    "Agriculture": ["cost_php"],
+}
+
+
+def fmt_number(rng: random.Random, n: float) -> str:
+    if rng.random() < 0.01:
+        return rng.choice(MISSING_TOKENS)
+    if rng.random() < 0.03 and n >= 1000:
         return f"{n:,.0f}"
     return f"{n:.0f}"
+
+
+def count_ndrrmc_defects(defects: Defects, r: dict, official_name: str) -> None:
+    """Count defects by inspecting the finished row, so duplicated rows are counted too."""
+    c = defects.counts
+    if r["city_muni"] != official_name:
+        c["ndrrmc.location_name_variant"] += 1
+    for field in NDRRMC_REQUIRED[r["damage_category"]]:
+        if r[field] in MISSING_TOKENS:
+            c["ndrrmc.missing_value"] += 1
+        elif "," in r[field]:
+            c["ndrrmc.thousands_separator"] += 1
+    if r["cost_php"] not in MISSING_TOKENS and r["cost_php"].startswith("-"):
+        c["ndrrmc.negative_value"] += 1
+    fam, per = r["affected_families"], r["affected_persons"]
+    if r["damage_category"] == "Population" and fam not in MISSING_TOKENS and per not in MISSING_TOKENS:
+        if float(per.replace(",", "")) < float(fam.replace(",", "")):
+            c["ndrrmc.persons_less_than_families"] += 1
 
 
 # --------------------------------------------------------------------------- geography
@@ -225,7 +253,7 @@ def generate(seed: int) -> None:
                 rdate = end + timedelta(days=s - 1)
                 prov = area["province_name"]
                 muni = area["name"]
-                if defects.hit(rng, 0.06, "ndrrmc", "location_name_variant"):
+                if rng.random() < 0.06:
                     muni = name_variant(rng, muni)
                 for cat in DAMAGE_CATEGORIES:
                     r = {
@@ -237,27 +265,29 @@ def generate(seed: int) -> None:
                         "cost_php": "", "remarks": "",
                     }
                     if cat == "Population":
-                        r.update(dead=fmt_number(rng, v["dead"], defects, "ndrrmc"),
-                                 injured=fmt_number(rng, v["injured"], defects, "ndrrmc"),
-                                 missing=fmt_number(rng, v["missing"], defects, "ndrrmc"),
-                                 affected_families=fmt_number(rng, v["families"], defects, "ndrrmc"),
-                                 affected_persons=fmt_number(rng, v["persons"], defects, "ndrrmc"))
-                        if defects.hit(rng, 0.004, "ndrrmc", "persons_less_than_families"):
+                        r.update(dead=fmt_number(rng, v["dead"]),
+                                 injured=fmt_number(rng, v["injured"]),
+                                 missing=fmt_number(rng, v["missing"]),
+                                 affected_families=fmt_number(rng, v["families"]),
+                                 affected_persons=fmt_number(rng, v["persons"]))
+                        if rng.random() < 0.004:  # families/persons swapped
                             r["affected_persons"], r["affected_families"] = r["affected_families"], r["affected_persons"]
                     elif cat == "Housing":
-                        r.update(houses_partial=fmt_number(rng, v["partial"], defects, "ndrrmc"),
-                                 houses_total=fmt_number(rng, v["total"], defects, "ndrrmc"),
-                                 cost_php=fmt_number(rng, (v["partial"] * 15_000 + v["total"] * 120_000), defects, "ndrrmc"))
+                        r.update(houses_partial=fmt_number(rng, v["partial"]),
+                                 houses_total=fmt_number(rng, v["total"]),
+                                 cost_php=fmt_number(rng, v["partial"] * 15_000 + v["total"] * 120_000))
                     else:
                         cost = v["infra"] if cat == "Infrastructure" else v["agri"]
-                        if defects.hit(rng, 0.003, "ndrrmc", "negative_value"):
+                        if rng.random() < 0.003:  # sign error
                             cost = -cost
-                        r["cost_php"] = fmt_number(rng, cost, defects, "ndrrmc")
+                        r["cost_php"] = fmt_number(rng, cost)
                     if s < sitreps and rng.random() < 0.1:
                         r["remarks"] = "Validation ongoing"
                     ndrrmc_rows.append(r)
+                    count_ndrrmc_defects(defects, r, area["name"])
                     if defects.hit(rng, 0.015, "ndrrmc", "duplicate_row"):
                         ndrrmc_rows.append(dict(r))
+                        count_ndrrmc_defects(defects, r, area["name"])
             totals["damage_assessment_final_rows"] += len(DAMAGE_CATEGORIES)
         write_csv(SOURCES_DIR / "ndrrmc" / f"sitreps_{event['event_code']}.csv", ndrrmc_rows)
 
@@ -289,7 +319,7 @@ def generate(seed: int) -> None:
                         defects.counts["dromic.over_capacity"] += 1
                     style = office_style
                     if defects.hit(rng, 0.05, "dromic", "inconsistent_date_format"):
-                        style = rng.choice(["iso", "us", "dmy", "excel"])
+                        style = rng.choice([f for f in ("iso", "us", "dmy", "excel") if f != office_style])
                     code = ec["code"]
                     if defects.hit(rng, 0.02, "dromic", "missing_ec_code"):
                         code = None
@@ -319,20 +349,20 @@ def generate(seed: int) -> None:
                     lines.append({"item_code": src_code, "unit": unit, "quantity": qty})
                 ref = rng.choice([event["local_name"], event["international_name"],
                                   f"TY {event['local_name'].upper()}", event["event_code"]])
-                muni = area["name"]
-                if defects.hit(rng, 0.05, "ngo", "location_name_variant"):
-                    muni = name_variant(rng, muni)
+                location = {"province": area["province_name"], "municipality": area["name"]}
+                if defects.hit(rng, 0.02, "ngo", "missing_location"):
+                    del location["municipality"]
+                elif defects.hit(rng, 0.05, "ngo", "location_name_variant"):
+                    location["municipality"] = name_variant(rng, area["name"])
                 record = {
                     "distribution_id": f"{org}-{day:%Y%m%d}-{next(seq):06d}",
                     "organization": rng.choice(NGO_ORG_NAMES[org]),
                     "event_ref": ref,
                     "distributed_on": day.isoformat(),
-                    "location": {"province": area["province_name"], "municipality": muni},
+                    "location": location,
                     "beneficiaries": {"families": round(area["population"] * impact * rng.uniform(0.002, 0.03))},
                     "items": lines,
                 }
-                if defects.hit(rng, 0.02, "ngo", "missing_location"):
-                    record["location"] = {"province": area["province_name"]}
                 ngo_by_year[day.year].append(record)
                 totals["distribution_line_rows"] += len(lines)
 

@@ -33,7 +33,9 @@ Philippines, 2020–2025.
 | Star schema (conformed dimensions + facts) | `dw` | dbt |
 | Data marts / ROLAP aggregates | `mart` | dbt |
 
-See [docs/dimensional-model.md](docs/dimensional-model.md) for grain statements and the bus matrix.
+See [docs/dimensional-model.md](docs/dimensional-model.md) for grain statements and the bus matrix,
+and [docs/data-quality-framework.md](docs/data-quality-framework.md) for the 36 data-quality rules
+and their reconciliation against the planted defects (19/19 defect types detected exactly).
 
 ## Repository layout
 
@@ -57,11 +59,15 @@ python -m venv .venv
 cp .env.example .env                               # then set PGPASSWORD
 createdb driw
 
+.venv/Scripts/python ingestion/pipeline.py         # run every step below, then dbt build
+
+# or step by step:
 .venv/Scripts/python ingestion/migrate.py          # create schemas and tables
 .venv/Scripts/python ingestion/load_reference.py   # organizations, relief items
 .venv/Scripts/python ingestion/load_psgc_api.py    # PSGC geography (see data/reference/README.md)
 .venv/Scripts/python ingestion/generate_sources.py # synthetic source files + defect manifest
 .venv/Scripts/python ingestion/load_raw.py         # land sources into raw.*
+.venv/Scripts/python ingestion/pipeline.py dbt     # staging + data quality, with all tests
 ```
 
 ## Standards

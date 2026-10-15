@@ -1,0 +1,25 @@
+version: 2
+
+sources:
+  - name: raw
+    description: Landing zone, loaded by ingestion/load_raw.py. All business columns are text.
+    tables:
+      - name: pagasa_event
+      - name: ndrrmc_damage_report
+      - name: dromic_evacuation
+      - name: ngo_distribution
+      - name: lgu_response_log
+
+  - name: ref
+    description: Master data.
+    tables:
+      - name: psgc
+      - name: organization
+      - name: organization_alias
+      - name: resource_item
+      - name: resource_item_alias
+
+  - name: meta
+    tables:
+      - name: load_batch
+      - name: defect_manifest

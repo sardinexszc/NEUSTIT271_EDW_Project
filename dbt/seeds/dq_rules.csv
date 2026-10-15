@@ -1,0 +1,37 @@
+source_system,rule_code,severity,action,description,planted_defect
+pagasa,PAGASA_DUPLICATE_BULLETIN,info,Duplicate removed,The same event bulletin was issued more than once,duplicate_bulletin
+pagasa,EVENT_DATE_UNPARSEABLE,reject,Quarantined,Start or end date cannot be parsed,
+ndrrmc,NDRRMC_DUPLICATE_ROW,info,Duplicate removed,Row is an exact copy of an earlier row in the same sitrep file,duplicate_row
+ndrrmc,NUMBER_FORMAT,info,Thousands separator stripped,Numeric field contains a thousands separator,thousands_separator
+ndrrmc,MISSING_VALUE,warning,Kept; measure left null,Required measure for the damage category is blank or a placeholder (N/A - TBD),missing_value
+ndrrmc,NEGATIVE_VALUE,reject,Quarantined,Cost cannot be negative,negative_value
+ndrrmc,PERSONS_LT_FAMILIES,reject,Quarantined,Affected persons is lower than affected families (fields likely swapped),persons_less_than_families
+ndrrmc,LOC_NAME_VARIANT,info,Matched to PSGC,City/municipality name differs from the official PSGC name but was matched (normalized or fuzzy),location_name_variant
+ndrrmc,LOC_UNMATCHED,reject,Quarantined,City/municipality could not be matched to PSGC within the province,location_name_variant
+ndrrmc,EVENT_UNRESOLVED,reject,Quarantined,Incident cannot be matched to a PAGASA event,
+dromic,DATE_FORMAT_INCONSISTENT,info,Parsed and standardized,Report date uses a different format from the rest of the workbook,inconsistent_date_format
+dromic,DATE_UNPARSEABLE,reject,Quarantined,Report date cannot be parsed,
+dromic,EC_CODE_IMPUTED,warning,Code imputed from other reports,Evacuation-center code missing; recovered from other rows of the same center,missing_ec_code
+dromic,EC_CODE_UNRESOLVED,reject,Quarantined,Evacuation-center code missing and cannot be recovered unambiguously,missing_ec_code
+dromic,EC_OVER_CAPACITY,warning,Kept; flagged for operations,Families inside exceed the center's capacity (overcrowding),over_capacity
+dromic,PERSONS_LT_FAMILIES,reject,Quarantined,Persons inside is lower than families inside,persons_less_than_families
+dromic,LOC_NAME_VARIANT,info,Matched to PSGC,City/municipality name differs from the official PSGC name but was matched (normalized or fuzzy),location_name_variant
+dromic,LOC_UNMATCHED,reject,Quarantined,City/municipality could not be matched to PSGC within the province,location_name_variant
+dromic,EVENT_UNRESOLVED,reject,Quarantined,Disaster name cannot be matched to a PAGASA event,
+ngo,ORG_NAME_STANDARDIZED,info,Mapped to canonical organization,Organization written with a non-standard name or abbreviation,
+ngo,ORG_UNKNOWN,reject,Quarantined,Organization not found in the organization master,
+ngo,EVENT_UNRESOLVED,reject,Quarantined,Event reference cannot be matched to a PAGASA event,
+ngo,LOCATION_MISSING,reject,Quarantined,Distribution record has no municipality,missing_location
+ngo,LOC_NAME_VARIANT,info,Matched to PSGC,City/municipality name differs from the official PSGC name but was matched (normalized or fuzzy),location_name_variant
+ngo,LOC_UNMATCHED,reject,Quarantined,City/municipality could not be matched to PSGC within the province,location_name_variant
+ngo,ITEM_CODE_UNKNOWN,reject,Quarantined (line only),Partner item code not found in the relief-item master,unknown_item_code
+ngo,UNIT_MISMATCH,reject,Quarantined (line only),Unit differs from the unit registered for the partner item code,
+ngo,UNIT_CONVERTED,info,Converted to standard unit,Quantity converted from the partner unit to the standard unit,
+lgu,REQUEST_TYPE_MAPPED,info,Mapped to standard request type,Request type written with a non-standard code (RESQ or Medical),unknown_request_type
+lgu,REQUEST_TYPE_UNKNOWN,reject,Quarantined,Request type cannot be mapped to a standard type,unknown_request_type
+lgu,REQUEST_OPEN,info,Kept; completion pending,Request has no completion time yet (accumulating snapshot stays open),not_completed
+lgu,ARRIVAL_BEFORE_DISPATCH,reject,Quarantined,Arrival timestamp is earlier than dispatch timestamp,arrival_before_dispatch
+lgu,TIMESTAMP_UNPARSEABLE,reject,Quarantined,Requested or dispatched timestamp missing or unparseable,
+lgu,LOC_NAME_VARIANT,info,Matched to PSGC,City/municipality name differs from the official PSGC name but was matched (normalized or fuzzy),location_name_variant
+lgu,LOC_UNMATCHED,reject,Quarantined,City/municipality could not be matched to PSGC within the province,location_name_variant
+lgu,EVENT_UNRESOLVED,reject,Quarantined,Incident cannot be matched to a PAGASA event,

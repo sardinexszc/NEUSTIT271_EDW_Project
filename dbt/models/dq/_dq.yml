@@ -1,0 +1,41 @@
+version: 2
+
+seeds:
+  - name: dq_rules
+    description: >
+      Data-quality rule catalog. severity: info = auto-corrected, warning = kept and flagged,
+      reject = quarantined. planted_defect links a rule to the synthetic defect it should catch.
+    columns:
+      - name: severity
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [info, warning, reject]
+
+models:
+  - name: dq_issue_log
+    description: One row per detected issue, traceable to source file and row.
+    columns:
+      - name: severity
+        description: Null would mean a staging model emits a rule code missing from the catalog.
+        data_tests:
+          - not_null
+
+  - name: dq_rule_summary
+    description: Scorecard of how often each rule fired.
+
+  - name: dq_quarantine
+    description: Rejected records with their reject reasons.
+    columns:
+      - name: reject_reasons
+        data_tests:
+          - not_null
+
+  - name: dq_reconciliation
+    description: Planted defects (meta.defect_manifest) versus detected issues, per defect type.
+    columns:
+      - name: reconciliation_status
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [match]

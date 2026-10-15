@@ -122,12 +122,13 @@ def save_units(units: dict, publication: str, census: str | None) -> None:
         conn.execute("truncate ref.psgc cascade")
         with conn.cursor().copy(
             "copy ref.psgc (psgc_code, name, geographic_level, region_code, province_code, city_muni_code, "
-            "city_class, income_class, urban_rural, population, population_census, publication) from stdin"
+            "city_class, income_class, urban_rural, population, population_census, publication, province_name) "
+            "from stdin"
         ) as copy:
             for u in units.values():
                 copy.write_row([u["code"], u["name"], u["level"], u["region_code"], u["province_code"],
                                 u["city_muni_code"], u["city_class"], u["income"], u["urban"],
-                                u["population"], census, publication])
+                                u["population"], census, publication, u.get("province_name")])
         conn.commit()
 
     citymun = [u for u in units.values() if u["level"] in CITYMUN_LEVELS]

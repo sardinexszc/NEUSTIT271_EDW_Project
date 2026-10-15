@@ -79,6 +79,14 @@ def main() -> None:
                 )
                 total += len(rows)
             print(f"raw.{table:<22} {total:>8,} rows from {len(files)} file(s)")
+
+        manifest = json.loads((SOURCES_DIR / "_defect_manifest.json").read_text(encoding="utf-8"))
+        conn.execute("truncate meta.defect_manifest")
+        for key, count in manifest["planted_defects"].items():
+            source, defect = key.split(".", 1)
+            conn.execute("insert into meta.defect_manifest (source_system, defect, planted_count, seed) "
+                         "values (%s, %s, %s, %s)", (source, defect, count, manifest["seed"]))
+        print(f"meta.defect_manifest      {len(manifest['planted_defects']):>8} defect types")
         conn.commit()
 
 

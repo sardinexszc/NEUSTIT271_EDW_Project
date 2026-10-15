@@ -1,0 +1,14 @@
+# Connection comes from the same PG* variables as the Python scripts (.env).
+driw:
+  target: local
+  outputs:
+    local:
+      type: postgres
+      host: "{{ env_var('PGHOST') }}"
+      port: "{{ env_var('PGPORT', '5432') | as_number }}"
+      user: "{{ env_var('PGUSER') }}"
+      password: "{{ env_var('PGPASSWORD') }}"
+      dbname: "{{ env_var('PGDATABASE') }}"
+      schema: staging
+      sslmode: "{{ env_var('PGSSLMODE', 'prefer') }}"
+      threads: 4

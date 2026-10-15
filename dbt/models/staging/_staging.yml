@@ -1,0 +1,122 @@
+version: 2
+
+# Every staging model keeps ALL raw rows and adds:
+#   dq_issues  text[]  rule codes that fired ("RULE" or "RULE:field"); see seeds/dq_rules.csv
+#   dq_status  text    valid | warning | rejected | duplicate
+# Only valid and warning rows flow into the warehouse (dw).
+
+models:
+  - name: stg_pagasa_event
+    description: PAGASA bulletins; one valid row per event, re-issued bulletins marked duplicate.
+    columns:
+      - name: event_key
+        description: "TC<year>-<LOCAL NAME>, e.g. TC2024-KRISTINE"
+        data_tests:
+          - unique:
+              config:
+                where: "dq_status = 'valid'"
+          - not_null
+      - name: dq_status
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [valid, rejected, duplicate]
+
+  - name: stg_event_alias
+    description: Names by which sources refer to an event (local, international, "TY <LOCAL>", key).
+
+  - name: stg_location_resolution
+    description: Each distinct raw (province, city/municipality) pair resolved to a PSGC code.
+    columns:
+      - name: match_method
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [exact, normalized, fuzzy, unmatched]
+      - name: psgc_code
+        data_tests:
+          - relationships:
+              arguments:
+                to: source('ref', 'psgc')
+                field: psgc_code
+
+  - name: stg_ndrrmc_damage
+    description: NDRRMC sitrep lines (cumulative figures), typed and checked.
+    columns:
+      - name: psgc_code
+        data_tests:
+          - not_null:
+              config:
+                where: "dq_status in ('valid', 'warning')"
+      - name: event_key
+        data_tests:
+          - not_null:
+              config:
+                where: "dq_status in ('valid', 'warning')"
+      - name: damage_category
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [Population, Housing, Infrastructure, Agriculture]
+      - name: dq_status
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [valid, warning, rejected, duplicate]
+
+  - name: stg_dromic_evacuation
+    description: DROMIC daily evacuation-center occupancy, typed and checked.
+    columns:
+      - name: ec_code
+        data_tests:
+          - not_null:
+              config:
+                where: "dq_status in ('valid', 'warning')"
+      - name: report_date
+        data_tests:
+          - not_null:
+              config:
+                where: "dq_status in ('valid', 'warning')"
+      - name: dq_status
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [valid, warning, rejected]
+
+  - name: stg_ngo_distribution_line
+    description: NGO relief distributions flattened to item lines, in standard units.
+    columns:
+      - name: quantity_standard
+        data_tests:
+          - not_null:
+              config:
+                where: "dq_status in ('valid', 'warning')"
+      - name: org_code
+        data_tests:
+          - relationships:
+              arguments:
+                to: source('ref', 'organization')
+                field: org_code
+      - name: dq_status
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [valid, warning, rejected]
+
+  - name: stg_lgu_response
+    description: LGU response requests with milestone timestamps and elapsed hours.
+    columns:
+      - name: request_id
+        data_tests:
+          - unique
+          - not_null
+      - name: request_type
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [RESCUE, MEDEVAC, EVAC_ASSIST, ROAD_CLEAR, RELIEF_DELIV]
+      - name: dq_status
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [valid, warning, rejected]
