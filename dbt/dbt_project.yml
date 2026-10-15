@@ -21,6 +21,9 @@ models:
     dw:
       +schema: dw
       +materialized: table
+    mart:
+      +schema: mart
+      +materialized: materialized_view
 
 seeds:
   driw:

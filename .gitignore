@@ -34,3 +34,4 @@ Thumbs.db
 .claude-flow/
 data/reference/psgc_api/
 dbt/.user.yml
+.claude/

@@ -1,81 +1,154 @@
-const layers = [
-  { schema: "raw", title: "Landing zone", text: "Five source systems landed exactly as received, with batch lineage." },
-  { schema: "staging", title: "Cleanse & conform", text: "Data-quality rules standardize names, units and dates; bad rows are quarantined." },
-  { schema: "dw", title: "Star schema", text: "Four fact tables sharing conformed dimensions: date, location (PSGC), event, organization." },
-  { schema: "mart", title: "Data marts", text: "ROLAP aggregates for executive, operations and logistics dashboards." },
+import { BarList, ColumnChart } from "@/components/charts";
+import { Card, DataTable, HeroFigure, Legend, PageHeader, StatGrid, StatTile, TableView } from "@/components/ui";
+import { cube, events } from "@/lib/data";
+import { count, full, peso } from "@/lib/format";
+
+const COST_SERIES = [
+  { key: "housing", label: "Housing", color: "var(--series-1)" },
+  { key: "infrastructure", label: "Infrastructure", color: "var(--series-2)" },
+  { key: "agriculture", label: "Agriculture", color: "var(--series-3)" },
 ];
 
-const facts = [
-  { name: "Damage Assessment", type: "Transaction", grain: "event × city/municipality × damage category" },
-  { name: "Evacuation Snapshot", type: "Periodic snapshot", grain: "evacuation center × day" },
-  { name: "Resource Distribution", type: "Transaction", grain: "distribution line item" },
-  { name: "Response Action", type: "Accumulating snapshot", grain: "response request (4 milestone dates)" },
-];
+export default function ExecutivePage() {
+  const sum = (f: (e: (typeof events)[number]) => number | null) => events.reduce((t, e) => t + (f(e) ?? 0), 0);
+  const totalCost = sum((e) => e.damage_cost_php);
+  const worstEvacuation = [...events].sort((a, b) => (b.peak_persons_in_centers ?? 0) - (a.peak_persons_in_centers ?? 0))[0];
 
-const dashboards = ["Executive overview", "Evacuation operations", "Relief logistics"];
+  const years = [...new Set(events.map((e) => e.event_year))];
+  const costByYear = years.map((y) => {
+    const ys = events.filter((e) => e.event_year === y);
+    return {
+      year: String(y),
+      housing: ys.reduce((t, e) => t + e.housing_cost_php, 0),
+      infrastructure: ys.reduce((t, e) => t + e.infrastructure_cost_php, 0),
+      agriculture: ys.reduce((t, e) => t + e.agriculture_cost_php, 0),
+      events: ys.length,
+    };
+  });
 
-export default function Home() {
+  const topEvents = [...events]
+    .sort((a, b) => b.damage_cost_php - a.damage_cost_php)
+    .slice(0, 10)
+    .map((e) => ({ name: `${e.local_name} ${e.event_year}`, cost: e.damage_cost_php }));
+
+  // ROLAP: region subtotals straight from the GROUP BY CUBE mart
+  const byRegion = cube
+    .filter((r) => r.grouping_level === "region")
+    .sort((a, b) => b.affected_persons - a.affected_persons)
+    .slice(0, 10)
+    .map((r) => ({ region: r.region_name ?? "", affected: r.affected_persons, cost: r.damage_cost_php }));
+  const hazards = cube.filter((r) => r.grouping_level === "hazard");
+
   return (
-    <main className="mx-auto max-w-5xl px-4 py-12 sm:px-6 sm:py-16">
-      <p className="text-sm font-medium tracking-wide text-sky-700 uppercase">IT271 Enterprise Data Warehousing</p>
-      <h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">
-        Disaster Response Intelligence Warehouse
-      </h1>
-      <p className="mt-4 max-w-3xl text-lg text-slate-600">
-        Integrating damage reports, evacuation-center occupancy, relief distribution and response logs for
-        Philippine tropical cyclones and monsoon floods, 2020–2025, into one dimensional model for decision support.
-      </p>
-      <p className="mt-3 max-w-3xl rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
-        Event names, dates and PSGC geography are real. All damage, evacuation, relief and response figures are synthetic.
-      </p>
+    <>
+      <PageHeader
+        title="Executive overview"
+        description="Impact of tropical cyclones and monsoon floods on the Philippines, 2020–2025, across all reporting agencies."
+      />
 
-      <h2 className="mt-12 text-xl font-semibold text-slate-900">Architecture</h2>
-      <ol className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {layers.map((l, i) => (
-          <li key={l.schema} className="rounded-lg border border-slate-200 bg-white p-4">
-            <span className="font-mono text-xs text-slate-500">{i + 1}. {l.schema}</span>
-            <h3 className="mt-1 font-medium text-slate-900">{l.title}</h3>
-            <p className="mt-1 text-sm text-slate-600">{l.text}</p>
-          </li>
-        ))}
-      </ol>
-
-      <h2 className="mt-12 text-xl font-semibold text-slate-900">Fact tables</h2>
-      <div className="mt-4 overflow-x-auto rounded-lg border border-slate-200 bg-white">
-        <table className="w-full text-left text-sm">
-          <thead className="bg-slate-50 text-slate-600">
-            <tr>
-              <th className="px-4 py-2 font-medium">Fact</th>
-              <th className="px-4 py-2 font-medium">Type</th>
-              <th className="px-4 py-2 font-medium">Grain (one row per…)</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
-            {facts.map((f) => (
-              <tr key={f.name}>
-                <td className="px-4 py-2 font-medium text-slate-900">{f.name}</td>
-                <td className="px-4 py-2 text-slate-600">{f.type}</td>
-                <td className="px-4 py-2 text-slate-600">{f.grain}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="grid gap-3 lg:grid-cols-[1fr_2fr]">
+        <HeroFigure
+          label="Total damage, 2020–2025"
+          value={peso(totalCost)}
+          detail={`${events.length} events · ${hazards
+            .map((h) => `${h.events} ${h.hazard_type === "Flood" ? "monsoon floods" : "tropical cyclones"}`)
+            .join(", ")}`}
+        />
+        <StatGrid>
+          <StatTile label="Deaths" value={full(sum((e) => e.dead))} detail={`${full(sum((e) => e.missing))} missing`} />
+          <StatTile label="People affected" value={count(sum((e) => e.affected_persons))} />
+          <StatTile label="Houses destroyed" value={count(sum((e) => e.houses_totally_damaged))} />
+          <StatTile
+            label="Peak in evacuation centers"
+            value={count(worstEvacuation.peak_persons_in_centers)}
+            detail={worstEvacuation.event_name}
+          />
+          <StatTile label="Relief delivered" value={peso(sum((e) => e.relief_value_php))} />
+          <StatTile label="Response requests" value={count(sum((e) => e.response_requests))} />
+        </StatGrid>
       </div>
 
-      <h2 className="mt-12 text-xl font-semibold text-slate-900">Dashboards</h2>
-      <ul className="mt-4 grid gap-4 sm:grid-cols-3">
-        {dashboards.map((d) => (
-          <li key={d} className="rounded-lg border border-dashed border-slate-300 p-4 text-slate-500">
-            {d}
-            <span className="mt-1 block text-xs">In development</span>
-          </li>
-        ))}
-      </ul>
+      <div className="mt-4 grid gap-4 lg:grid-cols-2">
+        <Card title="Damage cost by year" subtitle="Stacked by damage category">
+          <Legend items={COST_SERIES} />
+          <ColumnChart data={costByYear} xKey="year" series={COST_SERIES} format="peso" />
+          <TableView
+            columns={[
+              { key: "year", label: "Year" },
+              { key: "events", label: "Events", numeric: true },
+              ...COST_SERIES.map((s) => ({ key: s.key, label: s.label, numeric: true })),
+            ]}
+            rows={costByYear.map((r) => ({
+              year: r.year,
+              events: r.events,
+              housing: peso(r.housing),
+              infrastructure: peso(r.infrastructure),
+              agriculture: peso(r.agriculture),
+            }))}
+          />
+        </Card>
 
-      <footer className="mt-16 border-t border-slate-200 pt-6 text-sm text-slate-500">
-        Ivan Christian Salinas · Aligned with the UNDRR Global Framework for Disaster-Related Statistics and the
-        Sendai Framework 2015–2030.
-      </footer>
-    </main>
+        <Card title="Costliest events" subtitle="Total damage cost, top 10">
+          <BarList
+            data={topEvents}
+            labelKey="name"
+            series={[{ key: "cost", label: "Damage cost", color: "var(--series-1)" }]}
+            format="peso"
+            labelWidth={120}
+          />
+          <TableView
+            columns={[{ key: "name", label: "Event" }, { key: "cost", label: "Damage cost", numeric: true }]}
+            rows={topEvents.map((r) => ({ name: r.name, cost: peso(r.cost) }))}
+          />
+        </Card>
+
+        <Card
+          title="People affected by region"
+          subtitle="Top 10 regions, all events · region subtotals from the GROUP BY CUBE mart"
+          className="lg:col-span-2"
+        >
+          <BarList
+            data={byRegion}
+            labelKey="region"
+            series={[{ key: "affected", label: "People affected", color: "var(--series-1)" }]}
+            format="count"
+            labelWidth={190}
+          />
+          <TableView
+            columns={[
+              { key: "region", label: "Region" },
+              { key: "affected", label: "People affected", numeric: true },
+              { key: "cost", label: "Damage cost", numeric: true },
+            ]}
+            rows={byRegion.map((r) => ({ region: r.region, affected: full(r.affected), cost: peso(r.cost) }))}
+          />
+        </Card>
+      </div>
+
+      <Card title="All events" subtitle="One row per event, newest first" className="mt-4">
+        <div className="max-h-[28rem] overflow-auto">
+          <DataTable
+            columns={[
+              { key: "event", label: "Event" },
+              { key: "category", label: "Category" },
+              { key: "dates", label: "Dates" },
+              { key: "dead", label: "Deaths", numeric: true },
+              { key: "affected", label: "Affected", numeric: true },
+              { key: "cost", label: "Damage", numeric: true },
+              { key: "relief", label: "Relief", numeric: true },
+            ]}
+            rows={[...events].reverse().map((e) => ({
+              event: e.event_name,
+              category: e.category,
+              dates: `${e.start_date} – ${e.end_date}`,
+              dead: full(e.dead),
+              affected: count(e.affected_persons),
+              cost: peso(e.damage_cost_php),
+              relief: peso(e.relief_value_php),
+            }))}
+          />
+        </div>
+      </Card>
+    </>
   );
 }

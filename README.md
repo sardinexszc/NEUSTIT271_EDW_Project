@@ -67,8 +67,24 @@ createdb driw
 .venv/Scripts/python ingestion/load_psgc_api.py    # PSGC geography (see data/reference/README.md)
 .venv/Scripts/python ingestion/generate_sources.py # synthetic source files + defect manifest
 .venv/Scripts/python ingestion/load_raw.py         # land sources into raw.*
-.venv/Scripts/python ingestion/pipeline.py dbt     # staging + data quality, with all tests
+.venv/Scripts/python ingestion/pipeline.py dbt     # staging, data quality, star schema, marts + all tests
+.venv/Scripts/python ingestion/pipeline.py export  # snapshot the marts to web/src/data/ for the dashboards
 ```
+
+### Dashboards
+
+```bash
+cd web && npm install && npm run dev               # http://localhost:3000
+```
+
+| Page | For | Shows |
+|---|---|---|
+| `/` Executive | leadership | Total damage, casualties, cost by year and category, costliest events, regions (from the CUBE mart) |
+| `/operations` | operations managers | Per event: people in evacuation centers per day, over-capacity centers, dispatch times by type and priority |
+| `/logistics` | logistics | Relief by organization and resource category, least-served provinces (PHP per affected person) |
+| `/about` | everyone | Architecture, fact grains, source systems, data-quality proof |
+
+The site is static (it reads the exported JSON), so Vercel deploys it with no database.
 
 ## Standards
 

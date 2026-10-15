@@ -9,10 +9,10 @@ event and place.
 
 | Fact | Type | Grain (one row per…) | Rows* | Measures |
 |---|---|---|---|---|
-| `fact_damage_assessment` | Transaction | event × city/municipality × damage category | 8,810 | dead, injured, missing, affected families/persons, houses partially/totally damaged, cost (PHP) |
-| `fact_evacuation_snapshot` | Periodic snapshot | evacuation center × day × event | 31,290 | families inside, persons inside, capacity, over-capacity flag |
-| `fact_resource_distribution` | Transaction | distribution line item | 13,614 | quantity (standard unit), value (PHP), beneficiary families |
-| `fact_response_action` | Accumulating snapshot | response request | 32,043 | hours to dispatch / arrive / on site / complete, personnel, completed flag |
+| `fact_damage_assessment` | Transaction | event × city/municipality × damage category | 8,806 | dead, injured, missing, affected families/persons, houses partially/totally damaged, cost (PHP) |
+| `fact_evacuation_snapshot` | Periodic snapshot | evacuation center × day × event | 31,110 | families inside, persons inside, capacity, over-capacity flag |
+| `fact_resource_distribution` | Transaction | distribution line item | 11,179 | quantity (standard unit), value (PHP), beneficiary families |
+| `fact_response_action` | Accumulating snapshot | response request | 32,347 | hours to dispatch / arrive / on site / complete, personnel, completed flag |
 
 \* Seed 271.
 
@@ -40,7 +40,7 @@ event and place.
 | `dim_event` | event code (`TC2024-KRISTINE`) | 31 | Local + international name, hazard type, category and rank, max wind, max signal, dates, duration. |
 | `dim_organization` | org code | 13 | Government, NGO, international, LGU; source name variants resolved via aliases. |
 | `dim_resource` | item code | 10 | Category (Food, Water, Non-Food, Medical, Shelter), standard unit, unit cost. |
-| `dim_evacuation_center` | EC code | 1,796 | Type, barangay, capacity, PSGC of its city/municipality. SCD Type 1. |
+| `dim_evacuation_center` | EC code | 1,751 | Type, barangay, capacity, PSGC of its city/municipality. SCD Type 1. |
 | `dim_damage_category` | category | 4 | Population, Housing, Infrastructure, Agriculture. |
 | `dim_response_type` | type code | 5 | Response type and cluster (life-saving, logistics, access). |
 | `dim_source_system` | batch id | per load | Lineage: source system and file each fact row came from. |
@@ -81,6 +81,24 @@ check that:
 - every row that passed data quality reaches its fact, so inner joins drop nothing silently;
 - SCD2 versions never overlap or leave gaps, and exactly one version per place is current;
 - Paeng's damage in the former Maguindanao rolls up to the new provinces.
+
+## Data marts (`mart` schema)
+
+Materialized views refreshed by every `dbt build`, each shaped for a dashboard. A dbt test
+checks that every mart adds back up to the facts it summarizes.
+
+| Mart | Grain | Used by |
+|---|---|---|
+| `mart_event_summary` | event | Executive: headline figures from all four facts |
+| `mart_impact_cube` | `GROUP BY CUBE (year, region, hazard)`: every subtotal, labelled by `grouping_level` | Executive: region totals |
+| `mart_province_event_impact` | event × province (SCD2 province at the time) | Logistics: relief vs impact |
+| `mart_evacuation_daily` | event × day (sum across centers only) | Operations |
+| `mart_response_performance` | `GROUPING SETS` over event, response type, priority (`All` = rolled up) | Operations |
+| `mart_relief_by_org_category` | event × organization × resource category | Logistics |
+
+The dashboards read a JSON snapshot of these marts (`ingestion/export_marts.py` →
+`web/src/data/`), because Vercel cannot reach the local PostgreSQL server. Pointing
+`web/src/lib/data.ts` at Supabase would make them live without changing any page.
 
 ## Example: OLAP with `GROUP BY CUBE`
 

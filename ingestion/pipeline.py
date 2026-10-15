@@ -4,13 +4,14 @@
     python ingestion/pipeline.py dbt              # only the dbt build
     python ingestion/pipeline.py generate raw dbt # regenerate sources, reload, rebuild
 
-Steps: migrate, reference, psgc, generate, raw, dbt
+Steps: migrate, reference, psgc, generate, raw, dbt, export
 """
 
 import sys
 
 from dbt.cli.main import dbtRunner
 
+import export_marts
 import generate_sources
 import load_psgc_api
 import load_raw
@@ -34,6 +35,7 @@ STEPS = {
     "generate": lambda: generate_sources.generate(seed=271),
     "raw": load_raw.main,
     "dbt": run_dbt,
+    "export": export_marts.main,
 }
 
 

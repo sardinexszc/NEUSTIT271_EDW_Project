@@ -37,6 +37,13 @@ NGO_ORG_NAMES = {  # canonical org -> names its field staff actually type
     "UNICEF": ["UNICEF", "UNICEF PH"],
     "DSWD": ["DSWD", "DSWD-FO"],
 }
+# Relief mix: how often partners include each item, and how many standard units per
+# beneficiary family. Food packs and rice dominate real relief operations; kits are rarer.
+ITEM_WEIGHT = {"FFP": 30, "RICE": 20, "WATER": 15, "HYGKIT": 10, "TARP": 6, "SLPKIT": 6,
+               "KITCHEN": 5, "SHELTERKIT": 3, "MEDKIT": 3, "WATERKIT": 2}
+UNITS_PER_FAMILY = {"FFP": (0.8, 1.2), "RICE": (5, 25), "WATER": (4, 20), "HYGKIT": (0.3, 0.8),
+                    "TARP": (0.1, 0.5), "SLPKIT": (0.1, 0.4), "KITCHEN": (0.1, 0.3),
+                    "SHELTERKIT": (0.02, 0.1), "MEDKIT": (0.005, 0.02), "WATERKIT": (0.05, 0.2)}
 NGO_ITEMS = {  # item -> source codes/units used by partners (see resource_items.csv aliases)
     "FFP": [("FFP", "pack", 1), ("FOODPACK", "pack", 1), ("FP-01", "box", 1)],
     "RICE": [("RICE", "kg", 1), ("RICE-SACK", "sack", 50), ("R50", "sack", 50)],
@@ -236,15 +243,19 @@ def generate(seed: int) -> None:
             pop = area["population"]
             persons = pop * impact * rng.uniform(0.05, 0.35)
             families = persons / rng.uniform(*PERSONS_PER_FAMILY)
+            # Losses grow much faster than linearly with event strength: the strongest events
+            # (weight ~1) reach tens of billions of PHP; weak ones stay small.
+            loss_scale = 12 * float(event["severity_weight"]) ** 3
+            casualty_scale = 4 * float(event["severity_weight"]) ** 3
             final = {
-                "dead": max(0, round(rng.expovariate(1) * persons * 2e-4 * impact)),
-                "injured": max(0, round(rng.expovariate(1) * persons * 8e-4 * impact)),
-                "missing": max(0, round(rng.expovariate(1.5) * persons * 1e-4 * impact)),
+                "dead": max(0, round(rng.expovariate(1) * persons * 2e-4 * impact * casualty_scale)),
+                "injured": max(0, round(rng.expovariate(1) * persons * 8e-4 * impact * casualty_scale)),
+                "missing": max(0, round(rng.expovariate(1.5) * persons * 1e-4 * impact * casualty_scale)),
                 "families": families, "persons": persons,
-                "partial": families * impact * rng.uniform(0.05, 0.25),
-                "total": families * impact * rng.uniform(0.005, 0.06),
-                "infra": pop * impact * rng.uniform(80, 900),
-                "agri": pop * impact * rng.uniform(50, 1500),
+                "partial": families * impact * rng.uniform(0.05, 0.25) * min(3.0, loss_scale),
+                "total": families * impact * rng.uniform(0.005, 0.06) * min(3.0, loss_scale),
+                "infra": pop * impact * rng.uniform(80, 900) * loss_scale,
+                "agri": pop * impact * rng.uniform(50, 1500) * loss_scale,
             }
             first_reported = rng.randint(1, sitreps)
             for s in range(first_reported, sitreps + 1):
@@ -339,10 +350,16 @@ def generate(seed: int) -> None:
             for _ in range(rng.randint(1, 2 + round(impact * 6))):
                 org = rng.choice(list(NGO_ORG_NAMES))
                 day = start + timedelta(days=rng.randint(0, 21))
+                beneficiary_families = max(10, round(area["population"] * impact * rng.uniform(0.002, 0.03)))
+                items = []
+                while len(items) < rng.randint(1, 4):
+                    item = rng.choices(list(ITEM_WEIGHT), weights=list(ITEM_WEIGHT.values()))[0]
+                    if item not in items:
+                        items.append(item)
                 lines = []
-                for item in rng.sample(list(NGO_ITEMS), rng.randint(1, 4)):
+                for item in items:
                     src_code, unit, factor = rng.choice(NGO_ITEMS[item])
-                    std_qty = area["population"] * impact * rng.uniform(0.002, 0.02)
+                    std_qty = beneficiary_families * rng.uniform(*UNITS_PER_FAMILY[item])
                     qty = max(1, round(std_qty / factor))
                     if defects.hit(rng, 0.01, "ngo", "unknown_item_code"):
                         src_code = src_code.lower() + "-x"
@@ -360,7 +377,7 @@ def generate(seed: int) -> None:
                     "event_ref": ref,
                     "distributed_on": day.isoformat(),
                     "location": location,
-                    "beneficiaries": {"families": round(area["population"] * impact * rng.uniform(0.002, 0.03))},
+                    "beneficiaries": {"families": beneficiary_families},
                     "items": lines,
                 }
                 ngo_by_year[day.year].append(record)

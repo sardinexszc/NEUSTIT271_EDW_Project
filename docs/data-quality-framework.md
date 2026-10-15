@@ -75,7 +75,7 @@ The synthetic generator records every defect it plants in `_defect_manifest.json
 | Exactly reconciled | **19 / 19** |
 | Rejected rows not explained by a planted defect | 0 |
 
-Load rates after data quality: NDRRMC 98.4%, DROMIC 99.6%, NGO lines 96.7%, LGU 98.7%.
+Load rates after data quality: NDRRMC 98.2%, DROMIC 99.6%, NGO lines 97.0%, LGU 98.8%.
 
 A warn-level test (`warn_unplanted_rejections`) flags reject rules firing with no planted
 cause. During development it caught a real parsing bug: monsoon incidents named

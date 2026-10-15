@@ -1,0 +1,28 @@
+version: 2
+
+# Data marts: materialized views refreshed by every `dbt build`, shaped for the dashboards.
+
+models:
+  - name: mart_event_summary
+    description: Executive mart. One row per event with damage, evacuation, relief and response headlines.
+    columns:
+      - name: event_code
+        data_tests: [unique, not_null]
+
+  - name: mart_impact_cube
+    description: ROLAP cube (GROUP BY CUBE) of impact by year x region x hazard type with all subtotals.
+    columns:
+      - name: grouping_level
+        data_tests: [not_null]
+
+  - name: mart_province_event_impact
+    description: Event x province impact versus relief delivered (coverage).
+
+  - name: mart_evacuation_daily
+    description: Evacuation-center load per event per day.
+
+  - name: mart_response_performance
+    description: Response timeliness with GROUPING SETS roll-ups ('All' = rolled up).
+
+  - name: mart_relief_by_org_category
+    description: Relief delivered per event x organization x resource category.
