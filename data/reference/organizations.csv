@@ -5,9 +5,10 @@ DOH,Department of Health,National Government,,DOH;Department of Health;DOH-HEMS
 DPWH,Department of Public Works and Highways,National Government,,DPWH;Public Works
 AFP,Armed Forces of the Philippines,National Government,Department of National Defense,AFP;Armed Forces;Phil. Army;Philippine Army
 BFP,Bureau of Fire Protection,National Government,Department of the Interior and Local Government,BFP;Bureau of Fire
+PNP,Philippine National Police,National Government,Department of the Interior and Local Government,PNP;Philippine National Police
 PCG,Philippine Coast Guard,National Government,Department of Transportation,PCG;Coast Guard
 PRC,Philippine Red Cross,NGO,,PRC;Philippine Red Cross;Red Cross PH;Phil Red Cross;PH Red Cross
 CARITAS,Caritas Philippines,NGO,,Caritas;Caritas Philippines;Caritas PH;NASSA-Caritas
 WFP,World Food Programme,International,United Nations,WFP;World Food Programme;UN WFP
 UNICEF,UNICEF Philippines,International,United Nations,UNICEF;UNICEF PH
-LGU,Local Government Unit (MDRRMO/CDRRMO),LGU,,LGU;MDRRMO;CDRRMO;PDRRMO;Municipal DRRMO
+LGU,Local Government Unit (MDRRMO/CDRRMO),LGU,,LGU;MDRRMO;CDRRMO;PDRRMO;Municipal DRRMO;MDRRMO Rescue Team

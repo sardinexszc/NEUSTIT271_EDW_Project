@@ -18,6 +18,9 @@ models:
     dq:
       +schema: dq
       +materialized: table
+    dw:
+      +schema: dw
+      +materialized: table
 
 seeds:
   driw:

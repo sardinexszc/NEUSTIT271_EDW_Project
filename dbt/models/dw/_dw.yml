@@ -1,0 +1,162 @@
+version: 2
+
+seeds:
+  - name: psgc_changes
+    description: >
+      Dated changes to PSGC attributes that drive SCD Type 2 versions in dim_location.
+      Currently the 2022 split of Maguindanao (RA 11550).
+    config:
+      schema: ref
+      column_types:
+        psgc_code: text
+        effective_date: date
+
+models:
+  # ---------------------------------------------------------------- dimensions
+  - name: dim_date
+    description: Calendar 2019-2026; key -1 = "Not yet occurred" for open milestones.
+    config:
+      post_hook: "{{ primary_key('date_key') }}"
+    columns:
+      - name: date_key
+        data_tests: [unique, not_null]
+
+  - name: dim_location
+    description: >
+      City/municipality, SCD Type 2 on PSGC code. One version per period of unchanged
+      attributes (valid_from..valid_to, is_current). Facts join to the version valid on their date.
+    config:
+      post_hook: "{{ primary_key('location_key') }}"
+    columns:
+      - name: location_key
+        data_tests: [unique, not_null]
+      - name: psgc_code
+        data_tests: [not_null]
+      - name: province_name
+        data_tests: [not_null]
+
+  - name: dim_event
+    description: PAGASA hazard events (tropical cyclones and monsoon floods), 2020-2025.
+    config:
+      post_hook: "{{ primary_key('event_key') }}"
+    columns:
+      - name: event_key
+        data_tests: [unique, not_null]
+      - name: event_code
+        data_tests: [unique, not_null]
+
+  - name: dim_organization
+    description: Responding and reporting organizations.
+    config:
+      post_hook: "{{ primary_key('organization_key') }}"
+    columns:
+      - name: organization_key
+        data_tests: [unique, not_null]
+
+  - name: dim_resource
+    description: Relief items with standard unit and unit cost.
+    config:
+      post_hook: "{{ primary_key('resource_key') }}"
+    columns:
+      - name: resource_key
+        data_tests: [unique, not_null]
+
+  - name: dim_evacuation_center
+    description: Evacuation centers (SCD Type 1).
+    config:
+      post_hook: "{{ primary_key('evacuation_center_key') }}"
+    columns:
+      - name: evacuation_center_key
+        data_tests: [unique, not_null]
+      - name: ec_code
+        data_tests: [unique, not_null]
+
+  - name: dim_damage_category
+    config:
+      post_hook: "{{ primary_key('damage_category_key') }}"
+    columns:
+      - name: damage_category_key
+        data_tests: [unique, not_null]
+
+  - name: dim_response_type
+    config:
+      post_hook: "{{ primary_key('response_type_key') }}"
+    columns:
+      - name: response_type_key
+        data_tests: [unique, not_null]
+
+  - name: dim_source_system
+    description: Lineage; one row per loaded source file (batch).
+    config:
+      post_hook: "{{ primary_key('source_key') }}"
+    columns:
+      - name: source_key
+        data_tests: [unique, not_null]
+
+  # ---------------------------------------------------------------- facts
+  - name: fact_damage_assessment
+    description: "Transaction fact. Grain: event x city/municipality x damage category (latest valid sitrep)."
+    config:
+      post_hook: >
+        {{ foreign_keys({
+            'report_date_key': ['dim_date', 'date_key'],
+            'location_key': ['dim_location', 'location_key'],
+            'event_key': ['dim_event', 'event_key'],
+            'damage_category_key': ['dim_damage_category', 'damage_category_key'],
+            'source_key': ['dim_source_system', 'source_key']}) }}
+    columns:
+      - name: location_key
+        data_tests: [not_null]
+      - name: cost_php
+        data_tests:
+          - non_negative
+
+  - name: fact_evacuation_snapshot
+    description: >
+      Periodic snapshot. Grain: evacuation center x day x event.
+      families_inside / persons_inside are semi-additive (never sum across days).
+    config:
+      post_hook: >
+        {{ foreign_keys({
+            'snapshot_date_key': ['dim_date', 'date_key'],
+            'location_key': ['dim_location', 'location_key'],
+            'event_key': ['dim_event', 'event_key'],
+            'evacuation_center_key': ['dim_evacuation_center', 'evacuation_center_key'],
+            'organization_key': ['dim_organization', 'organization_key'],
+            'source_key': ['dim_source_system', 'source_key']}) }}
+
+  - name: fact_resource_distribution
+    description: "Transaction fact. Grain: distribution line item. Quantities in standard units."
+    config:
+      post_hook: >
+        {{ foreign_keys({
+            'distribution_date_key': ['dim_date', 'date_key'],
+            'location_key': ['dim_location', 'location_key'],
+            'event_key': ['dim_event', 'event_key'],
+            'organization_key': ['dim_organization', 'organization_key'],
+            'resource_key': ['dim_resource', 'resource_key'],
+            'source_key': ['dim_source_system', 'source_key']}) }}
+    columns:
+      - name: quantity
+        data_tests:
+          - non_negative
+
+  - name: fact_response_action
+    description: >
+      Accumulating snapshot. Grain: response request. Four role-playing dates
+      (requested, dispatched, arrived, completed); -1 = not yet occurred.
+    config:
+      post_hook: >
+        {{ foreign_keys({
+            'requested_date_key': ['dim_date', 'date_key'],
+            'dispatched_date_key': ['dim_date', 'date_key'],
+            'arrived_date_key': ['dim_date', 'date_key'],
+            'completed_date_key': ['dim_date', 'date_key'],
+            'location_key': ['dim_location', 'location_key'],
+            'event_key': ['dim_event', 'event_key'],
+            'response_type_key': ['dim_response_type', 'response_type_key'],
+            'organization_key': ['dim_organization', 'organization_key'],
+            'source_key': ['dim_source_system', 'source_key']}) }}
+    columns:
+      - name: request_id
+        data_tests: [unique, not_null]
