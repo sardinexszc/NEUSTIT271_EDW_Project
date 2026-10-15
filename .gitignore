@@ -33,3 +33,4 @@ Thumbs.db
 # Local agent tooling
 .claude-flow/
 data/reference/psgc_api/
+dbt/.user.yml
