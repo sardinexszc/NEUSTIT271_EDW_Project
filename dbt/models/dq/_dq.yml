@@ -22,6 +22,9 @@ models:
           - not_null
 
   - name: dq_rule_summary
+    config:
+      grants:
+        select: [driw_steward, driw_analyst]
     description: Scorecard of how often each rule fired.
 
   - name: dq_quarantine
@@ -32,6 +35,9 @@ models:
           - not_null
 
   - name: dq_reconciliation
+    config:
+      grants:
+        select: [driw_steward, driw_analyst]
     description: Planted defects (meta.defect_manifest) versus detected issues, per defect type.
     columns:
       - name: reconciliation_status

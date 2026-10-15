@@ -1,0 +1,10 @@
+version: 2
+
+# Region-scoped views for regional users. security_invoker = true, so the fact tables'
+# row-level security filters every row to the caller's region(s).
+
+models:
+  - name: regional_event_impact
+    description: Event x province impact and relief, limited to the caller's region(s).
+  - name: regional_response_summary
+    description: Response timeliness per event and type, limited to the caller's region(s).

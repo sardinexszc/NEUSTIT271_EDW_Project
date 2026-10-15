@@ -6,12 +6,14 @@ Supabase later only changes web/src/lib/data.ts to query the marts live.
 """
 
 import json
+import os
 from datetime import date, datetime, timezone
 from decimal import Decimal
+from pathlib import Path
 
 from common import ROOT, connect
 
-OUT_DIR = ROOT / "web" / "src" / "data"
+OUT_DIR = Path(os.environ.get("DRIW_EXPORT_DIR", ROOT / "web" / "src" / "data"))
 MARTS = [
     "mart_event_summary",
     "mart_impact_cube",

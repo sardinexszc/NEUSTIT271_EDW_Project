@@ -36,6 +36,8 @@ Philippines, 2020–2025.
 See [docs/dimensional-model.md](docs/dimensional-model.md) for grain statements and the bus matrix,
 and [docs/data-quality-framework.md](docs/data-quality-framework.md) for the 36 data-quality rules
 and their reconciliation against the planted defects (19/19 defect types detected exactly).
+[docs/governance.md](docs/governance.md) covers roles and row-level security, and
+[docs/validation-report.md](docs/validation-report.md) the test results.
 
 ## Repository layout
 
@@ -70,6 +72,17 @@ createdb driw
 .venv/Scripts/python ingestion/pipeline.py dbt     # staging, data quality, star schema, marts + all tests
 .venv/Scripts/python ingestion/pipeline.py export  # snapshot the marts to web/src/data/ for the dashboards
 ```
+
+### Tests
+
+```bash
+.venv/Scripts/python -m pytest tests                # fresh database end to end + access control (~1 min)
+```
+
+Builds a new `driw_e2e` database through the whole pipeline, then checks completeness,
+data-quality reconciliation, aggregate consistency, determinism, a second rebuild, and that
+each role (executive, analyst, regional, steward) sees exactly what it should. GitHub Actions
+runs it, plus the dashboard build, on every push.
 
 ### Dashboards
 

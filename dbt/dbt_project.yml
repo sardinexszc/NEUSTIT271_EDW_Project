@@ -10,21 +10,38 @@ test-paths: ["tests"]
 target-path: "target"
 clean-targets: ["target", "dbt_packages"]
 
+# Access control: grants are re-applied on every build, so rebuilt tables never lose them.
+# Roles are created in supabase/migrations/20261017000100_governance.sql.
 models:
   driw:
     staging:
       +schema: staging
       +materialized: table
+      +grants:
+        select: [driw_steward]
     dq:
       +schema: dq
       +materialized: table
+      +grants:
+        select: [driw_steward]
     dw:
       +schema: dw
       +materialized: table
+      +grants:
+        select: [driw_analyst, driw_regional]
     mart:
       +schema: mart
       +materialized: materialized_view
+      +grants:
+        select: [driw_executive, driw_analyst]
+    secure:
+      +schema: secure
+      +materialized: view
+      +grants:
+        select: [driw_regional, driw_analyst]
 
 seeds:
   driw:
     +schema: dq
+    +grants:
+      select: [driw_steward, driw_analyst]

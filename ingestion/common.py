@@ -8,7 +8,8 @@ from dotenv import load_dotenv
 
 ROOT = Path(__file__).resolve().parent.parent
 REFERENCE_DIR = ROOT / "data" / "reference"
-SOURCES_DIR = ROOT / "data" / "sources"
+# overridable so tests can run the pipeline without touching the working copy
+SOURCES_DIR = Path(os.environ.get("DRIW_SOURCES_DIR", ROOT / "data" / "sources"))
 MIGRATIONS_DIR = ROOT / "supabase" / "migrations"
 
 load_dotenv(ROOT / ".env")
