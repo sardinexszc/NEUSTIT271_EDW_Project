@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { CsvButton, type CsvRow } from "./csv-button";
 
 export function PageHeader({ title, description }: { title: string; description: string }) {
   return (
@@ -67,18 +68,23 @@ export function Legend({ items }: { items: LegendItem[] }) {
   );
 }
 
-/** Every chart has a table twin: the accessible, colour-free way to read every value. */
-export function TableView({ columns, rows }: {
+/** Every chart has a table twin: the accessible, colour-free way to read every value.
+    `csv` (raw values keyed like `columns`) adds a download of the same rows. */
+export function TableView({ columns, rows, csv }: {
   columns: { key: string; label: string; numeric?: boolean }[];
   rows: Record<string, ReactNode>[];
+  csv?: { filename: string; rows: CsvRow[] };
 }) {
   return (
-    <details className="mt-3 text-sm">
-      <summary className="cursor-pointer text-ink-2 hover:text-ink">Show table</summary>
-      <div className="mt-2 max-h-80 overflow-auto rounded-md border border-[var(--border)]">
-        <DataTable columns={columns} rows={rows} />
-      </div>
-    </details>
+    <div className="mt-3 flex items-start gap-3 text-sm">
+      <details className="min-w-0 flex-1">
+        <summary className="cursor-pointer text-ink-2 hover:text-ink">Show table</summary>
+        <div className="mt-2 max-h-80 overflow-auto rounded-md border border-[var(--border)]">
+          <DataTable columns={columns} rows={rows} />
+        </div>
+      </details>
+      {csv && <CsvButton filename={csv.filename} columns={columns} rows={csv.rows} />}
+    </div>
   );
 }
 

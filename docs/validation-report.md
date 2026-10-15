@@ -7,7 +7,7 @@ How DRIW was tested, and the results. Data seed 271, run on PostgreSQL 17.11.
 | Suite | Checks | Result |
 |---|---|---|
 | dbt build (models + data tests) | 99 | **99 pass** |
-| End-to-end tests (`tests/test_end_to_end.py`) | 27 | **27 pass** |
+| End-to-end tests (`tests/test_end_to_end.py`) | 28 | **28 pass** |
 | Governance tests (`tests/test_governance.py`) | 21 | **21 pass** |
 | Dashboards (`npm run lint`, `npm run build`) | lint + type check + static build | **pass** |
 
@@ -34,7 +34,8 @@ every push (`.github/workflows/ci.yml`).
 ### 3. Consistency: aggregates agree with detail
 - Damage totals are equal in facts, the event mart and the CUBE grand total.
 - Every mart adds back up to its facts (`assert_marts_reconcile_to_facts`).
-- Exported JSON row counts equal mart row counts.
+- Exported JSON row counts equal mart row counts, and the dashboard data committed in
+  `web/src/data/` is identical to a fresh build (fails if someone forgets to re-export).
 
 ### 4. Model integrity
 - Primary and foreign keys on the star schema (9 PKs, 26 FKs).

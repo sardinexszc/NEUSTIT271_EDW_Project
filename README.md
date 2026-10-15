@@ -98,6 +98,10 @@ cd web && npm install && npm run dev               # http://localhost:3000
 | `/about` | everyone | Architecture, fact grains, source systems, data-quality proof |
 
 The site is static (it reads the exported JSON), so Vercel deploys it with no database.
+The selected event is part of the URL, so views can be shared (for example
+`/operations?event=TC2024-KRISTINE`), and every chart table has a **Download CSV** with the
+raw, unformatted values. If you rebuild the warehouse, re-run the `export` step and commit
+`web/src/data/`; the test suite fails when the committed data is stale.
 
 ## Standards
 

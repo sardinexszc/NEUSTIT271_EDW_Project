@@ -79,6 +79,21 @@ def test_exported_json_matches_marts(warehouse, db):
         assert len(rows) == scalar(db, f"select count(*) from mart.{mart}"), mart
 
 
+def test_committed_dashboard_snapshot_is_current(warehouse):
+    """The JSON the website ships (web/src/data) must equal what the warehouse produces now.
+    Fails when the pipeline changed but nobody re-ran the export: the site would show old numbers."""
+    if "env" not in warehouse:
+        pytest.skip("only run against the throwaway e2e database")
+    committed_dir = ROOT / "web" / "src" / "data"
+    stale = [
+        mart for mart in MARTS
+        if json.loads((committed_dir / f"{mart}.json").read_text(encoding="utf-8"))
+        != json.loads((warehouse["export_dir"] / f"{mart}.json").read_text(encoding="utf-8"))
+    ]
+    assert not stale, (f"web/src/data is out of date for {stale}. "
+                       "Run `python ingestion/pipeline.py export` and commit web/src/data/.")
+
+
 def _content_digest(folder):
     """Hash of every generated file's content (xlsx compared by cell values, not zip metadata)."""
     h = hashlib.sha256()

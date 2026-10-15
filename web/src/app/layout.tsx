@@ -3,10 +3,29 @@ import "./globals.css";
 import { Nav } from "@/components/nav";
 import { exportedAt } from "@/lib/data";
 
+const DESCRIPTION =
+  "IT271 Enterprise Data Warehousing project: disaster-response analytics for the Philippines, 2020–2025.";
+
+// Link previews need absolute URLs; Vercel provides the production domain at build time.
+const siteUrl = process.env.VERCEL_PROJECT_PRODUCTION_URL
+  ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+  : "http://localhost:3000";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
   title: "DRIW | Disaster Response Intelligence Warehouse",
-  description:
-    "IT271 Enterprise Data Warehousing project: disaster-response analytics for the Philippines, 2020-2025.",
+  description: DESCRIPTION,
+  openGraph: {
+    title: "Disaster Response Intelligence Warehouse",
+    description: DESCRIPTION,
+    siteName: "DRIW",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Disaster Response Intelligence Warehouse",
+    description: DESCRIPTION,
+  },
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

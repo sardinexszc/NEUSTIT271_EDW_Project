@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
 import { BarList } from "@/components/charts";
 import { EventSelect } from "@/components/event-select";
+import { CsvButton } from "@/components/csv-button";
 import { Card, DataTable, Legend, StatGrid, StatTile, TableView } from "@/components/ui";
 import type { ProvinceImpact, ReliefByOrg } from "@/lib/data";
 import { count, full, peso } from "@/lib/format";
+import { useEventParam } from "@/lib/use-event-param";
 
 // Fixed order = fixed colour per category, whatever the filter shows.
 const CATEGORY_SERIES = [
@@ -21,9 +22,10 @@ export function LogisticsDashboard({ relief, provinces, options }: {
   provinces: ProvinceImpact[];
   options: { code: string; label: string }[];
 }) {
-  const [code, setCode] = useState("ALL");
+  const [code, setCode] = useEventParam(options.map((o) => o.code), "ALL");
   const inScope = <T extends { event_code: string }>(rows: T[]) =>
     code === "ALL" ? rows : rows.filter((r) => r.event_code === code);
+  const scopeName = code === "ALL" ? "all-events" : code;
   const reliefRows = inScope(relief);
   const provinceRows = inScope(provinces);
 
@@ -96,6 +98,10 @@ export function LogisticsDashboard({ relief, provinces, options }: {
               ...Object.fromEntries(CATEGORY_SERIES.map((c) => [c.key, peso(r[c.key] as number)])),
               total: peso(r.total as number),
             }))}
+            csv={{
+              filename: `relief-by-organization-php-${scopeName}`,
+              rows: byOrg.map((r) => ({ ...r, org: `${r.orgName} (${r.org})` })),
+            }}
           />
         </Card>
 
@@ -114,6 +120,24 @@ export function LogisticsDashboard({ relief, provinces, options }: {
       </div>
 
       <Card title="Relief coverage by province" subtitle="Sorted from least to most relief per affected person" className="mt-4">
+        <div className="mb-3 flex justify-end">
+          <CsvButton
+            filename={`relief-coverage-by-province-${scopeName}`}
+            columns={[
+              { key: "province", label: "Province" },
+              { key: "region", label: "Region" },
+              { key: "affected", label: "People affected" },
+              { key: "value", label: "Relief value (PHP)" },
+              { key: "perPerson", label: "PHP per affected person" },
+              { key: "familyCoverage", label: "Servings per affected family" },
+            ]}
+            rows={coverage.map((p) => ({
+              ...p,
+              perPerson: Math.round(p.perPerson * 100) / 100,
+              familyCoverage: Math.round(p.familyCoverage * 1000) / 1000,
+            }))}
+          />
+        </div>
         <div className="max-h-[28rem] overflow-auto">
           <DataTable
             columns={[

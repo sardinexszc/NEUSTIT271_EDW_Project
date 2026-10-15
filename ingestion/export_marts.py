@@ -36,7 +36,11 @@ def main() -> None:
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     with connect() as conn:
         for mart in MARTS:
-            cur = conn.execute(f"select * from mart.{mart}")
+            # order by every column so identical warehouses export byte-identical files
+            # (tests/test_end_to_end.py compares the committed snapshot with a fresh build)
+            ncols = len(conn.execute(f"select * from mart.{mart} limit 0").description)
+            order_by = ", ".join(str(i) for i in range(1, ncols + 1))
+            cur = conn.execute(f"select * from mart.{mart} order by {order_by}")
             columns = [c.name for c in cur.description]
             rows = [dict(zip(columns, r)) for r in cur.fetchall()]
             path = OUT_DIR / f"{mart}.json"

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { PageHeader } from "@/components/ui";
 import { evacuation, eventOptions, events, response } from "@/lib/data";
 import { OperationsDashboard } from "./operations-dashboard";
@@ -14,13 +15,16 @@ export default function OperationsPage() {
         title="Operations"
         description="Evacuation-center load and emergency response timeliness for a single event."
       />
-      <OperationsDashboard
-        events={events}
-        evacuation={evacuation}
-        response={response.filter((r) => r.event_code !== "All")}
-        options={eventOptions}
-        initial={initial.event_code}
-      />
+      {/* the selected event is read from the URL, which needs a Suspense boundary on a static page */}
+      <Suspense fallback={<p className="text-ink-2">Loading dashboard…</p>}>
+        <OperationsDashboard
+          events={events}
+          evacuation={evacuation}
+          response={response.filter((r) => r.event_code !== "All")}
+          options={eventOptions}
+          initial={initial.event_code}
+        />
+      </Suspense>
     </>
   );
 }

@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
 import { ColumnChart, GroupedColumns, TrendArea } from "@/components/charts";
 import { EventSelect } from "@/components/event-select";
 import { Card, Legend, StatGrid, StatTile, TableView } from "@/components/ui";
 import type { EvacuationDay, EventSummary, ResponsePerformance } from "@/lib/data";
 import { count, full, hours, percent, shortDate } from "@/lib/format";
+import { useEventParam } from "@/lib/use-event-param";
 
 const PRIORITY_SERIES = [
   { key: "P1", label: "P1 (critical)", color: "var(--series-1)" },
@@ -29,7 +29,7 @@ export function OperationsDashboard({ events, evacuation, response, options, ini
   options: { code: string; label: string }[];
   initial: string;
 }) {
-  const [code, setCode] = useState(initial);
+  const [code, setCode] = useEventParam(options.map((o) => o.code), initial);
   const event = events.find((e) => e.event_code === code)!;
   const days = evacuation.filter((d) => d.event_code === code).sort((a, b) => a.snapshot_date.localeCompare(b.snapshot_date));
   const rows = response.filter((r) => r.event_code === code);
@@ -87,6 +87,13 @@ export function OperationsDashboard({ events, evacuation, response, options, ini
               families: full(d.families_inside),
               occ: percent(d.occupancy_rate, 0),
             }))}
+            csv={{
+              filename: `evacuation-daily-${code}`,
+              rows: days.map((d) => ({
+                date: d.snapshot_date, centers: d.centers_open, persons: d.persons_inside,
+                families: d.families_inside, occ: d.occupancy_rate,
+              })),
+            }}
           />
         </Card>
 
@@ -109,6 +116,10 @@ export function OperationsDashboard({ events, evacuation, response, options, ini
               over: full(d.centers_over_capacity),
               open: full(d.centers_open),
             }))}
+            csv={{
+              filename: `centers-over-capacity-${code}`,
+              rows: days.map((d) => ({ date: d.snapshot_date, over: d.centers_over_capacity, open: d.centers_open })),
+            }}
           />
         </Card>
 
@@ -136,6 +147,13 @@ export function OperationsDashboard({ events, evacuation, response, options, ini
               arrive: hours(r.median_hours_to_arrive),
               done: percent(r.completion_rate),
             }))}
+            csv={{
+              filename: `response-times-hours-${code}`,
+              rows: typeTotals.map((r) => ({
+                type: r.response_type, requests: r.requests, dispatch: r.median_hours_to_dispatch,
+                p90: r.p90_hours_to_dispatch, arrive: r.median_hours_to_arrive, done: r.completion_rate,
+              })),
+            }}
           />
         </Card>
       </div>

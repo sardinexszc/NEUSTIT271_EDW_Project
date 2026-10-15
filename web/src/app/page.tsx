@@ -1,4 +1,5 @@
 import { BarList, ColumnChart } from "@/components/charts";
+import { CsvButton } from "@/components/csv-button";
 import { Card, DataTable, HeroFigure, Legend, PageHeader, StatGrid, StatTile, TableView } from "@/components/ui";
 import { cube, events } from "@/lib/data";
 import { count, full, peso } from "@/lib/format";
@@ -8,6 +9,16 @@ const COST_SERIES = [
   { key: "infrastructure", label: "Infrastructure", color: "var(--series-2)" },
   { key: "agriculture", label: "Agriculture", color: "var(--series-3)" },
 ];
+
+// the events download carries every headline measure, unformatted
+const EVENT_CSV_COLUMNS = [
+  "event_code", "event_name", "hazard_type", "category", "start_date", "end_date",
+  "dead", "injured", "missing", "affected_families", "affected_persons",
+  "houses_partially_damaged", "houses_totally_damaged",
+  "damage_cost_php", "housing_cost_php", "infrastructure_cost_php", "agriculture_cost_php",
+  "peak_persons_in_centers", "centers_used", "relief_value_php", "families_served",
+  "response_requests", "median_hours_to_dispatch", "completion_rate",
+].map((key) => ({ key, label: key }));
 
 export default function ExecutivePage() {
   const sum = (f: (e: (typeof events)[number]) => number | null) => events.reduce((t, e) => t + (f(e) ?? 0), 0);
@@ -85,6 +96,7 @@ export default function ExecutivePage() {
               infrastructure: peso(r.infrastructure),
               agriculture: peso(r.agriculture),
             }))}
+            csv={{ filename: "damage-cost-by-year-php", rows: costByYear }}
           />
         </Card>
 
@@ -99,6 +111,7 @@ export default function ExecutivePage() {
           <TableView
             columns={[{ key: "name", label: "Event" }, { key: "cost", label: "Damage cost", numeric: true }]}
             rows={topEvents.map((r) => ({ name: r.name, cost: peso(r.cost) }))}
+            csv={{ filename: "costliest-events-php", rows: topEvents }}
           />
         </Card>
 
@@ -121,11 +134,15 @@ export default function ExecutivePage() {
               { key: "cost", label: "Damage cost", numeric: true },
             ]}
             rows={byRegion.map((r) => ({ region: r.region, affected: full(r.affected), cost: peso(r.cost) }))}
+            csv={{ filename: "people-affected-by-region", rows: byRegion }}
           />
         </Card>
       </div>
 
       <Card title="All events" subtitle="One row per event, newest first" className="mt-4">
+        <div className="mb-3 flex justify-end">
+          <CsvButton filename="driw-events" columns={EVENT_CSV_COLUMNS} rows={[...events].reverse()} />
+        </div>
         <div className="max-h-[28rem] overflow-auto">
           <DataTable
             columns={[
