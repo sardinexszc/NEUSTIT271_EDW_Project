@@ -10,7 +10,7 @@ TC2021-ODETTE,Odette,Rai,Tropical Cyclone,Super Typhoon,2021-12-16,2021-12-18,5,
 TC2022-AGATON,Agaton,Megi,Tropical Cyclone,Tropical Storm,2022-04-08,2022-04-13,1,0.80,Leyte;Southern Leyte;Samar;Eastern Samar;Capiz,N
 TC2022-FLORITA,Florita,Ma-on,Tropical Cyclone,Severe Tropical Storm,2022-08-22,2022-08-24,3,0.50,Cagayan;Isabela;Apayao;Abra;Ilocos Norte,N
 TC2022-KARDING,Karding,Noru,Tropical Cyclone,Super Typhoon,2022-09-25,2022-09-26,5,0.85,Aurora;Nueva Ecija;Bulacan;Pampanga;Quezon;Zambales;Tarlac,N
-TC2022-PAENG,Paeng,Nalgae,Tropical Cyclone,Severe Tropical Storm,2022-10-28,2022-10-31,3,0.95,Maguindanao del Norte;Maguindanao del Sur;Camarines Sur;Albay;Capiz;Aklan;Antique;Cavite;Batangas;Quezon,N
+TC2022-PAENG,Paeng,Nalgae,Tropical Cyclone,Severe Tropical Storm,2022-10-28,2022-10-31,3,0.95,Maguindanao;Camarines Sur;Albay;Capiz;Aklan;Antique;Cavite;Batangas;Quezon,N
 TC2023-BETTY,Betty,Mawar,Tropical Cyclone,Typhoon,2023-05-27,2023-06-01,2,0.35,Batanes;Cagayan;Ilocos Norte,N
 TC2023-EGAY,Egay,Doksuri,Tropical Cyclone,Super Typhoon,2023-07-24,2023-07-28,4,0.90,Cagayan;Ilocos Norte;Ilocos Sur;Abra;Apayao;Benguet;Pampanga;Bulacan,N
 TC2023-GORING,Goring,Saola,Tropical Cyclone,Super Typhoon,2023-08-24,2023-08-31,3,0.45,Cagayan;Batanes;Isabela,N

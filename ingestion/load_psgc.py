@@ -108,6 +108,16 @@ def main() -> None:
                 u["province_name"] = INDEPENDENT_CITY_PROVINCE.get(bare_city_name(u["name"]), u["name"])
             u["region_name"] = units.get(u["region_code"], {}).get("name", "")
 
+    save_units(units, publication, census)
+
+
+def save_units(units: dict, publication: str, census: str | None) -> None:
+    """Write units to ref.psgc and the derived CSVs, then check events.csv provinces resolve.
+
+    Each unit needs: code, name, level, region_code, province_code, city_muni_code, city_class,
+    income, urban, population; cities/municipalities also province_name and region_name.
+    A unit may carry population_estimate, used by the generator when no census figure exists.
+    """
     with connect() as conn:
         conn.execute("truncate ref.psgc cascade")
         with conn.cursor().copy(
@@ -125,7 +135,8 @@ def main() -> None:
         w = csv.writer(f)
         w.writerow(["psgc_code", "name", "geographic_level", "province_name", "region_name", "population"])
         for u in sorted(citymun, key=lambda u: u["code"]):
-            w.writerow([u["code"], u["name"], u["level"], u["province_name"], u["region_name"], u["population"] or ""])
+            w.writerow([u["code"], u["name"], u["level"], u["province_name"], u["region_name"],
+                        u["population"] or u.get("population_estimate") or ""])
     brgys = [u for u in units.values() if u["level"] == "Bgy"]
     with open(REFERENCE_DIR / "psgc_barangay.csv", "w", newline="", encoding="utf-8") as f:
         w = csv.writer(f)

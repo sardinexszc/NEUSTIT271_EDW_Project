@@ -59,7 +59,7 @@ createdb driw
 
 .venv/Scripts/python ingestion/migrate.py          # create schemas and tables
 .venv/Scripts/python ingestion/load_reference.py   # organizations, relief items
-.venv/Scripts/python ingestion/load_psgc.py        # PSA geography (see data/reference/README.md)
+.venv/Scripts/python ingestion/load_psgc_api.py    # PSGC geography (see data/reference/README.md)
 .venv/Scripts/python ingestion/generate_sources.py # synthetic source files + defect manifest
 .venv/Scripts/python ingestion/load_raw.py         # land sources into raw.*
 ```
