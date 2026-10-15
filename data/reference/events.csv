@@ -1,0 +1,32 @@
+event_code,local_name,international_name,hazard_type,category,start_date,end_date,max_signal,severity_weight,affected_provinces,verified
+TC2020-AMBO,Ambo,Vongfong,Tropical Cyclone,Typhoon,2020-05-14,2020-05-17,3,0.80,Eastern Samar;Northern Samar;Samar;Sorsogon;Albay;Masbate;Quezon,N
+TC2020-QUINTA,Quinta,Molave,Tropical Cyclone,Typhoon,2020-10-25,2020-10-27,3,0.75,Camarines Sur;Albay;Marinduque;Oriental Mindoro;Batangas;Quezon,N
+TC2020-ROLLY,Rolly,Goni,Tropical Cyclone,Super Typhoon,2020-10-31,2020-11-02,5,1.00,Catanduanes;Albay;Camarines Sur;Camarines Norte;Quezon;Batangas,N
+TC2020-ULYSSES,Ulysses,Vamco,Tropical Cyclone,Typhoon,2020-11-11,2020-11-13,4,0.95,Cagayan;Isabela;Rizal;Quezon;Aurora;Bulacan;Pampanga;Metro Manila,N
+TC2021-DANTE,Dante,Choi-wan,Tropical Cyclone,Tropical Storm,2021-05-31,2021-06-04,1,0.45,Eastern Samar;Leyte;Surigao del Norte;Masbate;Cebu,N
+TC2021-JOLINA,Jolina,Conson,Tropical Cyclone,Typhoon,2021-09-06,2021-09-09,3,0.60,Eastern Samar;Samar;Masbate;Marinduque;Batangas;Romblon,N
+TC2021-MARING,Maring,Kompasu,Tropical Cyclone,Severe Tropical Storm,2021-10-10,2021-10-13,2,0.65,Cagayan;Ilocos Norte;Apayao;Benguet;Isabela,N
+TC2021-ODETTE,Odette,Rai,Tropical Cyclone,Super Typhoon,2021-12-16,2021-12-18,5,1.00,Surigao del Norte;Dinagat Islands;Southern Leyte;Bohol;Cebu;Negros Oriental;Palawan,N
+TC2022-AGATON,Agaton,Megi,Tropical Cyclone,Tropical Storm,2022-04-08,2022-04-13,1,0.80,Leyte;Southern Leyte;Samar;Eastern Samar;Capiz,N
+TC2022-FLORITA,Florita,Ma-on,Tropical Cyclone,Severe Tropical Storm,2022-08-22,2022-08-24,3,0.50,Cagayan;Isabela;Apayao;Abra;Ilocos Norte,N
+TC2022-KARDING,Karding,Noru,Tropical Cyclone,Super Typhoon,2022-09-25,2022-09-26,5,0.85,Aurora;Nueva Ecija;Bulacan;Pampanga;Quezon;Zambales;Tarlac,N
+TC2022-PAENG,Paeng,Nalgae,Tropical Cyclone,Severe Tropical Storm,2022-10-28,2022-10-31,3,0.95,Maguindanao del Norte;Maguindanao del Sur;Camarines Sur;Albay;Capiz;Aklan;Antique;Cavite;Batangas;Quezon,N
+TC2023-BETTY,Betty,Mawar,Tropical Cyclone,Typhoon,2023-05-27,2023-06-01,2,0.35,Batanes;Cagayan;Ilocos Norte,N
+TC2023-EGAY,Egay,Doksuri,Tropical Cyclone,Super Typhoon,2023-07-24,2023-07-28,4,0.90,Cagayan;Ilocos Norte;Ilocos Sur;Abra;Apayao;Benguet;Pampanga;Bulacan,N
+TC2023-GORING,Goring,Saola,Tropical Cyclone,Super Typhoon,2023-08-24,2023-08-31,3,0.45,Cagayan;Batanes;Isabela,N
+TC2023-JENNY,Jenny,Koinu,Tropical Cyclone,Typhoon,2023-09-28,2023-10-05,3,0.35,Batanes;Cagayan,N
+TC2023-KABAYAN,Kabayan,Jelawat,Tropical Cyclone,Tropical Depression,2023-12-17,2023-12-19,1,0.40,Davao Oriental;Surigao del Sur;Agusan del Sur;Davao de Oro,N
+TC2024-AGHON,Aghon,Ewiniar,Tropical Cyclone,Typhoon,2024-05-24,2024-05-28,3,0.50,Eastern Samar;Samar;Quezon;Marinduque;Camarines Sur;Albay,N
+TC2024-CARINA,Carina,Gaemi,Flood,Southwest Monsoon (Habagat),2024-07-22,2024-07-26,1,0.85,Metro Manila;Bulacan;Pampanga;Rizal;Bataan;Cavite,N
+TC2024-ENTENG,Enteng,Yagi,Tropical Cyclone,Severe Tropical Storm,2024-09-01,2024-09-03,2,0.65,Camarines Sur;Camarines Norte;Albay;Rizal;Quezon;Metro Manila;Ilocos Norte,N
+TC2024-KRISTINE,Kristine,Trami,Tropical Cyclone,Severe Tropical Storm,2024-10-22,2024-10-25,3,0.95,Camarines Sur;Albay;Camarines Norte;Sorsogon;Batangas;Quezon;Isabela,N
+TC2024-LEON,Leon,Kong-rey,Tropical Cyclone,Super Typhoon,2024-10-28,2024-11-01,5,0.40,Batanes,N
+TC2024-MARCE,Marce,Yinxing,Tropical Cyclone,Typhoon,2024-11-05,2024-11-08,4,0.60,Cagayan;Ilocos Norte;Apayao,N
+TC2024-NIKA,Nika,Toraji,Tropical Cyclone,Typhoon,2024-11-09,2024-11-12,4,0.55,Aurora;Isabela;Quirino;Nueva Vizcaya,N
+TC2024-OFEL,Ofel,Usagi,Tropical Cyclone,Super Typhoon,2024-11-12,2024-11-15,5,0.55,Cagayan;Isabela;Batanes,N
+TC2024-PEPITO,Pepito,Man-yi,Tropical Cyclone,Super Typhoon,2024-11-15,2024-11-18,5,0.85,Catanduanes;Camarines Norte;Camarines Sur;Aurora;Quezon;Nueva Ecija,N
+TC2025-CRISING,Crising,Wipha,Flood,Southwest Monsoon (Habagat),2025-07-17,2025-07-25,1,0.80,Cagayan;Metro Manila;Pampanga;Bulacan;Zambales;Pangasinan,N
+TC2025-NANDO,Nando,Ragasa,Tropical Cyclone,Super Typhoon,2025-09-21,2025-09-23,5,0.75,Cagayan;Batanes;Ilocos Norte;Apayao,N
+TC2025-OPONG,Opong,Bualoi,Tropical Cyclone,Severe Tropical Storm,2025-09-25,2025-09-27,3,0.70,Masbate;Eastern Samar;Northern Samar;Sorsogon;Romblon;Oriental Mindoro,N
+TC2025-TINO,Tino,Kalmaegi,Tropical Cyclone,Typhoon,2025-11-03,2025-11-05,4,0.95,Cebu;Negros Occidental;Southern Leyte;Bohol;Capiz,N
+TC2025-UWAN,Uwan,Fung-wong,Tropical Cyclone,Super Typhoon,2025-11-09,2025-11-11,5,0.90,Catanduanes;Aurora;Camarines Sur;Isabela;Pangasinan;Nueva Vizcaya,N

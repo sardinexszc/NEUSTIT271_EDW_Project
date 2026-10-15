@@ -1,0 +1,34 @@
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# Generated synthetic source files (regenerate with: python ingestion/generate_sources.py)
+data/sources/
+# Downloaded reference files (see data/reference/README.md)
+data/reference/*.xlsx
+
+# dbt
+dbt/target/
+dbt/dbt_packages/
+dbt/logs/
+logs/
+
+# Node / Next.js
+node_modules/
+web/.next/
+web/out/
+.vercel/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+
+# Local agent tooling
+.claude-flow/

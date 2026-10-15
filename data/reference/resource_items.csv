@@ -1,0 +1,11 @@
+item_code,item_name,category,standard_unit,unit_cost_php,source_aliases
+FFP,Family Food Pack,Food,pack,650.00,FFP:pack:1;FOODPACK:pack:1;FP-01:box:1
+RICE,Rice,Food,kg,52.00,RICE:kg:1;RICE-SACK:sack:50;R50:sack:50
+WATER,Bottled Water,Water,liter,20.00,WATER:liter:1;H2O-CASE:case:6;BW500:bottle:0.5
+HYGKIT,Hygiene Kit,Non-Food,kit,850.00,HYGKIT:kit:1;HK-STD:kit:1;HYGIENE:set:1
+SLPKIT,Sleeping Kit,Non-Food,kit,1200.00,SLPKIT:kit:1;SK-01:kit:1
+KITCHEN,Kitchen Kit,Non-Food,kit,1500.00,KITCHEN:kit:1;KK-01:set:1
+TARP,Tarpaulin,Shelter,piece,450.00,TARP:piece:1;TP-4x6:roll:10
+SHELTERKIT,Emergency Shelter Kit,Shelter,kit,3500.00,SHELTERKIT:kit:1;ESK:kit:1
+MEDKIT,Medical Kit,Medical,kit,2500.00,MEDKIT:kit:1;MED-BOX:box:1
+WATERKIT,Water Purification Kit,Water,kit,900.00,WATERKIT:kit:1;WPK:kit:1;AQUATAB:strip:0.1
