@@ -24,6 +24,15 @@ Demo personas used in tests and the presentation (NOLOGIN, used with `SET ROLE`)
 `driw_demo_executive`, `driw_demo_analyst`, `driw_demo_bicol`, `driw_demo_cagayan`,
 `driw_demo_steward`.
 
+### The web back-end's login
+
+The PHP API (`web/php/api`, served by XAMPP) connects as `driw_web`, a LOGIN role whose only
+membership is `driw_executive`. A bug or an injection in the web tier can therefore reach the
+aggregated marts but never warehouse detail, raw data or quarantine (tested in
+`tests/test_php_api.py`). It also has a 10-second statement timeout and a 20-connection limit.
+Its password lives only in the git-ignored `.env` and in a PHP config outside the web root
+(`C:\xampp\driw-config\config.php`), both written by `ingestion/setup_web_role.py`.
+
 ## Row-level security (regional users)
 
 `governance.region_access` maps a role to the region(s) it may see:

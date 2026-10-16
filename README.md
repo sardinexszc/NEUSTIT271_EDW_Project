@@ -100,6 +100,25 @@ cd web && npm run deploy:xampp                     # XAMPP_HTDOCS=<path> if XAMP
 Re-run it after every `pipeline.py export`. The script only replaces a `driw` folder it created
 itself, and writes an `.htaccess` for the 404 page and the preview image.
 
+**PHP back-end (live data).** `web/php/api` is published to `htdocs/driw/api` and serves the
+marts straight from the PostgreSQL warehouse. The dashboards load it at runtime and fall back to
+the bundled snapshot if the warehouse is down; the footer says which. One-time setup:
+
+1. In `C:\xampp\php\php.ini`, enable `extension=pdo_pgsql` and `extension=pgsql`, then restart Apache.
+2. Create the web login and its config (written outside `htdocs`):
+
+   ```bash
+   .venv/Scripts/python ingestion/setup_web_role.py
+   ```
+
+| Endpoint | Returns |
+|---|---|
+| `GET /driw/api/health.php` | database, connected role, PostgreSQL version |
+| `GET /driw/api/marts.php?name=<mart>[&event=TC2024-KRISTINE]` | one mart as JSON (allow-listed names) |
+
+The API connects as `driw_web`, a member of `driw_executive` only: it can read the marts and
+nothing else (see [docs/governance.md](docs/governance.md)).
+
 | Page | For | Shows |
 |---|---|---|
 | `/` Executive | leadership | Total damage, casualties, cost by year and category, costliest events, regions (from the CUBE mart) |
