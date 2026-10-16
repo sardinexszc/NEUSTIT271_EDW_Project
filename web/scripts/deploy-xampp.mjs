@@ -1,4 +1,4 @@
-// Build the dashboards as static files and publish them to XAMPP's htdocs.
+// Build the dashboards as static files and publish them, with the PHP API, to XAMPP's htdocs.
 //
 //   npm run deploy:xampp                       -> C:\xampp\htdocs\driw  (http://localhost/driw/)
 //   XAMPP_HTDOCS=D:\xampp\htdocs npm run deploy:xampp
@@ -37,6 +37,11 @@ if (build.status !== 0) process.exit(build.status ?? 1);
 
 rmSync(target, { recursive: true, force: true });
 cpSync(outDir, target, { recursive: true });
+// the PHP back-end: web/php/api -> htdocs/driw/api (live marts from the PostgreSQL warehouse)
+cpSync(join(webDir, "php"), target, { recursive: true });
+if (!existsSync(join(htdocs, "..", "driw-config", "config.php"))) {
+  console.warn("\nNote: no PHP database config yet. Run: python ingestion/setup_web_role.py");
+}
 
 // Apache: serve the site's own 404 page and keep the generated data fresh in browsers.
 writeFileSync(

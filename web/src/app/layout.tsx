@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { DataSource } from "@/components/data-source";
 import { Nav } from "@/components/nav";
 import { exportedAt } from "@/lib/data";
 
@@ -52,8 +53,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         </div>
         <main className="mx-auto max-w-6xl px-4 py-6 sm:py-8">{children}</main>
         <footer className="mx-auto max-w-6xl px-4 pb-8 text-xs text-muted">
-          IT271 Enterprise Data Warehousing · Ivan Christian Salinas · Data snapshot exported{" "}
-          {new Date(exportedAt).toLocaleString("en-PH", { dateStyle: "medium", timeStyle: "short" })}
+          IT271 Enterprise Data Warehousing · Ivan Christian Salinas · <DataSource exportedAt={exportedAt} />
         </footer>
       </body>
     </html>

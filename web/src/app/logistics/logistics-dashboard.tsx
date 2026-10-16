@@ -6,6 +6,7 @@ import { CsvButton } from "@/components/csv-button";
 import { Card, DataTable, Legend, StatGrid, StatTile, TableView } from "@/components/ui";
 import type { ProvinceImpact, ReliefByOrg } from "@/lib/data";
 import { count, full, peso } from "@/lib/format";
+import { useMart } from "@/lib/live";
 import { useEventParam } from "@/lib/use-event-param";
 
 // Fixed order = fixed colour per category, whatever the filter shows.
@@ -17,11 +18,14 @@ const CATEGORY_SERIES = [
   { key: "Medical", label: "Medical", color: "var(--series-5)" },
 ];
 
-export function LogisticsDashboard({ relief, provinces, options }: {
+export function LogisticsDashboard({ relief: reliefSnapshot, provinces: provincesSnapshot, options }: {
   relief: ReliefByOrg[];
   provinces: ProvinceImpact[];
   options: { code: string; label: string }[];
 }) {
+  // live from the warehouse on XAMPP, the bundled snapshot elsewhere
+  const relief = useMart("mart_relief_by_org_category", reliefSnapshot).rows;
+  const provinces = useMart("mart_province_event_impact", provincesSnapshot).rows;
   const [code, setCode] = useEventParam(options.map((o) => o.code), "ALL");
   const inScope = <T extends { event_code: string }>(rows: T[]) =>
     code === "ALL" ? rows : rows.filter((r) => r.event_code === code);

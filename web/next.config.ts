@@ -13,6 +13,8 @@ const nextConfig: NextConfig = {
     trailingSlash: true,
     images: { unoptimized: true },
   }),
+  // the PHP API that serves live marts exists only on XAMPP (web/php -> htdocs/driw/api)
+  env: { NEXT_PUBLIC_DRIW_API: xampp ? `${basePath}/api` : "" },
 };
 
 export default nextConfig;
