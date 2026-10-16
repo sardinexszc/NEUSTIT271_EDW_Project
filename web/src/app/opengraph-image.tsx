@@ -5,6 +5,7 @@ import { events } from "@/lib/data";
 export const alt = "DRIW: Disaster Response Intelligence Warehouse, Philippines 2020–2025";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
+export const dynamic = "force-static"; // required for the XAMPP static export
 
 export default function OpengraphImage() {
   const damage = events.reduce((t, e) => t + e.damage_cost_php, 0);

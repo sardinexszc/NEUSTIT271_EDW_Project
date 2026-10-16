@@ -6,10 +6,13 @@ import { exportedAt } from "@/lib/data";
 const DESCRIPTION =
   "IT271 Enterprise Data Warehousing project: disaster-response analytics for the Philippines, 2020–2025.";
 
-// Link previews need absolute URLs; Vercel provides the production domain at build time.
-const siteUrl = process.env.VERCEL_PROJECT_PRODUCTION_URL
-  ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
-  : "http://localhost:3000";
+// Link previews need absolute URLs: the XAMPP folder, Vercel's production domain, or the dev server.
+const siteUrl =
+  process.env.DRIW_TARGET === "xampp"
+    ? `http://localhost${process.env.DRIW_BASE_PATH ?? "/driw"}/`
+    : process.env.VERCEL_PROJECT_PRODUCTION_URL
+      ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+      : "http://localhost:3000";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),

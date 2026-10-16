@@ -90,6 +90,16 @@ runs it, plus the dashboard build, on every push.
 cd web && npm install && npm run dev               # http://localhost:3000
 ```
 
+**Hosting on XAMPP (Apache).** Build the dashboards as plain static files and publish them to
+`C:\xampp\htdocs\driw`, then open <http://localhost/driw/> with Apache running:
+
+```bash
+cd web && npm run deploy:xampp                     # XAMPP_HTDOCS=<path> if XAMPP is elsewhere
+```
+
+Re-run it after every `pipeline.py export`. The script only replaces a `driw` folder it created
+itself, and writes an `.htaccess` for the 404 page and the preview image.
+
 | Page | For | Shows |
 |---|---|---|
 | `/` Executive | leadership | Total damage, casualties, cost by year and category, costliest events, regions (from the CUBE mart) |
