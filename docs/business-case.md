@@ -79,7 +79,7 @@ The Q-numbers refer to [`sample-queries.sql`](sample-queries.sql).
 | NFR5 | Reliability | A failed source row never stops the load; rejected rows are kept with reasons | Quarantine design; staging keeps every row | Met |
 | NFR6 | Reproducibility | Same inputs produce the same warehouse | Deterministic generator (seed 271); e2e test rebuilds from nothing | Met |
 | NFR7 | Maintainability | Version-controlled, tested, documented | GitHub repo, dbt tests, CI on every push, generated data dictionary | Met |
-| NFR8 | Usability and accessibility | Readable on desktop and phone; colour-blind-safe charts; table view for every chart | Validated palette, legends, "Show table", responsive layout | Met |
+| NFR8 | Usability and accessibility | Readable on desktop and phone; color-blind-safe charts; table view for every chart | Validated palette, legends, "Show table", responsive layout | Met |
 | NFR9 | Portability | Run on the agency's own infrastructure without cloud services | Local PostgreSQL 17 + XAMPP (Apache, PHP); migrations also run on Supabase | Met |
 
 ## 6. Assumptions and constraints

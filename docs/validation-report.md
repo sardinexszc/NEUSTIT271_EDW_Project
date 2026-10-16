@@ -72,7 +72,7 @@ Testing earned its keep. Each of these was caught by a test, not by inspection:
 | Location accuracy test | Letter swaps inside "City of" (e.g. "Cityo f Legazpi") went unmatched | Letters-only fuzzy key |
 | Governance tests | Regional users saw **zero** rows: a `SECURITY DEFINER` function sees its owner as `current_user` | Region lookup moved into a view |
 | Governance tests | `SET ROLE` escalation test passed for the wrong reason (checked against the session user) | Test escalation via `GRANT` and mapping writes instead |
-| Browser review | "Family coverage 101%" double-counted repeat distributions | Relabelled "servings per affected family" |
+| Browser review | "Family coverage 101%" double-counted repeat distributions | Relabeled "servings per affected family" |
 
 ## Known limitations
 

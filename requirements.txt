@@ -7,3 +7,4 @@ dbt-postgres>=1.10
 pytest>=8
 python-docx>=1.1
 markdown-it-py>=3
+pymupdf>=1.24

@@ -11,6 +11,7 @@ Run the generators first when the data changes:
 """
 
 import re
+import tempfile
 from datetime import date
 from pathlib import Path
 
@@ -21,6 +22,7 @@ from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_BREAK
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 from docx.shared import Cm, Pt, RGBColor
+import pymupdf
 from markdown_it import MarkdownIt
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -31,12 +33,17 @@ DOCX = OUT_DIR / "DRIW_Final_Report.docx"
 NAVY = RGBColor(0x14, 0x23, 0x3A)
 ORANGE = RGBColor(0xB9, 0x47, 0x1A)
 GREY = RGBColor(0x4A, 0x55, 0x66)
+IMAGE_WIDTH_CM = 16.4
+IMAGE_MAX_HEIGHT_CM = 21.5   # taller images are split at a blank gap, not shrunk
 HEADER_FILL = "ECE8DF"
 CODE_FILL = "F3F1EC"
 
-# (chapter title, [(markdown file, heading-level shift)])
-CHAPTERS = [
+# (chapter title, [(markdown file, heading-level shift)]); front matter is unnumbered
+FRONT_MATTER = [
+    ("Executive Summary", [("executive-summary.md", 0)]),
     ("Requirements Coverage", [("requirements-traceability.md", 0)]),
+]
+CHAPTERS = [
     ("Business Case and Requirements Analysis", [("business-case.md", 0)]),
     ("Data Warehouse Design", [("warehouse-design.md", 0), ("dimensional-model.md", 1)]),
     ("Data Dictionary and Metadata", [("data-dictionary.md", 0)]),
@@ -47,6 +54,46 @@ CHAPTERS = [
     ("Testing and Validation", [("validation-report.md", 0), ("query-performance.md", 1)]),
     ("Implementation and Live Demo", [("implementation.md", 0)]),
 ]
+
+
+def split_tall(path: Path) -> list[Path]:
+    """Cut a raster image taller than a page into page-sized pieces, each cut on a blank row."""
+    if path.suffix.lower() != ".png":
+        return [path]
+    pix = pymupdf.Pixmap(str(path))
+    limit = int(pix.width * IMAGE_MAX_HEIGHT_CM / IMAGE_WIDTH_CM)
+    if pix.height <= limit:
+        return [path]
+    n, stride, data = pix.n, pix.stride, pix.samples
+    bottom = (pix.height - 1) * stride
+    blank = data[bottom:bottom + n] * pix.width     # a full row of the page background
+
+    def is_blank(y: int) -> bool:
+        return data[y * stride:y * stride + pix.width * n] == blank
+
+    cuts, top = [], 0
+    while pix.height - top > limit:
+        y = top + limit
+        while y > top + limit // 3 and not is_blank(y):
+            y -= 1
+        if y <= top + limit // 3:            # no gap found: cut at the limit
+            y = top + limit
+        cuts.append((top, y))
+        top = y
+    cuts.append((top, pix.height))
+
+    out_dir = Path(tempfile.mkdtemp(prefix="driw-img-"))
+    doc = pymupdf.open(str(path))
+    page = doc[0]
+    k = page.rect.height / pix.height
+    zoom = pymupdf.Matrix(pix.width / page.rect.width, pix.width / page.rect.width)
+    parts = []
+    for i, (a, b) in enumerate(cuts):
+        part = out_dir / f"{path.stem}_{i}.png"
+        page.get_pixmap(clip=pymupdf.Rect(0, a * k, page.rect.width, b * k), matrix=zoom).save(str(part))
+        parts.append(part)
+    doc.close()
+    return parts
 
 
 # ----------------------------------------------------------------------------- docx helpers
@@ -176,9 +223,11 @@ class Renderer:
         if not path.exists():
             self.doc.add_paragraph(f"[missing image: {src}]")
             return
-        p = self.doc.add_paragraph()
-        p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-        p.add_run().add_picture(str(path), width=Cm(16.4))
+        for part in split_tall(path):
+            p = self.doc.add_paragraph()
+            p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            p.paragraph_format.keep_with_next = True
+            p.add_run().add_picture(str(part), width=Cm(IMAGE_WIDTH_CM))
         if alt:
             cap = self.doc.add_paragraph()
             cap.alignment = WD_ALIGN_PARAGRAPH.CENTER
@@ -197,7 +246,7 @@ class Renderer:
             longest, total = 0, 0
             for c in children:
                 if c.type in ("text", "code_inline"):
-                    scale = 1.25 if c.type == "code_inline" else 1.0
+                    scale = 1.4 if c.type == "code_inline" else 1.0
                     total += len(c.content) * scale
                     longest = max([longest] + [len(w) * scale for w in c.content.split()])
             return longest, total
@@ -327,7 +376,8 @@ def main() -> None:
     footer(doc)
     title_page(doc)
     renderer = Renderer(doc, DOCS)
-    for number, (title, files) in enumerate(CHAPTERS):
+    numbered = [(None, c) for c in FRONT_MATTER] + list(enumerate(CHAPTERS, start=1))
+    for number, (title, files) in numbered:
         chapter_title = f"{number}. {title}" if number else title
         renderer.section = 0
         for k, (name, shift) in enumerate(files):

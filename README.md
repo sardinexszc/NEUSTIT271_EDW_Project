@@ -14,10 +14,10 @@ Philippines, 2020–2025.
 ## Architecture
 
 ```
- 5 simulated source systems          PostgreSQL 17 (local → Supabase)                  Presentation
+ 5 simulated source systems          PostgreSQL 17 (local)                             Presentation
  ┌───────────────────────┐   extract  ┌─────┐  dbt   ┌─────────┐  dbt  ┌────┐  dbt  ┌──────┐   Next.js
  │ NDRRMC sitreps (CSV)  │ ─────────▶ │ raw │ ─────▶ │ staging │ ────▶ │ dw │ ────▶ │ mart │ ─▶ dashboards
- │ DSWD DROMIC (Excel)   │            └─────┘        └─────────┘       └────┘       └──────┘   (Vercel)
+ │ DSWD DROMIC (Excel)   │            └─────┘        └─────────┘       └────┘       └──────┘   (XAMPP)
  │ NGO distribution(JSON)│               │            data-quality       star        ROLAP
  │ PAGASA bulletins (CSV)│               │            rules → dq.*       schema      aggregates
  │ LGU response logs(CSV)│           meta.load_batch (lineage)          ref.* (PSGC, aliases)
@@ -55,7 +55,7 @@ supabase/migrations/  SQL schema history (runs on local Postgres and Supabase)
 data/reference/       real reference data (events, PSGC-derived geography, master data)
 data/sources/         generated source extracts (git-ignored; regenerate any time)
 dbt/                  transformations, data-quality tests, docs
-web/                  Next.js dashboards (deployed on Vercel)
+web/                  Next.js dashboards and the PHP API (hosted on XAMPP)
 docs/                 model documentation
 ```
 
@@ -134,7 +134,8 @@ nothing else (see [docs/governance.md](docs/governance.md)).
 | `/logistics` | logistics | Relief by organization and resource category, least-served provinces (PHP per affected person) |
 | `/about` | everyone | Architecture, fact grains, source systems, data-quality proof |
 
-The site is static (it reads the exported JSON), so Vercel deploys it with no database.
+The pages are static files; their data comes from the PHP API, or from the exported JSON
+snapshot when the warehouse is down.
 The selected event is part of the URL, so views can be shared (for example
 `/operations?event=TC2024-KRISTINE`), and every chart table has a **Download CSV** with the
 raw, unformatted values. If you rebuild the warehouse, re-run the `export` step and commit

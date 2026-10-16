@@ -2,7 +2,7 @@
 
 Star schema in the `dw` schema, built by dbt from the cleansed staging layer
 (only rows with `dq_status` valid or warning). All facts share conformed dimensions,
-so damage, evacuation, relief and response can be analysed side by side for the same
+so damage, evacuation, relief and response can be analyzed side by side for the same
 event and place.
 
 ## Fact tables
@@ -96,9 +96,9 @@ checks that every mart adds back up to the facts it summarizes.
 | `mart_response_performance` | `GROUPING SETS` over event, response type, priority (`All` = rolled up) | Operations |
 | `mart_relief_by_org_category` | event × organization × resource category | Logistics |
 
-The dashboards read a JSON snapshot of these marts (`ingestion/export_marts.py` →
-`web/src/data/`), because Vercel cannot reach the local PostgreSQL server. Pointing
-`web/src/lib/data.ts` at Supabase would make them live without changing any page.
+The dashboards read these marts live through the PHP API on XAMPP (`/driw/api/marts.php`),
+as the read-only role `driw_web`. A JSON snapshot of the marts (`ingestion/export_marts.py` →
+`web/src/data/`) is bundled as a fallback for when the warehouse is unreachable.
 
 ## Example: OLAP with `GROUP BY CUBE`
 

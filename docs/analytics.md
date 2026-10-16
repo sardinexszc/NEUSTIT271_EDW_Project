@@ -30,7 +30,7 @@ Built with Next.js and served by Apache (XAMPP) at `http://localhost/driw/`. A P
 the warehouse is unreachable, the dashboards fall back to a bundled snapshot and say so in the footer.
 
 Every chart has a legend, a "Show table" view with the exact numbers, and **Download CSV** of
-the raw values. Colours were validated for colour-blind safety in light and dark themes.
+the raw values. Colors were validated for color-blind safety in light and dark themes.
 
 ### Executive overview (leadership)
 

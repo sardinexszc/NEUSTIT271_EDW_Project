@@ -1,6 +1,6 @@
 # Data Dictionary and Metadata
 
-Generated from the live PostgreSQL catalog by `docs/build/data_dictionary.py` on 2026-10-16 10:21. Names, types, keys and nullability come from the database; descriptions are curated. Row counts are from the current build (seed 271).
+Generated from the live PostgreSQL catalog by `docs/build/data_dictionary.py` on 2026-10-16 12:52. Names, types, keys and nullability come from the database; descriptions are curated. Row counts are from the current build (seed 271).
 
 Last successful load: 2026-10-15 18:43.
 
@@ -381,7 +381,7 @@ Response timeliness with GROUPING SETS roll-ups; 'All' marks a rolled-up value. 
 
 ## Supporting layers
 
-Column-level detail for these layers is in the database itself; summarised here.
+Column-level detail for these layers is in the database itself; summarized here.
 
 | Object | Kind | Rows | Columns |
 |---|---|---:|---|

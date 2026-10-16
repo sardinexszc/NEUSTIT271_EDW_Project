@@ -9,7 +9,7 @@ design decisions); the full column list is in [data-dictionary.md](data-dictiona
 The DRIW answers questions about four **business processes**, each recorded by a different
 agency. Every process involves the same core **entities**: a hazard event, a place, a date, the
 organizations involved and the source that reported it. These shared entities are what allow the
-processes to be analysed together.
+processes to be analyzed together.
 
 ![Conceptual model](img/conceptual.png)
 

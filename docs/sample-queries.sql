@@ -48,9 +48,11 @@ limit 15;
 
 -- @query Q04 | Tropical cyclone vs monsoon flood impact per region (BQ4) | Pivot (FILTER) / dice
 select l.region_name,
-       sum(f.affected_persons) filter (where e.hazard_type = 'Tropical Cyclone') as cyclone_affected,
-       sum(f.affected_persons) filter (where e.hazard_type = 'Flood')            as flood_affected,
-       sum(f.affected_persons)                                                   as total_affected
+       sum(f.affected_persons) filter (where e.hazard_type = 'Tropical Cyclone')
+           as cyclone_affected,
+       sum(f.affected_persons) filter (where e.hazard_type = 'Flood')
+           as flood_affected,
+       sum(f.affected_persons) as total_affected
 from dw.fact_damage_assessment f
 join dw.dim_event e using (event_key)
 join dw.dim_location l using (location_key)
@@ -75,12 +77,13 @@ select e.event_name,
        max(daily.persons) as peak_persons_in_centers,
        count(*)           as days_with_evacuees
 from (
-    select event_key, snapshot_date_key, sum(persons_inside) as persons   -- sum across centers per day
+    -- sum across centers per day
+    select event_key, snapshot_date_key, sum(persons_inside) as persons
     from dw.fact_evacuation_snapshot
     group by event_key, snapshot_date_key
 ) daily
 join dw.dim_event e using (event_key)
-group by e.event_name                                                     -- then MAX over days, never SUM
+group by e.event_name   -- then MAX over days, never SUM
 order by peak_persons_in_centers desc
 limit 10;
 
@@ -102,10 +105,12 @@ limit 10;
 -- @query Q08 | Dispatch time by response type and priority (BQ7) | Accumulating snapshot analysis
 select rt.response_type_name,
        f.priority,
-       count(*)                                                                  as requests,
-       round(percentile_cont(0.5) within group (order by f.hours_to_dispatch)::numeric, 2) as median_hours_to_dispatch,
-       round(percentile_cont(0.9) within group (order by f.hours_to_dispatch)::numeric, 2) as p90_hours_to_dispatch,
-       round(100.0 * avg(f.is_completed::int), 1)                                as pct_completed
+       count(*) as requests,
+       round(percentile_cont(0.5) within group (order by f.hours_to_dispatch)::numeric, 2)
+           as median_hours_to_dispatch,
+       round(percentile_cont(0.9) within group (order by f.hours_to_dispatch)::numeric, 2)
+           as p90_hours_to_dispatch,
+       round(100.0 * avg(f.is_completed::int), 1) as pct_completed
 from dw.fact_response_action f
 join dw.dim_response_type rt using (response_type_key)
 group by rt.response_type_name, f.priority
@@ -114,8 +119,9 @@ order by rt.response_type_name, f.priority;
 
 -- @query Q09 | Slowest-responding cities/municipalities for life-saving requests (BQ7) | Slice + ranking
 select l.province_name, l.city_muni_name,
-       count(*)                                                                  as life_saving_requests,
-       round(percentile_cont(0.5) within group (order by f.hours_to_dispatch)::numeric, 2) as median_hours_to_dispatch
+       count(*) as life_saving_requests,
+       round(percentile_cont(0.5) within group (order by f.hours_to_dispatch)::numeric, 2)
+           as median_hours_to_dispatch
 from dw.fact_response_action f
 join dw.dim_response_type rt using (response_type_key)
 join dw.dim_location l using (location_key)
@@ -158,7 +164,8 @@ order by o.org_name, relief_value_php desc;
 select event_year,
        damage_cost_php,
        round(100.0 * (damage_cost_php - lag(damage_cost_php) over (order by event_year))
-             / nullif(lag(damage_cost_php) over (order by event_year), 0), 1) as pct_change_vs_prior_year
+             / nullif(lag(damage_cost_php) over (order by event_year), 0), 1)
+           as pct_change_vs_prior_year
 from (
     select e.event_year, sum(f.cost_php) as damage_cost_php
     from dw.fact_damage_assessment f join dw.dim_event e using (event_key)

@@ -275,7 +275,7 @@ def main() -> None:
             lines.append("")
 
     lines += ["## Supporting layers", "",
-              "Column-level detail for these layers is in the database itself; summarised here.", "",
+              "Column-level detail for these layers is in the database itself; summarized here.", "",
               "| Object | Kind | Rows | Columns |", "|---|---|---:|---|"]
     for s, t, kind, _ in tables:
         if s in ("dw", "mart"):
