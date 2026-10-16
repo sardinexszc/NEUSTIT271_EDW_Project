@@ -9,13 +9,16 @@ How DRIW was tested, and the results. Data seed 271, run on PostgreSQL 17.11.
 | dbt build (models + data tests) | 99 | **99 pass** |
 | End-to-end tests (`tests/test_end_to_end.py`) | 28 | **28 pass** |
 | Governance tests (`tests/test_governance.py`) | 21 | **21 pass** |
+| PHP API tests (`tests/test_php_api.py`) | 13 | **13 pass** (skipped where PHP is not installed, e.g. CI) |
+| Query performance (`ingestion/benchmark_queries.py`) | 14 queries | **14 within the 1 s budget**, slowest about 32 ms |
 | Dashboards (`npm run lint`, `npm run build`) | lint + type check + static build | **pass** |
 
 Run everything with `.venv/Scripts/python -m pytest tests`. It builds a brand-new database
 (`driw_e2e`) from nothing through the whole pipeline (migrations, reference data, PSGC,
 generation, raw load, dbt, export), runs every check, then rebuilds dbt a second time.
-Duration: about one minute. GitHub Actions runs the same suite and the dashboard build on
-every push (`.github/workflows/ci.yml`).
+Duration: about one and a half minutes. GitHub Actions runs the same suite and the dashboard
+build on every push (`.github/workflows/ci.yml`). Query timings are in
+[query-performance.md](query-performance.md).
 
 ## What is validated
 

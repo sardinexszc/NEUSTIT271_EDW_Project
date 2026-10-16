@@ -33,6 +33,14 @@ Philippines, 2020–2025.
 | Star schema (conformed dimensions + facts) | `dw` | dbt |
 | Data marts / ROLAP aggregates | `mart` | dbt |
 
+**Submission report:** [docs/submission/DRIW_Final_Report.pdf](docs/submission/DRIW_Final_Report.pdf)
+(and `.docx`), compiled from the documents below by `docs/build/build_report.py`:
+[business case](docs/business-case.md), [warehouse design](docs/warehouse-design.md) (conceptual,
+logical, physical, ER diagrams), [data dictionary](docs/data-dictionary.md),
+[ETL design](docs/etl-design.md), [analytics](docs/analytics.md),
+[sample queries](docs/sample-queries.sql), [query performance](docs/query-performance.md),
+[implementation and demo](docs/implementation.md), [requirements coverage](docs/requirements-traceability.md).
+
 See [docs/dimensional-model.md](docs/dimensional-model.md) for grain statements and the bus matrix,
 and [docs/data-quality-framework.md](docs/data-quality-framework.md) for the 36 data-quality rules
 and their reconciliation against the planted defects (19/19 defect types detected exactly).
