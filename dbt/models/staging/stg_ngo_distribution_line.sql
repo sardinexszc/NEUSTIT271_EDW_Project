@@ -10,10 +10,10 @@ with header as (
         record ->> 'distribution_id'                         as distribution_id,
         trim(record ->> 'organization')                      as raw_organization,
         record ->> 'event_ref'                               as raw_event_ref,
-        (record ->> 'distributed_on')::date                  as distributed_on,
+        meta.try_to_date(record ->> 'distributed_on', 'YYYY-MM-DD') as distributed_on,
         record -> 'location' ->> 'province'                  as province,
         record -> 'location' ->> 'municipality'              as raw_municipality,
-        (record -> 'beneficiaries' ->> 'families')::int      as beneficiary_families,
+        {{ clean_int("record -> 'beneficiaries' ->> 'families'") }} as beneficiary_families,
         record -> 'items'                                    as items
     from {{ source('raw', 'ngo_distribution') }}
 ),
@@ -54,7 +54,7 @@ lines as (
         item.line_no::int                          as line_no,
         item.value ->> 'item_code'                 as source_item_code,
         item.value ->> 'unit'                      as source_unit,
-        (item.value ->> 'quantity')::numeric       as source_quantity
+        {{ clean_number("item.value ->> 'quantity'") }} as source_quantity
     from header_checked h
     cross join lateral jsonb_array_elements(h.items) with ordinality as item(value, line_no)
 ),

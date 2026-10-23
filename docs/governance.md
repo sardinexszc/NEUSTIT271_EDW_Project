@@ -24,6 +24,15 @@ Demo personas used in tests and the presentation (NOLOGIN, used with `SET ROLE`)
 `driw_demo_executive`, `driw_demo_analyst`, `driw_demo_bicol`, `driw_demo_cagayan`,
 `driw_demo_steward`.
 
+### The web back-end's login
+
+The PHP API (`web/php/api`, served by XAMPP) connects as `driw_web`, a LOGIN role whose only
+membership is `driw_executive`. A bug or an injection in the web tier can therefore reach the
+aggregated marts but never warehouse detail, raw data or quarantine (tested in
+`tests/test_php_api.py`). It also has a 10-second statement timeout and a 20-connection limit.
+Its password lives only in the git-ignored `.env` and in a PHP config outside the web root
+(`C:\xampp\driw-config\config.php`), both written by `ingestion/setup_web_role.py`.
+
 ## Row-level security (regional users)
 
 `governance.region_access` maps a role to the region(s) it may see:
@@ -83,6 +92,49 @@ applies. It is the access matrix above, generated from the database itself:
 select role_name, schema_name, count(*) filter (where can_select) as readable, count(*) as objects
 from governance.v_access_matrix group by 1, 2 order by 1, 2;
 ```
+
+## Privacy
+
+The governing law is the **Data Privacy Act of 2012 (Republic Act 10173)** and its implementing
+rules. DRIW is designed so that it holds no personal information at all.
+
+**Data classification**
+
+| Class | Examples in DRIW | Handling |
+|---|---|---|
+| Public | Event names and dates, PSGC geography, organization names | No restriction |
+| Internal (aggregated operational) | Damage costs, relief values, response times | Role-based access (Executive, Analyst) |
+| Sensitive (aggregated) | Deaths, injured, missing, persons in evacuation centers, by city/municipality | Analysts and the region's own officers only (row-level security); executives see marts only |
+| Personal information | Names, addresses, contact details or health data of affected people or responders | **Not collected.** Never enters the warehouse. |
+
+**Privacy principles applied**
+
+- **Data minimization.** Sources are reduced to counts at the lowest level the analysis needs
+  (city/municipality, evacuation center, request). No evacuee rosters, victim lists or patient
+  records are loaded; a response request carries a request id, type, timestamps and team size,
+  never the requester's identity.
+- **Aggregation and small counts.** Casualty figures are aggregated per city/municipality and
+  event. Before any public release, counts below 5 should be suppressed or rounded to prevent
+  re-identification in small barangays (a reporting rule for published outputs).
+- **Purpose limitation.** Data is used only for disaster-response analysis and planning, as
+  stated in the business case.
+- **Least privilege and need to know.** Four roles; regional officers see only their region;
+  the web back-end logs in as `driw_web`, which can read only aggregated marts.
+- **Security of processing.** Credentials are never in source code (git-ignored `.env`, PHP
+  config outside the web root); the API accepts only allow-listed, validated GET requests; all
+  access is enforced inside PostgreSQL, so it holds for every client.
+- **Retention.** Raw extracts are replaced on every load (full reload). Warehouse history is kept
+  for the analysis period (2020 onwards); source files under `data/sources/` are regenerable and
+  not retained in version control.
+- **Transparency.** Every published figure is traceable to its source file and row (lineage), and
+  every rejected row is kept with its reasons (quarantine).
+- **Synthetic data.** In this implementation all operational figures are synthetic; no real
+  person's data was processed at any stage.
+
+**If real data is onboarded:** sign data-sharing agreements with each agency, register the
+processing with the National Privacy Commission where required, appoint a data protection
+officer, run a privacy impact assessment, and enable PostgreSQL connection and statement logging
+(`log_connections`, `pgaudit`) for an access audit trail.
 
 ## Supabase
 

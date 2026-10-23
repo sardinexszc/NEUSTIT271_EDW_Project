@@ -5,6 +5,7 @@ import { EventSelect } from "@/components/event-select";
 import { Card, Legend, StatGrid, StatTile, TableView } from "@/components/ui";
 import type { DisplacementDay, EvacuationDay, EventSummary, LifelineRestoration, ResponsePerformance } from "@/lib/data";
 import { count, full, hours, percent, shortDate } from "@/lib/format";
+import { useMart } from "@/lib/live";
 import { useEventParam } from "@/lib/use-event-param";
 
 const PRIORITY_SERIES = [
@@ -36,7 +37,10 @@ const SHORT_TYPE: Record<string, string> = {
   "Search and rescue": "Rescue",
 };
 
-export function OperationsDashboard({ events, evacuation, displacement, lifelines, response, options, initial }: {
+export function OperationsDashboard({
+  events: eventsSnapshot, evacuation: evacuationSnapshot, displacement: displacementSnapshot,
+  lifelines: lifelinesSnapshot, response: responseSnapshot, options, initial,
+}: {
   events: EventSummary[];
   evacuation: EvacuationDay[];
   displacement: DisplacementDay[];
@@ -45,6 +49,12 @@ export function OperationsDashboard({ events, evacuation, displacement, lifeline
   options: { code: string; label: string }[];
   initial: string;
 }) {
+  // live from the warehouse on XAMPP, the bundled snapshot elsewhere
+  const events = useMart("mart_event_summary", eventsSnapshot).rows;
+  const evacuation = useMart("mart_evacuation_daily", evacuationSnapshot).rows;
+  const displacement = useMart("mart_displacement_daily", displacementSnapshot).rows;
+  const lifelines = useMart("mart_lifeline_restoration", lifelinesSnapshot).rows;
+  const response = useMart("mart_response_performance", responseSnapshot).rows.filter((r) => r.event_code !== "All");
   const [code, setCode] = useEventParam(options.map((o) => o.code), initial);
   const event = events.find((e) => e.event_code === code)!;
   const days = evacuation.filter((d) => d.event_code === code).sort((a, b) => a.snapshot_date.localeCompare(b.snapshot_date));

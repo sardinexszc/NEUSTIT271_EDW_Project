@@ -1,15 +1,19 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { DataSource } from "@/components/data-source";
 import { Nav } from "@/components/nav";
 import { exportedAt } from "@/lib/data";
 
 const DESCRIPTION =
   "IT271 Enterprise Data Warehousing project: disaster-response analytics for the Philippines, 2020–2025.";
 
-// Link previews need absolute URLs; Vercel provides the production domain at build time.
-const siteUrl = process.env.VERCEL_PROJECT_PRODUCTION_URL
-  ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
-  : "http://localhost:3000";
+// Link previews need absolute URLs: the XAMPP folder, Vercel's production domain, or the dev server.
+const siteUrl =
+  process.env.DRIW_TARGET === "xampp"
+    ? `http://localhost${process.env.DRIW_BASE_PATH ?? "/driw"}/`
+    : process.env.VERCEL_PROJECT_PRODUCTION_URL
+      ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+      : "http://localhost:3000";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -49,8 +53,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         </div>
         <main className="mx-auto max-w-6xl px-4 py-6 sm:py-8">{children}</main>
         <footer className="mx-auto max-w-6xl px-4 pb-8 text-xs text-muted">
-          IT271 Enterprise Data Warehousing · Ivan Christian Salinas · Data snapshot exported{" "}
-          {new Date(exportedAt).toLocaleString("en-PH", { dateStyle: "medium", timeStyle: "short" })}
+          IT271 Enterprise Data Warehousing · Ivan Christian Salinas · <DataSource exportedAt={exportedAt} />
         </footer>
       </body>
     </html>

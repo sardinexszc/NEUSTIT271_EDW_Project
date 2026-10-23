@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { PageHeader } from "@/components/ui";
-import { eventOptions, provinces, relief } from "@/lib/data";
+import { eventOptions, events, provinces, relief } from "@/lib/data";
 import { LogisticsDashboard } from "./logistics-dashboard";
 
 export const metadata: Metadata = { title: "Logistics | DRIW" };
@@ -15,7 +15,7 @@ export default function LogisticsPage() {
       />
       {/* the selected event is read from the URL, which needs a Suspense boundary on a static page */}
       <Suspense fallback={<p className="text-ink-2">Loading dashboard…</p>}>
-        <LogisticsDashboard relief={relief} provinces={provinces} options={eventOptions} />
+        <LogisticsDashboard relief={relief} provinces={provinces} events={events} options={eventOptions} />
       </Suspense>
     </>
   );

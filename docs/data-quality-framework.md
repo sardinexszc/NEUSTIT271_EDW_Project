@@ -32,7 +32,7 @@ Staging models never drop rows. Each raw row keeps its lineage (`_batch_id`, `_s
 | **warning** | Kept and flagged | Yes | Evacuation center over capacity; required measure blank |
 | **reject** | Quarantined in `dq.dq_quarantine` | No | Negative cost; arrival before dispatch; unknown item code |
 
-The full catalog (40 rules across 5 sources, including lifeline and outside-evacuation-center checks) is
+The full catalog (45 rules across 5 sources, including lifeline and outside-evacuation-center checks) is
 [`dbt/seeds/dq_rules.csv`](../dbt/seeds/dq_rules.csv). A dbt test fails the build if a
 staging model emits a rule that is not in the catalog, or if a row's `dq_status` disagrees
 with the severities of its issues.

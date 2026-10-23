@@ -20,19 +20,20 @@ with typed as (
         end                       as request_type,
         trim(priority)            as priority,
         {%- for col in ['requested_at', 'dispatched_at', 'arrived_at', 'completed_at'] %}
-        case when {{ col }} ~ '{{ ts_pattern }}' then to_timestamp({{ col }}, 'YYYY-MM-DD HH24:MI')::timestamp end
+        case when {{ col }} ~ '{{ ts_pattern }}' then meta.try_to_timestamp({{ col }}, 'YYYY-MM-DD HH24:MI') end
             as {{ col }},
         {%- endfor %}
         trim(responding_unit)     as responding_unit,
-        {{ clean_number('personnel_count') }}::int as personnel_count
+        {{ clean_int('personnel_count') }} as personnel_count
     from {{ source('raw', 'lgu_response_log') }}
 ),
 
 resolved as (
-    select t.*, loc.psgc_code, loc.match_method as location_match_method, ev.event_key
+    select t.*, loc.psgc_code, loc.match_method as location_match_method, ev.event_key, oa.org_code
     from typed t
     left join {{ ref('stg_location_resolution') }} loc
         on loc.raw_province = t.province and loc.raw_name = t.raw_lgu_name
+    left join {{ source('ref', 'organization_alias') }} oa on oa.alias_name = lower(t.responding_unit)
     {{ event_lookup('t.incident', 't.requested_at::date', 'ev') }}
 ),
 
@@ -50,6 +51,11 @@ checked as (
             case when request_type is null then 'REQUEST_TYPE_UNKNOWN' end,
             case when completed_at is null then 'REQUEST_OPEN' end,
             case when arrived_at < dispatched_at then 'ARRIVAL_BEFORE_DISPATCH' end,
+            -- the next three never occur in the synthetic logs but do in submitted files; without
+            -- them a bad row would reach (or silently drop out of) the response fact
+            case when dispatched_at < requested_at then 'DISPATCH_BEFORE_REQUEST' end,
+            case when completed_at < arrived_at then 'COMPLETED_BEFORE_ARRIVAL' end,
+            case when org_code is null then 'RESPONDING_UNIT_UNKNOWN' end,
             case when requested_at is null or dispatched_at is null then 'TIMESTAMP_UNPARSEABLE' end,
             case when location_match_method in ('normalized', 'fuzzy') then 'LOC_NAME_VARIANT' end,
             case when psgc_code is null then 'LOC_UNMATCHED' end,
@@ -62,6 +68,7 @@ select
     *,
     {{ dq_status('dq_issues',
                  ['REQUEST_TYPE_UNKNOWN', 'ARRIVAL_BEFORE_DISPATCH', 'TIMESTAMP_UNPARSEABLE',
+                  'DISPATCH_BEFORE_REQUEST', 'COMPLETED_BEFORE_ARRIVAL', 'RESPONDING_UNIT_UNKNOWN',
                   'LOC_UNMATCHED', 'EVENT_UNRESOLVED'],
                  []) }} as dq_status
 from checked

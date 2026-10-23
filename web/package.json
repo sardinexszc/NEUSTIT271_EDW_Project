@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "deploy:xampp": "node scripts/deploy-xampp.mjs"
   },
   "dependencies": {
     "next": "15.5.28",

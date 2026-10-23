@@ -4,8 +4,9 @@ import { BarList } from "@/components/charts";
 import { EventSelect } from "@/components/event-select";
 import { CsvButton } from "@/components/csv-button";
 import { Card, DataTable, Legend, StatGrid, StatTile, TableView } from "@/components/ui";
-import type { ProvinceImpact, ReliefByOrg } from "@/lib/data";
+import type { EventSummary, ProvinceImpact, ReliefByOrg } from "@/lib/data";
 import { count, full, percent, peso } from "@/lib/format";
+import { useMart } from "@/lib/live";
 import { useEventParam } from "@/lib/use-event-param";
 
 // Fixed order = fixed colour per category, whatever the filter shows.
@@ -25,11 +26,16 @@ const PROVIDERS = [
   { key: "International", label: "International (UN)" },
 ];
 
-export function LogisticsDashboard({ relief, provinces, options }: {
+export function LogisticsDashboard({ relief: reliefSnapshot, provinces: provincesSnapshot, events: eventsSnapshot, options }: {
   relief: ReliefByOrg[];
   provinces: ProvinceImpact[];
+  events: EventSummary[];
   options: { code: string; label: string }[];
 }) {
+  // live from the warehouse on XAMPP, the bundled snapshot elsewhere
+  const relief = useMart("mart_relief_by_org_category", reliefSnapshot).rows;
+  const provinces = useMart("mart_province_event_impact", provincesSnapshot).rows;
+  const events = useMart("mart_event_summary", eventsSnapshot).rows;
   const [code, setCode] = useEventParam(options.map((o) => o.code), "ALL");
   const inScope = <T extends { event_code: string }>(rows: T[]) =>
     code === "ALL" ? rows : rows.filter((r) => r.event_code === code);
@@ -39,7 +45,9 @@ export function LogisticsDashboard({ relief, provinces, options }: {
 
   const totalValue = reliefRows.reduce((t, r) => t + r.relief_value_php, 0);
   const familiesServed = reliefRows.reduce((t, r) => t + r.families_served, 0);
-  const distributions = reliefRows.reduce((t, r) => t + r.distributions, 0);
+  // Count distributions per event, not per organization x category: one distribution can carry
+  // food and water, and summing the category rows would count it twice.
+  const distributions = inScope(events).reduce((t, e) => t + (e.distributions ?? 0), 0);
   const affectedPersons = provinceRows.reduce((t, r) => t + r.affected_persons, 0);
   const affectedFamilies = provinceRows.reduce((t, r) => t + r.affected_families, 0);
 
@@ -141,7 +149,7 @@ export function LogisticsDashboard({ relief, provinces, options }: {
           />
         </Card>
 
-        <Card title="Least-served provinces" subtitle="Relief value per affected person, lowest 10" className="lg:col-span-2">
+        <Card title="Least-served provinces" subtitle="Relief value per affected person, lowest 10">
           <BarList
             data={leastServed}
             labelKey="province"

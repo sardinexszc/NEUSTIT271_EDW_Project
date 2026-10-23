@@ -35,3 +35,6 @@ Thumbs.db
 data/reference/psgc_api/
 dbt/.user.yml
 .claude/
+
+# Reports submitted through the Data exchange page (may be real LGU data)
+data/intake/

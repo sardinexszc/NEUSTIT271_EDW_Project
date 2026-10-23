@@ -1,0 +1,6 @@
+# Helper files (_bootstrap.php) are included by the endpoints, never requested directly.
+<FilesMatch "^_">
+  Require all denied
+</FilesMatch>
+
+Options -Indexes

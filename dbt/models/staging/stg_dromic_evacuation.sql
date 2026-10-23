@@ -28,9 +28,9 @@ typed as (
         nullif(trim(s.ec_code), '')           as raw_ec_code,
         trim(s.ec_name)                       as ec_name,
         trim(s.ec_type)                       as ec_type,
-        {{ clean_number('s.capacity_families') }}::int as capacity_families,
-        {{ clean_number('s.families_inside') }}::int   as families_inside,
-        {{ clean_number('s.persons_inside') }}::int    as persons_inside
+        {{ clean_int('s.capacity_families') }} as capacity_families,
+        {{ clean_int('s.families_inside') }}   as families_inside,
+        {{ clean_int('s.persons_inside') }}    as persons_inside
     from src s
     join dominant_format d using (_source_file)
 ),

@@ -2,7 +2,10 @@
 -- With synthetic data every rejection should trace to a planted defect. Reject rules with no
 -- planted counterpart (e.g. EVENT_UNRESOLVED) firing usually means a parsing bug in staging,
 -- not bad source data -- this caught the "Southwest Monsoon (Habagat) Carina (Gaemi)" bug.
-select s.source_system, s.rule_code, s.issue_count
-from {{ ref('dq_rule_summary') }} s
-join {{ ref('dq_rules') }} r using (source_system, rule_code)
-where r.severity = 'reject' and r.planted_defect is null and s.issue_count > 0
+-- Submitted files (origin 'intake') are real-world data and are excluded.
+select i.source_system, i.rule_code, count(*) as issue_count
+from {{ ref('dq_issue_log') }} i
+join {{ source('meta', 'load_batch') }} b on b.batch_id = i._batch_id and b.origin = 'synthetic'
+join {{ ref('dq_rules') }} r on r.source_system = i.source_system and r.rule_code = i.rule_code
+where r.severity = 'reject' and r.planted_defect is null
+group by 1, 2

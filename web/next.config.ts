@@ -1,7 +1,20 @@
 import type { NextConfig } from "next";
 
+// XAMPP build (npm run deploy:xampp): plain static files served by Apache from a
+// subfolder of htdocs, e.g. http://localhost/driw. Normal builds are unchanged.
+const xampp = process.env.DRIW_TARGET === "xampp";
+const basePath = xampp ? process.env.DRIW_BASE_PATH ?? "/driw" : undefined;
+
 const nextConfig: NextConfig = {
-  /* config options here */
+  ...(xampp && {
+    output: "export",
+    basePath,
+    // /driw/operations/ -> operations/index.html, which Apache serves without rewrite rules
+    trailingSlash: true,
+    images: { unoptimized: true },
+  }),
+  // the PHP API that serves live marts exists only on XAMPP (web/php -> htdocs/driw/api)
+  env: { NEXT_PUBLIC_DRIW_API: xampp ? `${basePath}/api` : "" },
 };
 
 export default nextConfig;
