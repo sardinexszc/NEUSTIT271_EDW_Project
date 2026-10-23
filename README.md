@@ -16,11 +16,11 @@ Philippines, 2020–2025.
 ```
  5 simulated source systems          PostgreSQL 17 (local → Supabase)                  Presentation
  ┌───────────────────────┐   extract  ┌─────┐  dbt   ┌─────────┐  dbt  ┌────┐  dbt  ┌──────┐   Next.js
- │ NDRRMC sitreps (CSV)  │ ─────────▶ │ raw │ ─────▶ │ staging │ ────▶ │ dw │ ────▶ │ mart │ ─▶ dashboards
- │ DSWD DROMIC (Excel)   │            └─────┘        └─────────┘       └────┘       └──────┘   (Vercel)
- │ NGO distribution(JSON)│               │            data-quality       star        ROLAP
- │ PAGASA bulletins (CSV)│               │            rules → dq.*       schema      aggregates
- │ LGU response logs(CSV)│           meta.load_batch (lineage)          ref.* (PSGC, aliases)
+ │ NDRRMC sitreps and    │ ─────────▶ │ raw │ ─────▶ │ staging │ ────▶ │ dw │ ────▶ │ mart │ ─▶ dashboards
+ │  lifelines (CSV)      │            └─────┘        └─────────┘       └────┘       └──────┘   (Vercel)
+ │ DSWD DROMIC (Excel)   │               │            data-quality       star        ROLAP
+ │ NGO/LGU relief (JSON) │               │            rules → dq.*       schema      aggregates
+ │ PAGASA, LGU logs (CSV)│           meta.load_batch (lineage)          ref.* (PSGC, aliases)
  └───────────────────────┘
 ```
 
@@ -92,9 +92,9 @@ cd web && npm install && npm run dev               # http://localhost:3000
 
 | Page | For | Shows |
 |---|---|---|
-| `/` Executive | leadership | Total damage, casualties, cost by year and category, costliest events, regions (from the CUBE mart) |
-| `/operations` | operations managers | Per event: people in evacuation centers per day, over-capacity centers, dispatch times by type and priority |
-| `/logistics` | logistics | Relief by organization and resource category, least-served provinces (PHP per affected person) |
+| `/` Executive | leadership | Total damage, casualties, peak displaced, deaths per 100,000 (Sendai target A), cost by year and category, costliest events, regions (from the CUBE mart) |
+| `/operations` | operations managers | Per event: people displaced inside and outside evacuation centers per day, over-capacity centers, roads/bridges/power/water/communications restoration, dispatch times by type and priority |
+| `/logistics` | logistics | Relief by organization and resource category, cost of assistance by provider (DSWD, LGU, NGO, international), least-served provinces (PHP per affected person) |
 | `/about` | everyone | Architecture, fact grains, source systems, data-quality proof |
 
 The site is static (it reads the exported JSON), so Vercel deploys it with no database.

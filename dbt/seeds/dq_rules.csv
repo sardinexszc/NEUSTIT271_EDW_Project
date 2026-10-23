@@ -9,6 +9,10 @@ ndrrmc,PERSONS_LT_FAMILIES,reject,Quarantined,Affected persons is lower than aff
 ndrrmc,LOC_NAME_VARIANT,info,Matched to PSGC,City/municipality name differs from the official PSGC name but was matched (normalized or fuzzy),location_name_variant
 ndrrmc,LOC_UNMATCHED,reject,Quarantined,City/municipality could not be matched to PSGC within the province,location_name_variant
 ndrrmc,EVENT_UNRESOLVED,reject,Quarantined,Incident cannot be matched to a PAGASA event,
+ndrrmc,LIFELINE_UNKNOWN,reject,Quarantined,Lifeline is not one of ROAD BRIDGE POWER WATER COMMS,
+ndrrmc,TIMESTAMP_UNPARSEABLE,reject,Quarantined,Lifeline interruption or restoration time cannot be parsed,
+ndrrmc,RESTORED_BEFORE_INTERRUPTED,reject,Quarantined,Lifeline restoration time is earlier than its interruption,
+ndrrmc,LIFELINE_NOT_RESTORED,info,Kept; restoration pending,Lifeline still down at the final sitrep (accumulating snapshot stays open),
 dromic,DATE_FORMAT_INCONSISTENT,info,Parsed and standardized,Report date uses a different format from the rest of the workbook,inconsistent_date_format
 dromic,DATE_UNPARSEABLE,reject,Quarantined,Report date cannot be parsed,
 dromic,EC_CODE_IMPUTED,warning,Code imputed from other reports,Evacuation-center code missing; recovered from other rows of the same center,missing_ec_code

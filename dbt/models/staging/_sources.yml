@@ -6,7 +6,9 @@ sources:
     tables:
       - name: pagasa_event
       - name: ndrrmc_damage_report
+      - name: ndrrmc_lifeline_status
       - name: dromic_evacuation
+      - name: dromic_displaced_outside
       - name: ngo_distribution
       - name: lgu_response_log
 

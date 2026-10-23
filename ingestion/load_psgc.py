@@ -111,6 +111,18 @@ def main() -> None:
     save_units(units, publication, census)
 
 
+def population_of(u: dict, census: str | None) -> tuple:
+    """(population, its source): the census figure, else the generator's estimate, labelled so."""
+    if u["population"]:
+        return u["population"], census
+    if u.get("population_estimate"):
+        return u["population_estimate"], ESTIMATE_LABEL
+    return None, None
+
+
+ESTIMATE_LABEL = "Estimate (barangay count x 2,600)"
+
+
 def save_units(units: dict, publication: str, census: str | None) -> None:
     """Write units to ref.psgc and the derived CSVs, then check events.csv provinces resolve.
 
@@ -128,7 +140,7 @@ def save_units(units: dict, publication: str, census: str | None) -> None:
             for u in units.values():
                 copy.write_row([u["code"], u["name"], u["level"], u["region_code"], u["province_code"],
                                 u["city_muni_code"], u["city_class"], u["income"], u["urban"],
-                                u["population"], census, publication, u.get("province_name")])
+                                *population_of(u, census), publication, u.get("province_name")])
         conn.commit()
 
     citymun = [u for u in units.values() if u["level"] in CITYMUN_LEVELS]

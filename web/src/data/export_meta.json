@@ -1,11 +1,13 @@
 {
-  "exported_at": "2026-10-15T16:16:46+00:00",
+  "exported_at": "2026-10-23T15:15:46+00:00",
   "marts": [
     "mart_event_summary",
     "mart_impact_cube",
     "mart_province_event_impact",
     "mart_evacuation_daily",
     "mart_response_performance",
-    "mart_relief_by_org_category"
+    "mart_relief_by_org_category",
+    "mart_displacement_daily",
+    "mart_lifeline_restoration"
   ]
 }

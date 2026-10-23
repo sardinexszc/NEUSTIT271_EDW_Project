@@ -2,7 +2,7 @@ import { BarList, ColumnChart } from "@/components/charts";
 import { CsvButton } from "@/components/csv-button";
 import { Card, DataTable, HeroFigure, Legend, PageHeader, StatGrid, StatTile, TableView } from "@/components/ui";
 import { cube, events } from "@/lib/data";
-import { count, full, peso } from "@/lib/format";
+import { count, full, percent, peso } from "@/lib/format";
 
 const COST_SERIES = [
   { key: "housing", label: "Housing", color: "var(--series-1)" },
@@ -16,14 +16,29 @@ const EVENT_CSV_COLUMNS = [
   "dead", "injured", "missing", "affected_families", "affected_persons",
   "houses_partially_damaged", "houses_totally_damaged",
   "damage_cost_php", "housing_cost_php", "infrastructure_cost_php", "agriculture_cost_php",
-  "peak_persons_in_centers", "centers_used", "relief_value_php", "families_served",
-  "response_requests", "median_hours_to_dispatch", "completion_rate",
+  "affected_area_population", "dead_per_100k", "missing_per_100k", "affected_per_100k", "dead_per_100k_national",
+  "peak_persons_in_centers", "peak_persons_outside_centers", "peak_persons_displaced", "centers_used",
+  "relief_value_php", "relief_national_government_php", "relief_lgu_php", "relief_ngo_php", "relief_international_php",
+  "families_served", "response_requests", "median_hours_to_dispatch", "completion_rate",
+  "lifeline_disruptions", "lifelines_still_down", "median_hours_to_restore",
 ].map((key) => ({ key, label: key }));
 
 export default function ExecutivePage() {
   const sum = (f: (e: (typeof events)[number]) => number | null) => events.reduce((t, e) => t + (f(e) ?? 0), 0);
   const totalCost = sum((e) => e.damage_cost_php);
-  const worstEvacuation = [...events].sort((a, b) => (b.peak_persons_in_centers ?? 0) - (a.peak_persons_in_centers ?? 0))[0];
+  const worstDisplacement = [...events].sort((a, b) => (b.peak_persons_displaced ?? 0) - (a.peak_persons_displaced ?? 0))[0];
+  // Sendai target A: deaths per 100,000 people, so a small event that hit hard is not hidden
+  // behind big events; denominator = population of the places that reported damage
+  const deadliest = [...events]
+    .filter((e) => e.dead_per_100k != null)
+    .sort((a, b) => (b.dead_per_100k ?? 0) - (a.dead_per_100k ?? 0))
+    .slice(0, 10)
+    .map((e) => ({
+      name: `${e.local_name} ${e.event_year}`,
+      rate: e.dead_per_100k ?? 0,
+      dead: e.dead,
+      population: e.affected_area_population ?? 0,
+    }));
 
   const years = [...new Set(events.map((e) => e.event_year))];
   const costByYear = years.map((y) => {
@@ -70,9 +85,12 @@ export default function ExecutivePage() {
           <StatTile label="People affected" value={count(sum((e) => e.affected_persons))} />
           <StatTile label="Houses destroyed" value={count(sum((e) => e.houses_totally_damaged))} />
           <StatTile
-            label="Peak in evacuation centers"
-            value={count(worstEvacuation.peak_persons_in_centers)}
-            detail={worstEvacuation.event_name}
+            label="Peak displaced"
+            value={count(worstDisplacement.peak_persons_displaced)}
+            detail={`${worstDisplacement.local_name} · ${percent(
+              (worstDisplacement.peak_persons_outside_centers ?? 0) / Math.max(1, worstDisplacement.peak_persons_displaced ?? 0),
+              0,
+            )} outside centers`}
           />
           <StatTile label="Relief delivered" value={peso(sum((e) => e.relief_value_php))} />
           <StatTile label="Response requests" value={count(sum((e) => e.response_requests))} />
@@ -116,6 +134,35 @@ export default function ExecutivePage() {
         </Card>
 
         <Card
+          title="Deaths per 100,000 people"
+          subtitle="Top 10 events · population of the cities and municipalities that reported damage"
+          className="lg:col-span-2"
+        >
+          <BarList
+            data={deadliest}
+            labelKey="name"
+            series={[{ key: "rate", label: "Deaths per 100,000", color: "var(--series-1)" }]}
+            format="count"
+            labelWidth={120}
+          />
+          <p className="mt-2 text-xs text-muted">
+            Sendai Framework target A. Populations are estimates (barangay count × 2,600), so compare events, not absolute rates.
+          </p>
+          <TableView
+            columns={[
+              { key: "name", label: "Event" },
+              { key: "dead", label: "Deaths", numeric: true },
+              { key: "population", label: "Population of affected places", numeric: true },
+              { key: "rate", label: "Per 100,000", numeric: true },
+            ]}
+            rows={deadliest.map((r) => ({
+              name: r.name, dead: full(r.dead), population: full(r.population), rate: r.rate.toFixed(2),
+            }))}
+            csv={{ filename: "deaths-per-100k", rows: deadliest }}
+          />
+        </Card>
+
+        <Card
           title="People affected by region"
           subtitle="Top 10 regions, all events · region subtotals from the GROUP BY CUBE mart"
           className="lg:col-span-2"
@@ -150,6 +197,7 @@ export default function ExecutivePage() {
               { key: "category", label: "Category" },
               { key: "dates", label: "Dates" },
               { key: "dead", label: "Deaths", numeric: true },
+              { key: "rate", label: "Deaths /100k", numeric: true },
               { key: "affected", label: "Affected", numeric: true },
               { key: "cost", label: "Damage", numeric: true },
               { key: "relief", label: "Relief", numeric: true },
@@ -159,6 +207,7 @@ export default function ExecutivePage() {
               category: e.category,
               dates: `${e.start_date} – ${e.end_date}`,
               dead: full(e.dead),
+              rate: e.dead_per_100k == null ? "–" : e.dead_per_100k.toFixed(2),
               affected: count(e.affected_persons),
               cost: peso(e.damage_cost_php),
               relief: peso(e.relief_value_php),

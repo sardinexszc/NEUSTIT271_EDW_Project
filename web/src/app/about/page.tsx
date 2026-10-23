@@ -6,7 +6,7 @@ export const metadata: Metadata = { title: "About the warehouse | DRIW" };
 const layers = [
   { schema: "raw", title: "Landing zone", text: "Five source systems (CSV, Excel, JSON) landed exactly as received, with batch lineage." },
   { schema: "staging", title: "Cleanse & conform", text: "36 data-quality rules standardize names, units and dates; failing rows are quarantined." },
-  { schema: "dw", title: "Star schema", text: "Four fact tables sharing nine conformed dimensions, with SCD Type 2 locations." },
+  { schema: "dw", title: "Star schema", text: "Six fact tables sharing ten conformed dimensions, with SCD Type 2 locations." },
   { schema: "mart", title: "Data marts", text: "Materialized views and GROUP BY CUBE / GROUPING SETS aggregates for these dashboards." },
 ];
 
@@ -15,6 +15,8 @@ const facts = [
   { fact: "Evacuation snapshot", type: "Periodic snapshot", grain: "evacuation center × day × event" },
   { fact: "Resource distribution", type: "Transaction", grain: "relief distribution line item" },
   { fact: "Response action", type: "Accumulating snapshot", grain: "response request (4 milestone dates)" },
+  { fact: "Displacement outside centers", type: "Periodic snapshot", grain: "city/municipality × day × event" },
+  { fact: "Lifeline disruption", type: "Accumulating snapshot", grain: "event × city/municipality × lifeline" },
 ];
 
 const sources = [

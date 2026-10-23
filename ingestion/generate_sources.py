@@ -56,6 +56,14 @@ NGO_ITEMS = {  # item -> source codes/units used by partners (see resource_items
     "MEDKIT": [("MEDKIT", "kit", 1), ("MED-BOX", "box", 1)],
     "WATERKIT": [("WATERKIT", "kit", 1), ("WPK", "kit", 1)],
 }
+# Lifelines tracked in NDRRMC sitreps: code -> (impact needed before it fails, units affected
+# per 10k residents at full impact, median hours to restore at full impact).
+LIFELINES = {
+    "ROAD": (0.30, 1.5, 60), "BRIDGE": (0.45, 0.4, 140), "POWER": (0.20, 6.0, 90),
+    "WATER": (0.35, 3.0, 70), "COMMS": (0.25, 4.0, 40),
+}
+LGU_RELIEF_NAMES = ["MDRRMO", "CDRRMO", "PDRRMO", "Municipal DRRMO"]
+LGU_ITEM_WEIGHT = {"FFP": 50, "RICE": 25, "WATER": 15, "HYGKIT": 5, "TARP": 5}  # LGUs give food first
 REQUEST_TYPES = {  # code -> (typical responding units, base hours to dispatch, on-site hours)
     "RESCUE": (["MDRRMO Rescue Team", "BFP", "PCG", "AFP"], 0.5, 4),
     "MEDEVAC": (["DOH-HEMS", "MDRRMO Rescue Team", "AFP"], 0.7, 3),
@@ -208,12 +216,17 @@ def generate(seed: int) -> None:
     by_province, brgy_by_citymun = load_geography()
     events = read_csv(REFERENCE_DIR / "events.csv")
 
-    for sub in ["ndrrmc", "dromic", "ngo", "pagasa", "lgu"]:
+    # Displacement outside evacuation centers, lifeline outages and LGU relief draw from their
+    # own stream, so adding them left every figure generated from `rng` unchanged.
+    xrng = random.Random(f"{seed}-lifelines-displacement")
+
+    for sub in ["ndrrmc", "ndrrmc/lifelines", "dromic", "ngo", "pagasa", "lgu"]:
         (SOURCES_DIR / sub).mkdir(parents=True, exist_ok=True)
 
     pagasa_rows, ngo_by_year, lgu_rows = [], defaultdict(list), []
     totals = Counter()
     seq = itertools.count(1)  # unique source IDs
+    lgu_relief_seq = itertools.count(1)
 
     for event in events:
         start = date.fromisoformat(event["start_date"])
@@ -239,10 +252,12 @@ def generate(seed: int) -> None:
         # ---- NDRRMC sitreps: cumulative figures, more areas reported each sitrep
         sitreps = rng.randint(2, 4)
         ndrrmc_rows = []
+        affected_families = {}  # psgc -> final affected families, sizes the displacement below
         for area, impact in areas:
             pop = area["population"]
             persons = pop * impact * rng.uniform(0.05, 0.35)
             families = persons / rng.uniform(*PERSONS_PER_FAMILY)
+            affected_families[area["psgc_code"]] = families
             # Losses grow much faster than linearly with event strength: the strongest events
             # (weight ~1) reach tens of billions of PHP; weak ones stay small.
             loss_scale = 12 * float(event["severity_weight"]) ** 3
@@ -343,7 +358,51 @@ def generate(seed: int) -> None:
                                area["province_name"], muni, ec["barangay"], code, ec["name"],
                                ec["type"], ec["capacity"], fam, persons])
                     totals["evacuation_snapshot_rows"] += 1
+
+        # Most displaced families stay with relatives or friends, not in centers; DROMIC
+        # reports them per city/municipality on a second sheet.
+        ws_out = wb.create_sheet("Outside ECs")
+        ws_out.append(["Report Date", "Disaster", "Region", "Province", "City/Municipality",
+                       "Families Outside", "Persons Outside"])
+        for area, impact in areas:
+            if impact < 0.15:
+                continue
+            peak = affected_families[area["psgc_code"]] * xrng.uniform(0.12, 0.35) * min(1.5, 0.5 + impact)
+            stay_days = 3 + round(impact * 14)  # longer than a stay in a center
+            for d in range((end - start).days + stay_days):
+                fam = round(peak * math.exp(-d / (stay_days / 2)) * xrng.uniform(0.9, 1.1))
+                if fam <= 0:
+                    break
+                ws_out.append([fmt_date(xrng, start + timedelta(days=d), office_style), event["local_name"],
+                               area["region_name"], area["province_name"], area["name"],
+                               fam, round(fam * xrng.uniform(*PERSONS_PER_FAMILY))])
+                totals["displaced_outside_rows"] += 1
         wb.save(SOURCES_DIR / "dromic" / f"dromic_{event['event_code']}.xlsx")
+
+        # ---- NDRRMC lifelines: roads/bridges not passable, power/water/communications outages,
+        # one row per city/municipality x lifeline, with restoration time (blank = not restored
+        # by the final sitrep)
+        lifeline_rows = []
+        cutoff = datetime.combine(end + timedelta(days=21), datetime.min.time())
+        for area, impact in areas:
+            for code, (threshold, per_10k, median_hours) in LIFELINES.items():
+                if impact < threshold or xrng.random() > 0.2 + 1.5 * (impact - threshold):
+                    continue
+                down = datetime.combine(start, datetime.min.time()) + timedelta(
+                    hours=xrng.uniform(0, 24 * ((end - start).days + 1)))
+                hours = max(2.0, xrng.lognormvariate(math.log(median_hours * (0.3 + impact)), 0.7))
+                restored = down + timedelta(hours=hours)
+                lifeline_rows.append({
+                    "incident_name": incident, "region": area["region_name"],
+                    "province": area["province_name"], "city_muni": area["name"], "lifeline": code,
+                    "units_affected": max(1, round(area["population"] / 10_000 * per_10k * impact
+                                                   * xrng.uniform(0.3, 1.5))),
+                    "interrupted_at": down.strftime("%Y-%m-%d %H:%M"),
+                    "restored_at": restored.strftime("%Y-%m-%d %H:%M") if restored <= cutoff else "",
+                })
+        if lifeline_rows:
+            write_csv(SOURCES_DIR / "ndrrmc" / "lifelines" / f"lifelines_{event['event_code']}.csv", lifeline_rows)
+            totals["lifeline_rows"] += len(lifeline_rows)
 
         # ---- NGO / agency relief distribution (nested JSON, one file per year)
         for area, impact in areas:
@@ -381,6 +440,31 @@ def generate(seed: int) -> None:
                     "items": lines,
                 }
                 ngo_by_year[day.year].append(record)
+                totals["distribution_line_rows"] += len(lines)
+
+        # ---- LGU relief (MDRRMO/CDRRMO/PDRRMO): the first responders, mostly food packs in the
+        # first week, reported through the same partner feed
+        for area, impact in areas:
+            if impact < 0.2:
+                continue
+            for _ in range(xrng.randint(1, 1 + round(impact * 3))):
+                day = start + timedelta(days=xrng.randint(0, 7))
+                families = max(10, round(area["population"] * impact * xrng.uniform(0.003, 0.012)))
+                items = xrng.sample(list(LGU_ITEM_WEIGHT), k=xrng.randint(1, 2), counts=list(LGU_ITEM_WEIGHT.values()))
+                lines = []
+                for item in dict.fromkeys(items):  # sampling with counts can repeat an item
+                    src_code, unit, factor = NGO_ITEMS[item][0]
+                    qty = max(1, round(families * xrng.uniform(*UNITS_PER_FAMILY[item]) / factor))
+                    lines.append({"item_code": src_code, "unit": unit, "quantity": qty})
+                ngo_by_year[day.year].append({
+                    "distribution_id": f"LGU-{day:%Y%m%d}-{next(lgu_relief_seq):06d}",
+                    "organization": xrng.choice(LGU_RELIEF_NAMES),
+                    "event_ref": event["local_name"],
+                    "distributed_on": day.isoformat(),
+                    "location": {"province": area["province_name"], "municipality": area["name"]},
+                    "beneficiaries": {"families": families},
+                    "items": lines,
+                })
                 totals["distribution_line_rows"] += len(lines)
 
         # ---- LGU response logs: request -> dispatch -> arrival -> completion

@@ -1,7 +1,8 @@
 -- A row is 'rejected' if and only if at least one reject-severity rule fired on it
 -- (duplicates are removed regardless and are excluded here).
-{% set models = ['stg_ndrrmc_damage', 'stg_dromic_evacuation', 'stg_ngo_distribution_line', 'stg_lgu_response'] %}
-{% set sources = ['ndrrmc', 'dromic', 'ngo', 'lgu'] %}
+{% set models = ['stg_ndrrmc_damage', 'stg_ndrrmc_lifeline', 'stg_dromic_evacuation', 'stg_dromic_displaced_outside',
+                  'stg_ngo_distribution_line', 'stg_lgu_response'] %}
+{% set sources = ['ndrrmc', 'ndrrmc', 'dromic', 'dromic', 'ngo', 'lgu'] %}
 with rows as (
     {%- for m in models %}
     select '{{ sources[loop.index0] }}' as source_system, _source_file, _row_number,
