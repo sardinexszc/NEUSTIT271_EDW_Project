@@ -58,6 +58,8 @@ models:
           - accepted_values:
               arguments:
                 values: [Population, Housing, Infrastructure, Agriculture]
+              config:
+                where: "dq_status in ('valid', 'warning')"
       - name: dq_status
         data_tests:
           - accepted_values:

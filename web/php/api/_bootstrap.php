@@ -85,3 +85,34 @@ function fail(int $status, string $message): never
 {
     send_json(['error' => $message], $status);
 }
+
+/**
+ * Run one of the project's Python tools (no shell: arguments are passed as an array) and return
+ * [exit code, stdout]. stderr goes to a log file outside htdocs, so a chatty tool can never block
+ * on a full pipe, and the administrator can read why a run failed.
+ */
+function run_tool(array $args, int $timeoutSeconds): array
+{
+    $c = config();
+    if (empty($c['python']) || empty($c['project'])) {
+        fail(500, 'Data exchange is not configured. Run ingestion/setup_web_role.py.');
+    }
+    $logDir = dirname(__DIR__, 3) . '/driw-config/logs';
+    if (!is_dir($logDir)) {
+        mkdir($logDir, 0700, true);
+    }
+    $log = $logDir . '/tools-' . date('Ymd') . '.log';
+    $process = proc_open(
+        array_merge([$c['python']], $args),
+        [1 => ['pipe', 'w'], 2 => ['file', $log, 'a']],
+        $pipes,
+        $c['project']
+    );
+    if (!is_resource($process)) {
+        fail(500, 'Could not start the data-exchange tool.');
+    }
+    stream_set_timeout($pipes[1], $timeoutSeconds);
+    $stdout = stream_get_contents($pipes[1]);
+    fclose($pipes[1]);
+    return [proc_close($process), $stdout === false ? '' : $stdout];
+}

@@ -43,19 +43,21 @@ def warehouse(tmp_path_factory):
         return {"db": existing, "export_dir": ROOT / "web" / "src" / "data", "pipeline_output": ""}
 
     work = tmp_path_factory.mktemp("pipeline")
-    export_dir, sources_dir = work / "export", work / "sources"
+    export_dir, sources_dir, intake_dir = work / "export", work / "sources", work / "intake"
 
     with connect("postgres", autocommit=True) as admin:
         admin.execute(f"drop database if exists {E2E_DB} with (force)")
         admin.execute(f"create database {E2E_DB}")
 
-    env = {**os.environ, "PGDATABASE": E2E_DB, "DRIW_EXPORT_DIR": str(export_dir), "DRIW_SOURCES_DIR": str(sources_dir)}
+    # submitted files go to a throwaway folder too, so the working copy's data/intake/ is never loaded
+    env = {**os.environ, "PGDATABASE": E2E_DB, "DRIW_EXPORT_DIR": str(export_dir), "DRIW_SOURCES_DIR": str(sources_dir),
+           "DRIW_INTAKE_DIR": str(intake_dir)}
     result = subprocess.run(
         [PYTHON, str(ROOT / "ingestion" / "pipeline.py")],
         cwd=ROOT, env=env, capture_output=True, text=True, encoding="utf-8", errors="replace",
     )
     assert result.returncode == 0, f"pipeline failed:\n{result.stdout[-4000:]}\n{result.stderr[-4000:]}"
-    return {"db": E2E_DB, "export_dir": export_dir, "sources_dir": sources_dir,
+    return {"db": E2E_DB, "export_dir": export_dir, "sources_dir": sources_dir, "intake_dir": intake_dir,
             "pipeline_output": result.stdout, "env": env}
 
 

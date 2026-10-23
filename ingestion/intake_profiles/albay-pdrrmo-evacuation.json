@@ -1,0 +1,23 @@
+{
+  "id": "albay-pdrrmo-evacuation",
+  "name": "Albay PDRRMO evacuation center status report",
+  "report_type": "dromic",
+  "description": "Albay's own layout: two title rows above the table, its own column headings, and no region or province columns (all centers are in Albay). Dates are month/day/year.",
+  "sheet": "EC Report",
+  "header_row": 4,
+  "columns": {
+    "Date of Report": "report_date",
+    "Typhoon": "disaster_name",
+    "Town/City": "municipality",
+    "Barangay": "barangay",
+    "Evacuation Center": "ec_name",
+    "EC ID": "ec_code",
+    "Type of Facility": "ec_type",
+    "Capacity (fam)": "capacity_families",
+    "No. of Families": "families_inside",
+    "No. of Persons": "persons_inside"
+  },
+  "defaults": {"region": "Bicol Region", "province": "Albay"},
+  "value_maps": {},
+  "date_format": "%m/%d/%Y"
+}

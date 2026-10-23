@@ -1,0 +1,303 @@
+{
+ "report_types": [
+  {
+   "key": "dromic",
+   "title": "Evacuation center report",
+   "issuer": "DSWD DROMIC / LGU social welfare office",
+   "description": "One row per evacuation center per day: families and persons inside.",
+   "template": "templates/driw-dromic-template.xlsx",
+   "columns": [
+    {
+     "label": "Report date",
+     "required": true
+    },
+    {
+     "label": "Disaster",
+     "required": true
+    },
+    {
+     "label": "Region",
+     "required": false
+    },
+    {
+     "label": "Province",
+     "required": true
+    },
+    {
+     "label": "City/Municipality",
+     "required": true
+    },
+    {
+     "label": "Barangay",
+     "required": false
+    },
+    {
+     "label": "Evacuation center code",
+     "required": false
+    },
+    {
+     "label": "Evacuation center",
+     "required": true
+    },
+    {
+     "label": "Center type",
+     "required": false
+    },
+    {
+     "label": "Capacity (families)",
+     "required": true
+    },
+    {
+     "label": "Families inside",
+     "required": true
+    },
+    {
+     "label": "Persons inside",
+     "required": true
+    }
+   ]
+  },
+  {
+   "key": "ndrrmc",
+   "title": "Damage and casualty situation report",
+   "issuer": "NDRRMC / OCD, PDRRMO, MDRRMO",
+   "description": "One row per city/municipality per damage category, as of one situation report.",
+   "template": "templates/driw-ndrrmc-template.xlsx",
+   "columns": [
+    {
+     "label": "Sitrep number",
+     "required": true
+    },
+    {
+     "label": "Report date",
+     "required": true
+    },
+    {
+     "label": "Incident",
+     "required": true
+    },
+    {
+     "label": "Region",
+     "required": false
+    },
+    {
+     "label": "Province",
+     "required": true
+    },
+    {
+     "label": "City/Municipality",
+     "required": true
+    },
+    {
+     "label": "Damage category",
+     "required": true
+    },
+    {
+     "label": "Dead",
+     "required": false
+    },
+    {
+     "label": "Injured",
+     "required": false
+    },
+    {
+     "label": "Missing",
+     "required": false
+    },
+    {
+     "label": "Affected families",
+     "required": false
+    },
+    {
+     "label": "Affected persons",
+     "required": false
+    },
+    {
+     "label": "Houses partially damaged",
+     "required": false
+    },
+    {
+     "label": "Houses totally damaged",
+     "required": false
+    },
+    {
+     "label": "Cost (PHP)",
+     "required": false
+    },
+    {
+     "label": "Remarks",
+     "required": false
+    }
+   ]
+  },
+  {
+   "key": "lgu",
+   "title": "Response operations log",
+   "issuer": "LGU / MDRRMO / CDRRMO",
+   "description": "One row per request for assistance, with its four milestone times.",
+   "template": "templates/driw-lgu-template.xlsx",
+   "columns": [
+    {
+     "label": "Request ID",
+     "required": true
+    },
+    {
+     "label": "Incident",
+     "required": true
+    },
+    {
+     "label": "Province",
+     "required": true
+    },
+    {
+     "label": "City/Municipality",
+     "required": true
+    },
+    {
+     "label": "Request type",
+     "required": true
+    },
+    {
+     "label": "Priority",
+     "required": true
+    },
+    {
+     "label": "Requested at",
+     "required": true
+    },
+    {
+     "label": "Dispatched at",
+     "required": true
+    },
+    {
+     "label": "Arrived at",
+     "required": false
+    },
+    {
+     "label": "Completed at",
+     "required": false
+    },
+    {
+     "label": "Responding unit",
+     "required": true
+    },
+    {
+     "label": "Personnel",
+     "required": false
+    }
+   ]
+  },
+  {
+   "key": "pagasa",
+   "title": "Hazard event bulletin",
+   "issuer": "PAGASA",
+   "description": "One row per tropical cyclone or monsoon event.",
+   "template": "templates/driw-pagasa-template.xlsx",
+   "columns": [
+    {
+     "label": "Local name",
+     "required": true
+    },
+    {
+     "label": "International name",
+     "required": true
+    },
+    {
+     "label": "Category",
+     "required": true
+    },
+    {
+     "label": "Max wind (km/h)",
+     "required": false
+    },
+    {
+     "label": "Max signal",
+     "required": false
+    },
+    {
+     "label": "Start date",
+     "required": true
+    },
+    {
+     "label": "End date",
+     "required": true
+    },
+    {
+     "label": "Affected areas",
+     "required": false
+    }
+   ]
+  },
+  {
+   "key": "ngo",
+   "title": "Relief distribution report",
+   "issuer": "DSWD, NGOs and international partners",
+   "description": "One row per relief item in a distribution; rows with the same distribution ID form one distribution.",
+   "template": "templates/driw-ngo-template.xlsx",
+   "columns": [
+    {
+     "label": "Distribution ID",
+     "required": true
+    },
+    {
+     "label": "Organization",
+     "required": true
+    },
+    {
+     "label": "Event",
+     "required": true
+    },
+    {
+     "label": "Distributed on",
+     "required": true
+    },
+    {
+     "label": "Province",
+     "required": true
+    },
+    {
+     "label": "City/Municipality",
+     "required": true
+    },
+    {
+     "label": "Beneficiary families",
+     "required": false
+    },
+    {
+     "label": "Item code",
+     "required": true
+    },
+    {
+     "label": "Unit",
+     "required": true
+    },
+    {
+     "label": "Quantity",
+     "required": true
+    }
+   ]
+  }
+ ],
+ "profiles": [
+  {
+   "id": "albay-pdrrmo-evacuation",
+   "name": "Albay PDRRMO evacuation center status report",
+   "report_type": "dromic",
+   "description": "Albay's own layout: two title rows above the table, its own column headings, and no region or province columns (all centers are in Albay). Dates are month/day/year."
+  },
+  {
+   "id": "quezon-city-cdrrmo-incidents",
+   "name": "Quezon City CDRRMO incident log",
+   "report_type": "lgu",
+   "description": "Quezon City's incident log: its own headings, no province column (Metro Manila), plain-language request types and priorities, and its own team names."
+  }
+ ],
+ "submission_rules": {
+  "REQUIRED_MISSING": "A required value is blank.",
+  "DATE_UNREADABLE": "The date or time cannot be read.",
+  "DATE_OUT_OF_RANGE": "The date is outside 2019–2026, the period the warehouse calendar covers.",
+  "ID_DUPLICATE_IN_FILE": "The same ID appears on more than one row of this file.",
+  "ID_ALREADY_LOADED": "This ID is already in the warehouse from another file.",
+  "ALREADY_REPORTED": "This center, day and event is already reported in the warehouse or earlier in this file."
+ }
+}

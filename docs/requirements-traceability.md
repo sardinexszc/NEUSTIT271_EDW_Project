@@ -30,4 +30,4 @@ Each requirement of the IT271 semester project brief, and where this submission 
 | 2D | Live demo | Chapter 9 §4 (demo script) |
 | 2D | Showcase of sample queries, OLAP analysis, dashboards | Appendix A, Chapter 7 |
 | 2D | Defense of design choices | Chapter 2 (star vs snowflake, ROLAP), dimensional-model design decisions, Chapter 4 (full reload, quarantine) |
-| 2D | Enterprise positioning | Why an EDW needs no CMS, Excel/CSV data exchange with LGUs and agencies, roadmap (Chapter 10) |
+| 2D | Enterprise positioning | Why an EDW needs no CMS; Excel data exchange with LGUs and agencies: templates, layout profiles, checked uploads, Excel export (Chapter 10) |

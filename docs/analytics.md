@@ -35,7 +35,7 @@ part of it means. All figures shown are synthetic (see the notice on every page)
 
 | Element | What it means |
 |---|---|
-| Navigation bar | Four pages, one per audience: Executive, Operations, Logistics, About. |
+| Navigation bar | Executive, Operations and Logistics (one per audience), Data exchange (templates, checked uploads and Excel export for LGUs and agencies, see Chapter 10) and About. |
 | Yellow notice | States which data is real (event names, dates, PSGC geography) and which is synthetic (all operational figures), so no figure is mistaken for an official statistic. |
 | Event selector | On Operations and Logistics. The choice is kept in the address (for example `?event=TC2024-KRISTINE`), so a view can be bookmarked, shared or reloaded. Selecting an event is an OLAP *slice*. |
 | Show table | Every chart has a table with the exact numbers: the accessible, color-free way to read it. |

@@ -1,8 +1,8 @@
 # Data Dictionary and Metadata
 
-Generated from the live PostgreSQL catalog by `docs/build/data_dictionary.py` on 2026-10-16 12:52. Names, types, keys and nullability come from the database; descriptions are curated. Row counts are from the current build (seed 271).
+Generated from the live PostgreSQL catalog by `docs/build/data_dictionary.py` on 2026-10-23 22:59. Names, types, keys and nullability come from the database; descriptions are curated. Row counts are from the current build (seed 271).
 
-Last successful load: 2026-10-15 18:43.
+Last successful load: 2026-10-23 22:54.
 
 ## Schemas (layers)
 
@@ -155,7 +155,7 @@ Response request types and their cluster. *table, 5 rows.*
 
 ### `dw.dim_source_system`
 
-Lineage: one row per loaded source file (batch). *table, 420 rows.*
+Lineage: one row per loaded source file (batch). *table, 703 rows.*
 
 | Column | Type | Key | Null | Description |
 |---|---|---|---|---|
@@ -398,19 +398,19 @@ Column-level detail for these layers is in the database itself; summarized here.
 | `ref.resource_item` | table | 10 | item_code, item_name, category, standard_unit, unit_cost_php |
 | `ref.resource_item_alias` | table | 25 | source_item_code, item_code, source_unit, to_standard_factor |
 | `meta.defect_manifest` | table | 19 | source_system, defect, planted_count, seed, loaded_at |
-| `meta.load_batch` | table | 420 | batch_id, source_system, source_file, row_count, started_at, finished_at, status |
-| `meta.schema_migration` | table | 5 | version, applied_at |
+| `meta.load_batch` | table | 703 | batch_id, source_system, source_file, row_count, started_at, finished_at, status, origin |
+| `meta.schema_migration` | table | 7 | version, applied_at |
 | `staging.stg_dromic_evacuation` | table | 31,241 | _batch_id, _source_file, _row_number, raw_report_date, date_format, dominant_date_format, report_date, disaster_name, province, raw_municipality, barangay, raw_ec_code, ec_name, ec_type, capacity_families, families_inside, persons_inside, psgc_code, location_match_method, event_key, ec_code, dq_issues, dq_status |
 | `staging.stg_event_alias` | table | 124 | event_key, alias, start_date, end_date |
-| `staging.stg_lgu_response` | table | 32,749 | _batch_id, _source_file, _row_number, request_id, incident, province, raw_lgu_name, raw_request_type, request_type, priority, requested_at, dispatched_at, arrived_at, completed_at, responding_unit, personnel_count, psgc_code, location_match_method, event_key, hours_to_dispatch, hours_to_arrive, hours_on_site, hours_to_complete, dq_issues, dq_status |
+| `staging.stg_lgu_response` | table | 32,749 | _batch_id, _source_file, _row_number, request_id, incident, province, raw_lgu_name, raw_request_type, request_type, priority, requested_at, dispatched_at, arrived_at, completed_at, responding_unit, personnel_count, psgc_code, location_match_method, event_key, org_code, hours_to_dispatch, hours_to_arrive, hours_on_site, hours_to_complete, dq_issues, dq_status |
 | `staging.stg_location_resolution` | table | 2,969 | raw_province, raw_name, psgc_code, official_name, match_method, edit_distance |
 | `staging.stg_ndrrmc_damage` | table | 16,151 | _batch_id, _source_file, _row_number, copy_number, sitrep_no, report_date, incident_name, province, raw_city_muni, damage_category, dead, injured, missing, affected_families, affected_persons, houses_partial, houses_total, cost_php, remarks, raw_dead, raw_injured, raw_missing, raw_affected_families, raw_affected_persons, raw_houses_partial, raw_houses_total, raw_cost_php, psgc_code, location_match_method, event_key, dq_issues, dq_status |
 | `staging.stg_ngo_distribution_line` | table | 11,529 | _batch_id, _source_file, _row_number, line_no, distribution_id, distributed_on, event_key, raw_event_ref, org_code, raw_organization, psgc_code, province, raw_municipality, location_match_method, beneficiary_families, item_code, source_item_code, source_unit, source_quantity, to_standard_factor, standard_unit, quantity_standard, value_php, header_issues, line_issues, dq_issues, dq_status |
-| `staging.stg_pagasa_event` | table | 39 | _batch_id, _source_file, _row_number, local_name, international_name, category, max_wind_kph, max_signal, start_date, end_date, affected_areas, event_key, copy_number, dq_issues, dq_status |
+| `staging.stg_pagasa_event` | table | 39 | _batch_id, _source_file, _row_number, local_name, international_name, category, max_wind_kph, max_signal, start_date, end_date, affected_areas, event_key, copy_number, key_rank, dq_issues, dq_status |
 | `dq.dq_issue_log` | table | 17,722 | source_system, rule_code, field_name, severity, _batch_id, _source_file, _row_number, line_no |
 | `dq.dq_quarantine` | table | 925 | source_system, _source_file, _row_number, line_no, reject_reasons, all_issues, batch_source, batch_loaded_at |
 | `dq.dq_reconciliation` | table | 19 | source_system, planted_defect, detected_by, planted_count, detected_count, reconciliation_status |
-| `dq.dq_rule_summary` | table | 36 | source_system, rule_code, severity, action, description, issue_count, affected_rows, source_rows, pct_rows_affected |
-| `dq.dq_rules` | table | 36 | source_system, rule_code, severity, action, description, planted_defect |
+| `dq.dq_rule_summary` | table | 41 | source_system, rule_code, severity, action, description, issue_count, affected_rows, source_rows, pct_rows_affected |
+| `dq.dq_rules` | table | 41 | source_system, rule_code, severity, action, description, planted_defect |
 | `secure.regional_event_impact` | view | 168 | event_code, event_name, region_name, province_name, dead, affected_persons, houses_totally_damaged, damage_cost_php, relief_value_php, family_servings |
 | `secure.regional_response_summary` | view | 450 | event_code, event_name, region_name, response_type, requests, median_hours_to_dispatch, completion_rate |

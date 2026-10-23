@@ -27,7 +27,7 @@ typed as (
         s._source_file,
         s._row_number,
         s.copy_number,
-        nullif(regexp_replace(s.sitrep_no, '\D', '', 'g'), '')::int as sitrep_no,
+        {{ clean_int("regexp_replace(s.sitrep_no, '\D', '', 'g')") }} as sitrep_no,
         {{ parse_any_date('s.report_date') }}                     as report_date,
         s.incident_name,
         s.province,
@@ -66,6 +66,9 @@ checked as (
                  then 'MISSING_VALUE:{{ field }}' end,
             case when raw_{{ field }} like '%,%' then 'NUMBER_FORMAT:{{ field }}' end,
             {%- endfor %}
+            case when damage_category is null
+                   or damage_category not in ('Population', 'Housing', 'Infrastructure', 'Agriculture')
+                 then 'DAMAGE_CATEGORY_UNKNOWN' end,
             case when cost_php < 0 then 'NEGATIVE_VALUE' end,
             case when affected_persons < affected_families then 'PERSONS_LT_FAMILIES' end,
             case when location_match_method in ('normalized', 'fuzzy') then 'LOC_NAME_VARIANT' end,
@@ -80,7 +83,8 @@ select
     case
         when copy_number > 1 then 'duplicate'
         else {{ dq_status('dq_issues',
-                          ['NEGATIVE_VALUE', 'PERSONS_LT_FAMILIES', 'LOC_UNMATCHED', 'EVENT_UNRESOLVED'],
+                          ['DAMAGE_CATEGORY_UNKNOWN', 'NEGATIVE_VALUE', 'PERSONS_LT_FAMILIES', 'LOC_UNMATCHED',
+                           'EVENT_UNRESOLVED'],
                           ['MISSING_VALUE']) }}
     end as dq_status
 from checked

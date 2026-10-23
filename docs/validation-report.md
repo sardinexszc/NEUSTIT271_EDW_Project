@@ -10,6 +10,7 @@ How DRIW was tested, and the results. Data seed 271, run on PostgreSQL 17.11.
 | End-to-end tests (`tests/test_end_to_end.py`) | 28 | **28 pass** |
 | Governance tests (`tests/test_governance.py`) | 21 | **21 pass** |
 | PHP API tests (`tests/test_php_api.py`) | 13 | **13 pass** (skipped where PHP is not installed, e.g. CI) |
+| Data exchange tests (`tests/test_intake.py`) | 13 | **13 pass** |
 | Query performance (`ingestion/benchmark_queries.py`) | 14 queries | **14 within the 1 s budget**, slowest about 32 ms |
 | Dashboards (`npm run lint`, `npm run build`) | lint + type check + static build | **pass** |
 
@@ -52,7 +53,16 @@ build on every push (`.github/workflows/ci.yml`). Query timings are in
   (83,442 fact rows, 1,548 Bicol damage rows in both).
 - A second dbt build gives identical fact counts and keeps grants and row-level security.
 
-### 6. Security (see [governance.md](governance.md))
+### 6. Data exchange (see Chapter 10)
+- Every Excel template has its instructions, the expected headings and drop-down lists.
+- The Albay sample, in Albay's own layout, gets the expected verdict on every one of its 10 rows.
+- Checking a file never changes the warehouse; a file missing required columns is refused whole.
+- A submitted file loads with every warehouse check still passing: valid rows reach the facts,
+  the rest are quarantined with reasons, and the synthetic-data reconciliation stays 19/19.
+- Submitting the same file again replaces it instead of duplicating it.
+- The Excel export has every mart, a data dictionary, frozen headings and filters.
+
+### 7. Security (see [governance.md](governance.md))
 - Executive reads marts only; denied on warehouse detail, staging, raw, quarantine.
 - Analyst sees every fact row, marts and DQ scorecards; denied raw and quarantine.
 - Regional officers (Bicol, Cagayan Valley) see exactly their region's rows in all four
@@ -73,6 +83,10 @@ Testing earned its keep. Each of these was caught by a test, not by inspection:
 | Governance tests | Regional users saw **zero** rows: a `SECURITY DEFINER` function sees its owner as `current_user` | Region lookup moved into a view |
 | Governance tests | `SET ROLE` escalation test passed for the wrong reason (checked against the session user) | Test escalation via `GRANT` and mapping writes instead |
 | Browser review | "Family coverage 101%" double-counted repeat distributions | Relabeled "servings per affected family" |
+| Paper review | Logistics "Distributions" counted a distribution once per resource category (9,782 instead of 5,529) | Count from the event summary |
+| Data exchange test | One impossible date ("10/32/2024") in a submitted file made `to_date` fail the whole staging model, which would block every load | Error-tolerant `meta.try_to_date` / `try_to_timestamp` and a range-checked integer cast; the row is flagged instead |
+| Data exchange test | Rows that synthetic data never contains could break or silently drop out of a load (unknown responding unit, dispatch before request, unknown damage category, conflicting event dates) | Five new reject rules (36 → 41) |
+| Browser test | Re-checking an already submitted file flagged all its rows as already reported | A resubmission now replaces its earlier version |
 
 ## Known limitations
 
@@ -84,5 +98,6 @@ Testing earned its keep. Each of these was caught by a test, not by inspection:
   SCD2 change log.
 - Seven misspelled place names are equally close to two real towns and stay unmatched by
   design, for a data steward to resolve.
-- Dashboards read a JSON snapshot of the marts; live querying needs the warehouse on
-  Supabase (one file, `web/src/lib/data.ts`).
+- On XAMPP the dashboards read the marts live through the PHP API; elsewhere (a static host)
+  they show the bundled snapshot.
+- The Data exchange upload is limited to the server itself until the site has sign-in.

@@ -42,7 +42,7 @@ logical, physical, ER diagrams), [data dictionary](docs/data-dictionary.md),
 [implementation and demo](docs/implementation.md), [requirements coverage](docs/requirements-traceability.md).
 
 See [docs/dimensional-model.md](docs/dimensional-model.md) for grain statements and the bus matrix,
-and [docs/data-quality-framework.md](docs/data-quality-framework.md) for the 36 data-quality rules
+and [docs/data-quality-framework.md](docs/data-quality-framework.md) for the 41 data-quality rules
 and their reconciliation against the planted defects (19/19 defect types detected exactly).
 [docs/governance.md](docs/governance.md) covers roles and row-level security, and
 [docs/validation-report.md](docs/validation-report.md) the test results.
@@ -132,6 +132,7 @@ nothing else (see [docs/governance.md](docs/governance.md)).
 | `/` Executive | leadership | Total damage, casualties, cost by year and category, costliest events, regions (from the CUBE mart) |
 | `/operations` | operations managers | Per event: people in evacuation centers per day, over-capacity centers, dispatch times by type and priority |
 | `/logistics` | logistics | Relief by organization and resource category, least-served provinces (PHP per affected person) |
+| `/exchange` | LGUs and agencies | Excel templates, check and submit a report (per-row validation report), Excel export of the marts |
 | `/about` | everyone | Architecture, fact grains, source systems, data-quality proof |
 
 The pages are static files; their data comes from the PHP API, or from the exported JSON
@@ -140,6 +141,21 @@ The selected event is part of the URL, so views can be shared (for example
 `/operations?event=TC2024-KRISTINE`), and every chart table has a **Download CSV** with the
 raw, unformatted values. If you rebuild the warehouse, re-run the `export` step and commit
 `web/src/data/`; the test suite fails when the committed data is stale.
+
+### Data exchange (Excel in and out)
+
+```bash
+.venv/Scripts/python ingestion/intake.py templates      # Excel templates + page catalog (after a build)
+.venv/Scripts/python ingestion/intake.py validate --type dromic --profile albay-pdrrmo-evacuation     --file data/intake-samples/albay-pdrrmo-kristine-evacuation.xlsx      # per-row report (JSON)
+.venv/Scripts/python ingestion/intake.py submit ...      # same, then store under data/intake/ and reload
+.venv/Scripts/python ingestion/export_xlsx.py --event TC2024-KRISTINE --out kristine.xlsx
+```
+
+Checking runs the warehouse's own dbt staging models on the upload in a sandbox database
+(`<db>_intake`), so it never changes the warehouse. LGU layouts are described in
+`ingestion/intake_profiles/*.json`. On XAMPP the same runs from the **Data exchange** page through
+`api/intake.php` and `api/export.php`; uploads are accepted from the server itself only. See
+[docs/enterprise-positioning.md](docs/enterprise-positioning.md).
 
 ## Standards
 

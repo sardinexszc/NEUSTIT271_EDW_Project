@@ -59,7 +59,7 @@ each defect it plants in `_defect_manifest.json` so the transformation can be pr
   standard unit (e.g. 1 sack of rice = 50 kg).
 - NGO JSON is flattened from one record per distribution to one row per item line.
 
-**Data-quality rules.** 36 rules in `dq_rules` with severity *info* (corrected), *warning*
+**Data-quality rules.** 41 rules in `dq_rules` with severity *info* (corrected), *warning*
 (kept, flagged) or *reject* (quarantined). Every staging row gets `dq_issues` and `dq_status`;
 staging never drops a row. Details: [data-quality-framework.md](data-quality-framework.md).
 

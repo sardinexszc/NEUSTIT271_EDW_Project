@@ -24,6 +24,14 @@ case
 end
 {%- endmacro %}
 
+{#- Text -> integer: like clean_number, and NULL when the value would not fit an integer
+    (one absurd figure in a submitted file must not fail the whole model). -#}
+{% macro clean_int(col) -%}
+case
+    when {{ clean_number(col) }} between -2147483648 and 2147483647 then round({{ clean_number(col) }})::int
+end
+{%- endmacro %}
+
 {#- Date written in any of the formats DSWD field offices use. -#}
 {% macro date_format_of(col) -%}
 case
@@ -36,9 +44,9 @@ end
 
 {% macro parse_any_date(col) -%}
 case {{ date_format_of(col) }}
-    when 'iso' then to_date({{ col }}, 'YYYY-MM-DD')
-    when 'us' then to_date({{ col }}, 'MM/DD/YYYY')
-    when 'dmy' then to_date({{ col }}, 'DD-Mon-YYYY')
+    when 'iso' then meta.try_to_date({{ col }}, 'YYYY-MM-DD')
+    when 'us' then meta.try_to_date({{ col }}, 'MM/DD/YYYY')
+    when 'dmy' then meta.try_to_date({{ col }}, 'DD-Mon-YYYY')
     when 'excel' then date '1899-12-30' + {{ col }}::int
 end
 {%- endmacro %}

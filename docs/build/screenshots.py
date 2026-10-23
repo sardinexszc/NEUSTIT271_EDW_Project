@@ -55,6 +55,35 @@ def trim_bottom(png: Path) -> None:
     out.save(str(png))
 
 
+def capture_exchange() -> None:
+    """The Data exchange page, empty and after checking the Albay sample (needs a real upload,
+    so this one is scripted with Playwright driving the installed Edge)."""
+    from playwright.sync_api import sync_playwright
+
+    sample = ROOT / "data" / "intake-samples" / "albay-pdrrmo-kristine-evacuation.xlsx"
+    with sync_playwright() as p:
+        browser = p.chromium.launch(channel="msedge")
+        page = browser.new_context(viewport={"width": WIDTH, "height": 900}, device_scale_factor=SCALE,
+                                   color_scheme="light", reduced_motion="reduce").new_page()
+        page.goto(BASE + "/exchange/")
+        page.wait_for_load_state("networkidle")
+        out = OUT / "dash_exchange.png"
+        page.screenshot(path=str(out), full_page=True)
+        print(f"wrote {out.relative_to(ROOT)}")
+
+        page.select_option("select >> nth=1", "albay-pdrrmo-evacuation")
+        page.set_input_files("input[type=file]", str(sample))
+        page.get_by_role("button", name="Check file").click()
+        page.wait_for_selector("tbody tr", timeout=180_000)
+        # the report table scrolls inside a fixed-height box; show every row for the printed figure
+        page.add_style_tag(content=".overflow-auto { max-height: none !important; }")
+        report = page.locator("section", has_text="2. Check and submit a report")
+        out = OUT / "dash_exchange_report.png"
+        report.screenshot(path=str(out))
+        print(f"wrote {out.relative_to(ROOT)}")
+        browser.close()
+
+
 def main() -> None:
     OUT.mkdir(parents=True, exist_ok=True)
     for name, (path, width) in PAGES.items():
@@ -75,6 +104,7 @@ def main() -> None:
         if png.exists():
             trim_bottom(png)
         print(f"{'wrote' if png.exists() else 'FAILED'} {png.relative_to(ROOT)}")
+    capture_exchange()
 
 
 if __name__ == "__main__":

@@ -35,3 +35,8 @@ lgu,TIMESTAMP_UNPARSEABLE,reject,Quarantined,Requested or dispatched timestamp m
 lgu,LOC_NAME_VARIANT,info,Matched to PSGC,City/municipality name differs from the official PSGC name but was matched (normalized or fuzzy),location_name_variant
 lgu,LOC_UNMATCHED,reject,Quarantined,City/municipality could not be matched to PSGC within the province,location_name_variant
 lgu,EVENT_UNRESOLVED,reject,Quarantined,Incident cannot be matched to a PAGASA event,
+pagasa,EVENT_KEY_CONFLICT,reject,Quarantined,Bulletin gives an event that is already defined different dates,
+ndrrmc,DAMAGE_CATEGORY_UNKNOWN,reject,Quarantined,Damage category is not Population / Housing / Infrastructure / Agriculture,
+lgu,DISPATCH_BEFORE_REQUEST,reject,Quarantined,Dispatch timestamp is earlier than the request timestamp,
+lgu,COMPLETED_BEFORE_ARRIVAL,reject,Quarantined,Completion timestamp is earlier than the arrival timestamp,
+lgu,RESPONDING_UNIT_UNKNOWN,reject,Quarantined,Responding unit not found in the organization master,

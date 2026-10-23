@@ -36,7 +36,10 @@ python -m venv .venv
 # 3. Validate
 .venv/Scripts/python -m pytest tests
 
-# 4. Web back-end login + PHP config (once), then publish to XAMPP
+# 4. Excel templates and the Data exchange catalog (after the warehouse is built)
+.venv/Scripts/python ingestion/intake.py templates
+
+# 5. Web back-end login + PHP config (once), then publish to XAMPP
 .venv/Scripts/python ingestion/setup_web_role.py
 cd web && npm install && npm run deploy:xampp
 ```
@@ -60,5 +63,9 @@ XAMPP's `php.ini` needs `extension=pdo_pgsql` and `extension=pgsql` enabled, and
 6. **Dashboards.** Open `http://localhost/driw/`: Executive, then Operations for Kristine
    (`/driw/operations/?event=TC2024-KRISTINE`), then Logistics. Point out the footer
    ("Live from the PostgreSQL warehouse … as read-only role driw_web") and Download CSV.
-7. **API.** `http://localhost/driw/api/health.php` and
+7. **Data exchange.** Open `http://localhost/driw/exchange/`, download a template, then check
+   `data/intake-samples/albay-pdrrmo-kristine-evacuation.xlsx` with the *Albay PDRRMO* layout: the
+   report shows names matched to the PSGC, a recovered center code, overcrowding, and three rejected
+   rows with reasons. Download the Excel workbook for Kristine.
+8. **API.** `http://localhost/driw/api/health.php` and
    `http://localhost/driw/api/marts.php?name=mart_event_summary`.

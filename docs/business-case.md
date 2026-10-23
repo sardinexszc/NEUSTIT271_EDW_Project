@@ -59,7 +59,7 @@ The Q-numbers refer to [`sample-queries.sql`](sample-queries.sql).
 | FR2 | Keep lineage from every warehouse row to its source file and row. | `meta.load_batch`, `_batch_id/_source_file/_row_number`, `dim_source_system`. | Met |
 | FR3 | Conform place names to the official PSGC codes. | `stg_location_resolution`: exact, normalized, fuzzy; 0 false matches on ground truth. | Met |
 | FR4 | Conform event names, organizations and relief units across sources. | Event aliases with time windows; organization and item alias maps; unit conversion. | Met |
-| FR5 | Detect, correct, flag or quarantine data-quality defects, with reasons. | 36 rules in `dq_rules`; `dq_quarantine`; 19/19 planted defect types reconciled. | Met |
+| FR5 | Detect, correct, flag or quarantine data-quality defects, with reasons. | 41 rules in `dq_rules`; `dq_quarantine`; 19/19 planted defect types reconciled. | Met |
 | FR6 | Store integrated data in a dimensional model with conformed dimensions. | Star schema: 4 facts, 9 dimensions (`docs/warehouse-design.md`). | Met |
 | FR7 | Preserve history when administrative boundaries change. | SCD Type 2 `dim_location` (2022 Maguindanao split). | Met |
 | FR8 | Support OLAP analysis: roll-up, drill-down, slice, dice, pivot. | `GROUP BY CUBE / ROLLUP / GROUPING SETS`, marts, sample queries Q01–Q14. | Met |

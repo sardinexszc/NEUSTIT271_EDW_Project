@@ -1,0 +1,28 @@
+{
+  "id": "quezon-city-cdrrmo-incidents",
+  "name": "Quezon City CDRRMO incident log",
+  "report_type": "lgu",
+  "description": "Quezon City's incident log: its own headings, no province column (Metro Manila), plain-language request types and priorities, and its own team names.",
+  "sheet": "Incidents",
+  "header_row": 1,
+  "columns": {
+    "Ticket #": "request_id",
+    "Event": "incident",
+    "City": "lgu_name",
+    "Type of request": "request_type",
+    "Priority": "priority",
+    "Received": "requested_at",
+    "Dispatched": "dispatched_at",
+    "On scene": "arrived_at",
+    "Closed": "completed_at",
+    "Team": "responding_unit",
+    "No. of personnel": "personnel_count"
+  },
+  "defaults": {"province": "Metro Manila"},
+  "value_maps": {
+    "request_type": {"Rescue": "RESCUE", "Medical": "MEDEVAC", "Evacuation": "EVAC_ASSIST",
+                     "Road clearing": "ROAD_CLEAR", "Relief": "RELIEF_DELIV"},
+    "priority": {"Critical": "P1", "Urgent": "P2", "Routine": "P3"},
+    "responding_unit": {"QC Rescue": "MDRRMO Rescue Team"}
+  }
+}

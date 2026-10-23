@@ -12,6 +12,7 @@ The config is written OUTSIDE htdocs, so Apache can never serve it.
 
 import os
 import secrets
+import sys
 from pathlib import Path
 
 from psycopg import sql
@@ -21,6 +22,14 @@ from common import ROOT, connect
 ROLE = "driw_web"
 XAMPP_ROOT = Path(os.environ.get("XAMPP_ROOT", r"C:\xampp"))
 CONFIG_PATH = XAMPP_ROOT / "driw-config" / "config.php"
+
+
+def php_path(path) -> str:
+    """A filesystem path as the body of a single-quoted PHP string (forward slashes, no quotes)."""
+    text = str(path).replace("\\", "/")
+    if "'" in text:
+        raise SystemExit(f"path contains a quote, which the PHP config cannot hold: {text}")
+    return text
 
 
 def web_password() -> str:
@@ -56,6 +65,11 @@ def main() -> None:
         f"    'dbname' => '{os.environ['PGDATABASE']}',\n"
         f"    'user' => '{ROLE}',\n"
         f"    'password' => '{password}',\n"
+        "    // Data exchange (api/intake.php, api/export.php) runs the project's Python tools\n"
+        f"    'python' => '{php_path(sys.executable)}',\n"
+        f"    'project' => '{php_path(ROOT)}',\n"
+        "    // uploads are accepted from this computer only until sign-in is added\n"
+        "    'intake_allow_remote' => false,\n"
         "];\n",
         encoding="utf-8",
     )

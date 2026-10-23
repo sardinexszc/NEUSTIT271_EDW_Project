@@ -10,7 +10,7 @@ affected person?" without weeks of manual reconciliation.
 into one dimensional model on PostgreSQL 17: four star schemas (transaction, periodic-snapshot
 and accumulating-snapshot facts) over nine conformed dimensions, including a Type 2 slowly
 changing location dimension. A Python and dbt ETL pipeline cleans and conforms the data with
-36 data-quality rules; six ROLAP marts (`GROUP BY CUBE` and `GROUPING SETS`) feed Executive,
+41 data-quality rules; six ROLAP marts (`GROUP BY CUBE` and `GROUPING SETS`) feed Executive,
 Operations and Logistics dashboards. A PHP back-end on XAMPP serves them live through a
 read-only login, and row-level security limits regional users to their own region.
 
