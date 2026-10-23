@@ -53,6 +53,7 @@ CHAPTERS = [
     ("Analytics: OLAP and Dashboards", [("analytics.md", 0)]),
     ("Testing and Validation", [("validation-report.md", 0), ("query-performance.md", 1)]),
     ("Implementation and Live Demo", [("implementation.md", 0)]),
+    ("Enterprise Positioning and Data Exchange", [("enterprise-positioning.md", 0)]),
 ]
 
 

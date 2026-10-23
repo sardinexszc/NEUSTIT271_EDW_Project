@@ -4,7 +4,7 @@ import { BarList } from "@/components/charts";
 import { EventSelect } from "@/components/event-select";
 import { CsvButton } from "@/components/csv-button";
 import { Card, DataTable, Legend, StatGrid, StatTile, TableView } from "@/components/ui";
-import type { ProvinceImpact, ReliefByOrg } from "@/lib/data";
+import type { EventSummary, ProvinceImpact, ReliefByOrg } from "@/lib/data";
 import { count, full, peso } from "@/lib/format";
 import { useMart } from "@/lib/live";
 import { useEventParam } from "@/lib/use-event-param";
@@ -18,14 +18,16 @@ const CATEGORY_SERIES = [
   { key: "Medical", label: "Medical", color: "var(--series-5)" },
 ];
 
-export function LogisticsDashboard({ relief: reliefSnapshot, provinces: provincesSnapshot, options }: {
+export function LogisticsDashboard({ relief: reliefSnapshot, provinces: provincesSnapshot, events: eventsSnapshot, options }: {
   relief: ReliefByOrg[];
   provinces: ProvinceImpact[];
+  events: EventSummary[];
   options: { code: string; label: string }[];
 }) {
   // live from the warehouse on XAMPP, the bundled snapshot elsewhere
   const relief = useMart("mart_relief_by_org_category", reliefSnapshot).rows;
   const provinces = useMart("mart_province_event_impact", provincesSnapshot).rows;
+  const events = useMart("mart_event_summary", eventsSnapshot).rows;
   const [code, setCode] = useEventParam(options.map((o) => o.code), "ALL");
   const inScope = <T extends { event_code: string }>(rows: T[]) =>
     code === "ALL" ? rows : rows.filter((r) => r.event_code === code);
@@ -35,7 +37,9 @@ export function LogisticsDashboard({ relief: reliefSnapshot, provinces: province
 
   const totalValue = reliefRows.reduce((t, r) => t + r.relief_value_php, 0);
   const familiesServed = reliefRows.reduce((t, r) => t + r.families_served, 0);
-  const distributions = reliefRows.reduce((t, r) => t + r.distributions, 0);
+  // Count distributions per event, not per organization x category: one distribution can carry
+  // food and water, and summing the category rows would count it twice.
+  const distributions = inScope(events).reduce((t, e) => t + (e.distributions ?? 0), 0);
   const affectedPersons = provinceRows.reduce((t, r) => t + r.affected_persons, 0);
   const affectedFamilies = provinceRows.reduce((t, r) => t + r.affected_families, 0);
 

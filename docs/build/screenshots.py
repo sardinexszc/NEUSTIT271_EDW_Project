@@ -20,10 +20,17 @@ OUT = ROOT / "docs" / "img"
 EDGE = Path(r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe")
 BASE = "http://localhost/driw"
 WIDTH, HEIGHT, SCALE = 1180, 3000, 2   # CSS pixels; content column is max 1152 px
+PHONE_WIDTH = 500                      # narrow screen; headless Edge will not size a window below ~500 px
+# name -> (path, window width): every page of the web app, a filtered view, the PHP API, a phone
 PAGES = {
-    "dash_executive": "/",
-    "dash_operations": "/operations/?event=TC2024-KRISTINE",
-    "dash_logistics": "/logistics/",
+    "dash_executive": ("/", WIDTH),
+    "dash_operations": ("/operations/?event=TC2024-KRISTINE", WIDTH),
+    "dash_logistics": ("/logistics/", WIDTH),
+    "dash_logistics_event": ("/logistics/?event=TC2024-KRISTINE", WIDTH),
+    "dash_about": ("/about/", WIDTH),
+    "api_health": ("/api/health.php", 900),
+    "api_marts": ("/api/marts.php?name=mart_event_summary&event=TC2024-KRISTINE", 900),
+    "dash_mobile": ("/operations/?event=TC2024-KRISTINE", PHONE_WIDTH),
 }
 
 
@@ -50,14 +57,14 @@ def trim_bottom(png: Path) -> None:
 
 def main() -> None:
     OUT.mkdir(parents=True, exist_ok=True)
-    for name, path in PAGES.items():
+    for name, (path, width) in PAGES.items():
         png = OUT / f"{name}.png"
         png.unlink(missing_ok=True)
         profile = tempfile.mkdtemp(prefix="driw-edge-")
         subprocess.run([str(EDGE), "--headless=new", "--disable-gpu", "--hide-scrollbars",
                         f"--user-data-dir={profile}", "--force-prefers-reduced-motion",
                         "--blink-settings=preferredColorScheme=1", f"--force-device-scale-factor={SCALE}",
-                        f"--window-size={WIDTH},{HEIGHT}", "--virtual-time-budget=8000",
+                        f"--window-size={width},{HEIGHT}", "--virtual-time-budget=8000",
                         f"--screenshot={png}", BASE + path], capture_output=True, timeout=120)
         for _ in range(100):  # msedge.exe can return before the file is written
             if png.exists() and png.stat().st_size > 0:
