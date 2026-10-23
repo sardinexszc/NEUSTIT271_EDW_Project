@@ -42,7 +42,7 @@ logical, physical, ER diagrams), [data dictionary](docs/data-dictionary.md),
 [implementation and demo](docs/implementation.md), [requirements coverage](docs/requirements-traceability.md).
 
 See [docs/dimensional-model.md](docs/dimensional-model.md) for grain statements and the bus matrix,
-and [docs/data-quality-framework.md](docs/data-quality-framework.md) for the 41 data-quality rules
+and [docs/data-quality-framework.md](docs/data-quality-framework.md) for the 45 data-quality rules
 and their reconciliation against the planted defects (19/19 defect types detected exactly).
 [docs/governance.md](docs/governance.md) covers roles and row-level security, and
 [docs/validation-report.md](docs/validation-report.md) the test results.

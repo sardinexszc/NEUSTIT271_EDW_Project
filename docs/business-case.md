@@ -42,12 +42,14 @@ not public and known defects let the ETL be proven correct.
 | BQ2 | How does damage trend by year and category, and how did each year compare with the last? | Q02, Q05, Q12; Executive dashboard |
 | BQ3 | Within an event, which regions, provinces and towns were hit hardest? | Q03 (drill-down) |
 | BQ4 | Which regions suffer most from typhoons versus monsoon floods? | Q04, Q05 (cube); Executive dashboard |
-| BQ5 | How many people were in evacuation centers at the peak, and for how long? | Q06; Operations dashboard |
+| BQ5 | How many people were displaced at the peak, in evacuation centers and outside them, and for how long? | Q06; Operations dashboard |
 | BQ6 | Which evacuation centers are repeatedly overcrowded? | Q07; Operations dashboard |
 | BQ7 | How quickly are response teams dispatched, by request type and priority, and where is it slowest? | Q08, Q09; Operations dashboard |
 | BQ8 | Did relief reach provinces in proportion to impact? Which were under-served? | Q10; Logistics dashboard |
-| BQ9 | Which organizations delivered which kinds of relief? | Q11; Logistics dashboard |
+| BQ9 | Which organizations delivered which kinds of relief, and who paid for it (DSWD, LGUs, NGOs, international)? | Q11; Logistics dashboard |
 | BQ10 | How reliable is the data: what was rejected, and why? | Q14; `dq.dq_reconciliation` |
+| BQ11 | Which events hit hardest relative to the population (deaths and affected per 100,000, Sendai targets A and B)? | `mart_event_summary`; Executive dashboard |
+| BQ12 | How long were roads, bridges, power, water and communications down, and which take longest to restore? | `mart_lifeline_restoration`; Operations dashboard |
 
 The Q-numbers refer to [`sample-queries.sql`](sample-queries.sql).
 
@@ -59,7 +61,7 @@ The Q-numbers refer to [`sample-queries.sql`](sample-queries.sql).
 | FR2 | Keep lineage from every warehouse row to its source file and row. | `meta.load_batch`, `_batch_id/_source_file/_row_number`, `dim_source_system`. | Met |
 | FR3 | Conform place names to the official PSGC codes. | `stg_location_resolution`: exact, normalized, fuzzy; 0 false matches on ground truth. | Met |
 | FR4 | Conform event names, organizations and relief units across sources. | Event aliases with time windows; organization and item alias maps; unit conversion. | Met |
-| FR5 | Detect, correct, flag or quarantine data-quality defects, with reasons. | 41 rules in `dq_rules`; `dq_quarantine`; 19/19 planted defect types reconciled. | Met |
+| FR5 | Detect, correct, flag or quarantine data-quality defects, with reasons. | 45 rules in `dq_rules`; `dq_quarantine`; 19/19 planted defect types reconciled. | Met |
 | FR6 | Store integrated data in a dimensional model with conformed dimensions. | Star schema: 4 facts, 9 dimensions (`docs/warehouse-design.md`). | Met |
 | FR7 | Preserve history when administrative boundaries change. | SCD Type 2 `dim_location` (2022 Maguindanao split). | Met |
 | FR8 | Support OLAP analysis: roll-up, drill-down, slice, dice, pivot. | `GROUP BY CUBE / ROLLUP / GROUPING SETS`, marts, sample queries Q01–Q14. | Met |

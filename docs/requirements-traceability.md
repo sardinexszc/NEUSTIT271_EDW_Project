@@ -7,14 +7,14 @@ Each requirement of the IT271 semester project brief, and where this submission 
 | 1. Overview | Requirements gathering and BI objectives | Chapter 1 (Business Case), §2–§5 |
 | 1. Overview | Data modeling: conceptual, logical, physical | Chapter 2 (Warehouse Design), §1–§3 |
 | 1. Overview | ETL processes | Chapter 4 (ETL Design) |
-| 1. Overview | OLAP cube or star/snowflake schema | Chapter 2 (four star schemas); Chapter 7 (ROLAP cube) |
+| 1. Overview | OLAP cube or star/snowflake schema | Chapter 2 (six star schemas); Chapter 7 (ROLAP cube) |
 | 1. Overview | Data governance and security | Chapter 6 (Governance, Security and Privacy) |
 | 1. Overview | Analytics, dashboards, reports | Chapter 7 (Analytics) |
 | 2A | Description of the enterprise domain | Chapter 1 §1 |
-| 2A | Key business questions | Chapter 1 §3 (BQ1–BQ10) |
+| 2A | Key business questions | Chapter 1 §3 (BQ1–BQ12) |
 | 2A | Functional and non-functional requirements | Chapter 1 §4 (FR1–FR12), §5 (NFR1–NFR9) |
 | 2A | Schema design: star or snowflake (fact + dimension tables) | Chapter 2 §2; Chapter 2 (dimensional model detail) |
-| 2A | ER/UML diagrams of the warehouse design | Chapter 2: conceptual diagram and four ER diagrams |
+| 2A | ER/UML diagrams of the warehouse design | Chapter 2: conceptual diagram and six ER diagrams |
 | 2A | Data dictionary and metadata documentation | Chapter 3 (generated from the catalog; lineage, row counts, load times) |
 | 2A | ETL: sources of data (mock or real) | Chapter 4 §2 |
 | 2A | ETL: transformation logic (cleaning, integration, aggregation) | Chapter 4 §4; Chapter 5 |

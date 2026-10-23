@@ -165,54 +165,55 @@ def er_diagram(fact, tables, fks, max_dim_rows=8):
 
 
 def conceptual():
-    processes = ["Damage assessment", "Evacuation", "Relief distribution", "Response operations"]
-    entities = ["Date", "Location (PSGC)", "Hazard event", "Organization", "Relief resource",
-                "Evacuation center", "Damage category", "Response type", "Source system"]
     uses = {
-        "Damage assessment": ["Date", "Location (PSGC)", "Hazard event", "Damage category", "Source system"],
-        "Evacuation": ["Date", "Location (PSGC)", "Hazard event", "Organization", "Evacuation center", "Source system"],
-        "Relief distribution": ["Date", "Location (PSGC)", "Hazard event", "Organization", "Relief resource",
-                                "Source system"],
-        "Response operations": ["Date", "Location (PSGC)", "Hazard event", "Organization", "Response type",
-                                "Source system"],
+        "Damage assessment": ["Date", "Location (PSGC)", "Hazard event", "Source system"],
+        "Evacuation": ["Date", "Location (PSGC)", "Hazard event", "Organization", "Source system"],
+        "Displacement outside centers": ["Date", "Location (PSGC)", "Hazard event", "Organization", "Source system"],
+        "Relief distribution": ["Date", "Location (PSGC)", "Hazard event", "Organization", "Source system"],
+        "Response operations": ["Date", "Location (PSGC)", "Hazard event", "Organization", "Source system"],
+        "Lifeline status": ["Date", "Location (PSGC)", "Hazard event", "Organization", "Source system"],
     }
-    W, H = 1300, 700
+    own = {"Damage assessment": "Damage category", "Evacuation": "Evacuation center",
+           "Displacement outside centers": None, "Relief distribution": "Relief resource",
+           "Response operations": "Response type", "Lifeline status": "Lifeline"}
+    W, H = 1300, 800
     svg = Svg(W, H, "Conceptual model: business processes and the entities they involve")
     svg.text(24, 60, "Each process becomes a fact table; each entity becomes a dimension. Entities in the centre are "
                      "shared (conformed) across processes.", 12, MUTED)
     shared = ["Hazard event", "Location (PSGC)", "Date", "Organization", "Source system"]
-    own = {"Damage assessment": "Damage category", "Evacuation": "Evacuation center",
-           "Relief distribution": "Relief resource", "Response operations": "Response type"}
     cw, ch, cx = 230, 50, (W - 230) // 2
-    svg.rect(cx - 20, 168, cw + 40, len(shared) * 68 + 34, "#ECE8DF", "#ECE8DF", radius=14)
-    svg.text(W / 2, 192, "Shared conformed dimensions", 12, MUTED, True, "middle")
+    svg.rect(cx - 20, 238, cw + 40, len(shared) * 68 + 34, "#ECE8DF", "#ECE8DF", radius=14)
+    svg.text(W / 2, 262, "Shared conformed dimensions", 12, MUTED, True, "middle")
     centre = {}
     for i, e in enumerate(shared):
-        y = 206 + i * 68
+        y = 276 + i * 68
         svg.rect(cx, y, cw, ch, CARD, LINE)
         svg.text(W / 2, y + 31, e, 14, INK, True, "middle")
         centre[e] = y + ch / 2
     pw, ph, ew = 280, 70, 220
-    spots = {"Damage assessment": (60, 150, "top"), "Evacuation": (W - 60 - pw, 150, "top"),
-             "Relief distribution": (60, 520, "bottom"), "Response operations": (W - 60 - pw, 520, "bottom")}
-    for proc, (x, y, row) in spots.items():
-        left = x < W / 2
-        edge = x + pw if left else x
+    left = ["Damage assessment", "Evacuation", "Displacement outside centers"]
+    right = ["Relief distribution", "Response operations", "Lifeline status"]
+    spots = {proc: (60 if proc in left else W - 60 - pw, 100 + (left + right).index(proc) % 3 * 215)
+             for proc in left + right}
+    for proc, (x, y) in spots.items():
+        is_left = x < W / 2
+        edge = x + pw if is_left else x
         for e in shared:
             if e in uses[proc]:
-                svg.parts.append(f'<line x1="{edge}" y1="{y + ph / 2}" x2="{cx if left else cx + cw}" '
+                svg.parts.append(f'<line x1="{edge}" y1="{y + ph / 2}" x2="{cx if is_left else cx + cw}" '
                                  f'y2="{centre[e]}" stroke="{LINE}" stroke-width="1.4"/>')
         svg.rect(x, y, pw, ph, INK, INK)
         svg.text(x + pw / 2, y + 31, proc, 16, PAPER, True, "middle")
         svg.text(x + pw / 2, y + 52, "business process → fact table", 11, "#C9D3DE", anchor="middle")
-        ey = y + ph + 50 if row == "top" else y - 50 - ch
-        ex = x + (pw - ew) / 2
-        svg.parts.append(f'<line x1="{x + pw / 2}" y1="{y + ph if row == "top" else y}" x2="{x + pw / 2}" '
-                         f'y2="{ey if row == "top" else ey + ch}" stroke="{LINE}" stroke-width="1.4"/>')
-        svg.rect(ex, ey, ew, ch, CARD, LINE)
-        svg.text(x + pw / 2, ey + 31, own[proc], 14, INK, True, "middle")
-    svg.text(24, 670, "Location is identified by the official PSGC code, which is what lets five agencies’ "
-                      "records be integrated. Damage assessment does not involve an organization.", 12, MUTED)
+        if own[proc]:
+            ey, ex = y + ph + 30, x + (pw - ew) / 2
+            svg.parts.append(f'<line x1="{x + pw / 2}" y1="{y + ph}" x2="{x + pw / 2}" y2="{ey}" '
+                             f'stroke="{LINE}" stroke-width="1.4"/>')
+            svg.rect(ex, ey, ew, ch, CARD, LINE)
+            svg.text(x + pw / 2, ey + 31, own[proc], 14, INK, True, "middle")
+    svg.text(24, 770, "Location is identified by the official PSGC code, which is what lets five agencies’ "
+                      "records be integrated. Damage assessment does not involve an organization; "
+                      "displacement outside centers has no entity of its own.", 12, MUTED)
     return svg.save("conceptual")
 
 
@@ -229,8 +230,8 @@ def etl_workflow():
         for i, ln in enumerate(lines):
             svg.text(x + 14, y + 50 + i * 19, ln, 12, "#C9D3DE" if dark else "#3E4A5A")
 
-    sources = [("NDRRMC sitreps", "CSV"), ("DSWD DROMIC", "Excel"), ("NGO distributions", "nested JSON"),
-               ("PAGASA bulletins", "CSV"), ("LGU response logs", "CSV")]
+    sources = [("NDRRMC sitreps", "CSV: damage, lifelines"), ("DSWD DROMIC", "Excel: inside + outside ECs"),
+               ("NGO / LGU relief", "nested JSON"), ("PAGASA bulletins", "CSV"), ("LGU response logs", "CSV")]
     for i, (name, fmt) in enumerate(sources):
         y = 100 + i * 82
         svg.rect(30, y, 200, 62, CARD, LINE)
@@ -244,21 +245,21 @@ def etl_workflow():
     svg.straight(530, 490, 640, 412)
     stage(590, 200, 270, 210, "2 · Transform (dbt staging)", ["type & parse dates, numbers", "conform places → PSGC",
                                                               "conform events, orgs, units", "de-duplicate",
-                                                              "36 DQ rules → dq_status", "valid/warning only go on"])
+                                                              "45 DQ rules → dq_status", "valid/warning only go on"])
     stage(590, 470, 270, 140, "Quarantine (dq)", ["rejected rows + reasons", "issue log, scorecard",
                                                   "reconciliation 19/19"], accent=True)
     svg.straight(725, 410, 725, 470, color=ACCENT)
     svg.text(735, 446, "rejects", 11, ACCENT, italic=True)
     svg.straight(860, 305, 920, 305)
     stage(920, 200, 250, 210, "3 · Load (dw)", ["surrogate keys", "SCD2 dim_location", "(dated change log)",
-                                                "4 facts, 9 dims", "PK / FK constraints", "RLS + grants"], dark=True)
+                                                "6 facts, 10 dims", "PK / FK constraints", "RLS + grants"], dark=True)
     svg.straight(1170, 305, 1220, 305)
-    stage(1220, 200, 250, 150, "4 · Aggregate (mart)", ["6 materialized views", "GROUP BY CUBE",
+    stage(1220, 200, 250, 150, "4 · Aggregate (mart)", ["8 materialized views", "GROUP BY CUBE",
                                                         "GROUPING SETS", "tested vs facts"])
     svg.straight(1345, 350, 1345, 420)
     stage(1220, 420, 250, 150, "5 · Deliver", ["PHP API (XAMPP)", "as driw_web (marts only)",
                                                "JSON snapshot fallback", "Next.js dashboards"])
-    stage(920, 470, 250, 140, "Validate", ["99 dbt tests each build", "pytest: e2e, access, API",
+    stage(920, 470, 250, 140, "Validate", ["117 dbt checks each build", "pytest: e2e, access, API",
                                            "query benchmark"])
     svg.text(24, 730, "Full reload: raw is truncated and reloaded, dbt rebuilds staging, dw and marts; grants, "
                       "row-level security and keys are re-applied on every build.", 12, MUTED)

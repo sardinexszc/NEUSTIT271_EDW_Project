@@ -16,8 +16,10 @@ The ETL is a set of **custom Python and SQL scripts**: Python for extraction and
 | Source system | Format | Files | Rows landed | Typical defects (planted and counted) |
 |---|---|---:|---:|---|
 | NDRRMC situation reports | CSV | 31 (one per event) | 16,151 | duplicate rows, blanks and "N/A", thousands separators, negative costs, swapped figures, misspelled towns |
-| DSWD DROMIC evacuation reports | Excel (.xlsx) | 31 | 31,241 | mixed date formats per field office, missing center codes, overcrowding, misspelled towns |
-| NGO / agency relief distributions | nested JSON | 6 (one per year) | 5,661 records | organization aliases, partner item codes and units, missing locations, unknown items |
+| NDRRMC lifeline status (roads, bridges, power, water, communications) | CSV | 31 | 2,677 | none planted; checked for unknown lifelines, unparseable times and restoration before interruption |
+| DSWD DROMIC evacuation reports, sheet "Inside ECs" | Excel (.xlsx) | 31 | 31,241 | mixed date formats per field office, missing center codes, overcrowding, misspelled towns |
+| DSWD DROMIC, sheet "Outside ECs" (families with relatives or friends) | same workbooks | 31 | 21,896 | none planted; same date, location and persons-vs-families checks |
+| NGO, UN and LGU relief distributions | nested JSON | 6 (one per year) | 8,438 records | organization aliases, partner item codes and units, missing locations, unknown items |
 | PAGASA bulletins | CSV | 1 | 39 | re-issued (duplicate) bulletins, local vs international names |
 | LGU / MDRRMO response logs | CSV | 1 | 32,749 | non-standard request types, arrival before dispatch, open requests, misspelled towns |
 | PSA PSGC geography | JSON (community API mirror of PSA codes) | 6 | 43,793 units | — (master data) |
@@ -59,7 +61,7 @@ each defect it plants in `_defect_manifest.json` so the transformation can be pr
   standard unit (e.g. 1 sack of rice = 50 kg).
 - NGO JSON is flattened from one record per distribution to one row per item line.
 
-**Data-quality rules.** 41 rules in `dq_rules` with severity *info* (corrected), *warning*
+**Data-quality rules.** 45 rules in `dq_rules` with severity *info* (corrected), *warning*
 (kept, flagged) or *reject* (quarantined). Every staging row gets `dq_issues` and `dq_status`;
 staging never drops a row. Details: [data-quality-framework.md](data-quality-framework.md).
 

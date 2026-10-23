@@ -29,7 +29,7 @@ the stars.
 ## 2. Logical model
 
 Each business process becomes a **fact table** at a stated grain; each entity becomes a
-**dimension**. The model is a set of four **star schemas** sharing conformed dimensions
+**dimension**. The model is a set of six **star schemas** sharing conformed dimensions
 (a "constellation").
 
 | Fact table | Type | Grain (one row per…) | Measures |
@@ -38,17 +38,20 @@ Each business process becomes a **fact table** at a stated grain; each entity be
 | `fact_evacuation_snapshot` | Periodic snapshot | evacuation center × day × event | families inside, persons inside, capacity, over-capacity flag |
 | `fact_resource_distribution` | Transaction | relief item in one distribution | quantity (standard unit), value (PHP), beneficiary families |
 | `fact_response_action` | Accumulating snapshot | response request | hours to dispatch / arrive / on site / complete, personnel, completed flag |
+| `fact_displacement_outside` | Periodic snapshot | city/municipality × day × event | families and persons displaced outside evacuation centers |
+| `fact_lifeline_disruption` | Accumulating snapshot | event × city/municipality × lifeline | units affected, hours to restore, restored flag |
 
 | Dimension | Natural key | History | Hierarchy / notable attributes |
 |---|---|---|---|
 | `dim_date` | calendar date | Type 0 | year → quarter → month → day; typhoon season; -1 "Not yet occurred" |
-| `dim_location` | PSGC code | **Type 2** | region → province → city/municipality |
+| `dim_location` | PSGC code | **Type 2** | region → province → city/municipality; population (Type 1, denominator for per-100,000 rates) |
 | `dim_event` | event code | Type 1 | hazard type → category → event |
 | `dim_organization` | org code | Type 1 | org type → organization |
 | `dim_resource` | item code | Type 1 | category → item |
 | `dim_evacuation_center` | EC code | Type 1 | type, barangay, capacity |
 | `dim_damage_category` | category | Type 0 | — |
 | `dim_response_type` | type code | Type 0 | cluster → type |
+| `dim_lifeline` | lifeline code | Type 0 | sector (transport, utilities) → lifeline; unit of measure |
 | `dim_source_system` | batch id | — | lineage: source system → file |
 
 **Star, not snowflake.** Dimensions are kept denormalized (region and province names sit in
@@ -84,7 +87,7 @@ size about 80 MB.
 - Natural keys are kept as attributes (`psgc_code`, `event_code`, `ec_code`, `org_code`,
   `item_code`) for traceability.
 - Every dimension has a **primary key**; every fact has **foreign keys** to its dimensions
-  (26 in total), declared as real constraints so ERD tools draw the schema and the database
+  (38 in total), declared as real constraints so ERD tools draw the schema and the database
   enforces referential integrity.
 - Measures use `numeric` (exact money and counts) or `integer`; elapsed times are `numeric(…, 2)`
   hours; flags are `boolean`.
@@ -96,7 +99,7 @@ for the event summary. At the current volume every analytical query runs in well
 with sequential scans (see [query-performance.md](query-performance.md)). The scale-up path is
 B-tree indexes on the most-filtered fact foreign keys and partitioning facts by event year.
 
-**Security objects.** Row-level security policies on all four facts, grants declared in dbt
+**Security objects.** Row-level security policies on all six facts, grants declared in dbt
 (re-applied on every build), and the `governance.my_regions` view (see [governance.md](governance.md)).
 
 ### ER diagrams
@@ -111,3 +114,7 @@ deployed schema.
 ![ER diagram: resource distribution star](img/er_fact_resource_distribution.png)
 
 ![ER diagram: response action star](img/er_fact_response_action.png)
+
+![ER diagram: displacement outside evacuation centers star](img/er_fact_displacement_outside.png)
+
+![ER diagram: lifeline disruption star](img/er_fact_lifeline_disruption.png)

@@ -14,7 +14,7 @@ for analysis. The three kinds of system sit in a chain:
 | Business intelligence | Present and explore | The DRIW dashboards, CSV and API exports |
 
 DRIW deliberately has no data-entry screens. Data can enter only through the controlled ETL
-pipeline, so every value is validated by the 41 data-quality rules, traceable to the file and row it
+pipeline, so every value is validated by the 45 data-quality rules, traceable to the file and row it
 came from, and reproducible by re-running the pipeline. A screen that let users edit warehouse
 figures would break all three guarantees. Where a CMS or portal belongs is upstream, as a way for an
 LGU to *submit* a file, which is what the Data exchange page in §2 provides, or downstream, to
@@ -38,7 +38,7 @@ model. DRIW has the capabilities that implies:
 | Enterprise capability | Where it is in DRIW |
 |---|---|
 | Integration of many source systems | Five simulated agency systems (Chapter 4) |
-| Conformed dimensions across subjects | Bus matrix: date, location and event shared by all four facts (Chapter 2) |
+| Conformed dimensions across subjects | Bus matrix: date, location and event shared by all six facts (Chapter 2) |
 | Metadata and lineage | Data dictionary generated from the catalog; every row traces to its source batch (Chapter 3) |
 | Data-quality management | Rule catalog, quarantine, reconciliation 19/19 (Chapter 5) |
 | Security and governance | Four roles, row-level security by region, read-only web role (Chapter 6) |

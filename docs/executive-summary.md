@@ -1,17 +1,20 @@
 # Executive Summary
 
 **Problem.** A Philippine typhoon or monsoon flood is reported by several agencies at once:
-NDRRMC (damage), DSWD (evacuation centers), NGOs and UN agencies (relief), PAGASA (the hazard)
-and LGUs (response requests). Their systems share no place codes, event names or units, so
+NDRRMC (damage and lifelines), DSWD (people displaced in and outside evacuation centers), NGOs, UN
+agencies and LGUs (relief), PAGASA (the hazard) and LGUs (response requests). Their systems share no place codes, event names or units, so
 leadership cannot answer cross-agency questions such as "which provinces got the least relief per
 affected person?" without weeks of manual reconciliation.
 
 **Solution.** DRIW, the Disaster Response Intelligence Warehouse, integrates the five sources
-into one dimensional model on PostgreSQL 17: four star schemas (transaction, periodic-snapshot
-and accumulating-snapshot facts) over nine conformed dimensions, including a Type 2 slowly
+into one dimensional model on PostgreSQL 17: six star schemas (transaction, periodic-snapshot
+and accumulating-snapshot facts) over ten conformed dimensions, including a Type 2 slowly
 changing location dimension. A Python and dbt ETL pipeline cleans and conforms the data with
-41 data-quality rules; six ROLAP marts (`GROUP BY CUBE` and `GROUPING SETS`) feed Executive,
-Operations and Logistics dashboards. A PHP back-end on XAMPP serves them live through a
+45 data-quality rules; eight ROLAP marts (`GROUP BY CUBE` and `GROUPING SETS`) feed Executive,
+Operations and Logistics dashboards. Besides damage, casualties, evacuation, relief and response,
+they report the measures disaster-risk practice asks for: deaths and affected people per 100,000
+(Sendai Framework), people displaced outside evacuation centers, the restoration of roads,
+bridges, power, water and communications, and the cost of assistance by provider. A PHP back-end on XAMPP serves them live through a
 read-only login, and row-level security limits regional users to their own region.
 
 ## What is real and what is simulated
