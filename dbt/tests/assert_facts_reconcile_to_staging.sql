@@ -12,12 +12,20 @@ with expected as (
     union all
     select 'fact_response_action', count(*)
     from {{ ref('stg_lgu_response') }} where dq_status in ('valid', 'warning')
+    union all
+    select 'fact_displacement_outside', count(*)
+    from {{ ref('stg_dromic_displaced_outside') }} where dq_status in ('valid', 'warning')
+    union all
+    select 'fact_lifeline_disruption', count(*)
+    from {{ ref('stg_ndrrmc_lifeline') }} where dq_status in ('valid', 'warning')
 ),
 actual as (
     select 'fact_damage_assessment' as fact, count(*) as n from {{ ref('fact_damage_assessment') }}
     union all select 'fact_evacuation_snapshot', count(*) from {{ ref('fact_evacuation_snapshot') }}
     union all select 'fact_resource_distribution', count(*) from {{ ref('fact_resource_distribution') }}
     union all select 'fact_response_action', count(*) from {{ ref('fact_response_action') }}
+    union all select 'fact_displacement_outside', count(*) from {{ ref('fact_displacement_outside') }}
+    union all select 'fact_lifeline_disruption', count(*) from {{ ref('fact_lifeline_disruption') }}
 )
 select e.fact, e.n as expected_rows, a.n as actual_rows
 from expected e

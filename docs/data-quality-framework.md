@@ -17,7 +17,11 @@ raw.*  ──▶  staging.stg_*  ──────────────▶  
 ```
 
 Staging models never drop rows. Each raw row keeps its lineage (`_batch_id`, `_source_file`,
-`_row_number`) and gets:
+`_row_number`) and gets.
+
+[Table](#table-data-quality-columns-added-to-every-staging-row) defines the two columns.
+
+**Table: Data-quality columns added to every staging row.** Together they tell the loader which rows may reach the warehouse, and record why the others did not.
 
 | Column | Meaning |
 |---|---|
@@ -26,13 +30,17 @@ Staging models never drop rows. Each raw row keeps its lineage (`_batch_id`, `_s
 
 ## Severity policy
 
+Each rule has a severity, and [Table](#table-severity-policy-of-the-data-quality-rules) gives the action each severity triggers.
+
+**Table: Severity policy of the data-quality rules.** The severity decides whether a problem is corrected, flagged or quarantined.
+
 | Severity | Action | Reaches the warehouse? | Example |
 |---|---|---|---|
 | **info** | Corrected automatically | Yes | `Naga City` → PSGC *City of Naga*; `1,234` → 1234; `R50` sacks → kg |
 | **warning** | Kept and flagged | Yes | Evacuation center over capacity; required measure blank |
 | **reject** | Quarantined in `dq.dq_quarantine` | No | Negative cost; arrival before dispatch; unknown item code |
 
-The full catalog (41 rules across 5 sources) is
+The full catalog (45 rules across 5 sources, including lifeline and outside-evacuation-center checks) is
 [`dbt/seeds/dq_rules.csv`](../dbt/seeds/dq_rules.csv). A dbt test fails the build if a
 staging model emits a rule that is not in the catalog, or if a row's `dq_status` disagrees
 with the severities of its issues.
@@ -48,8 +56,19 @@ all sources is resolved once in `stg_location_resolution`, always within the rep
    candidate must be unique; ties (e.g. `Malniao` is equally close to *Malinao* and *Manito*)
    stay unmatched for a data steward instead of being guessed.
 
-Accuracy is verified against ground truth embedded in LGU request IDs and DROMIC center
-codes: **0 false matches** across ~63,000 checked rows (`assert_location_matching_is_accurate`).
+**How "0 false matches" is validated.** Two sources carry the true place code inside another
+field: every LGU request ID and every DROMIC evacuation-center code begins with the 7-digit PSGC
+prefix of the city or municipality it belongs to. That prefix is the ground truth. The dbt test
+`assert_location_matching_is_accurate` compares it with the place the matcher chose for **every**
+such row, not a sample: 32,748 LGU rows and 30,599 DROMIC rows, 63,347 in all. A row fails if the
+two disagree; none do. The test runs on every build, so a change to the matcher that caused a
+wrong match would fail the build.
+
+Two limits apply. Rows from NDRRMC, NGO and the outside-evacuation-center reports carry no
+embedded code, so they are not checked directly; they go through the same matcher, which resolves
+each distinct (province, city/municipality) pair once for all sources. And the misspellings were
+planted by the generator, so real reports may contain kinds of errors it did not plant. Names the
+matcher cannot resolve with confidence are left unmatched for a data steward rather than guessed.
 
 **Event conformance.** Sources refer to events by local name (*Kristine*), international
 name (*Trami*), `TY KRISTINE` or the key `TC2024-KRISTINE`. `stg_event_alias` lists every
@@ -67,7 +86,11 @@ place + center name + barangay always carries a single code elsewhere; otherwise
 ## Proof: reconciliation against planted defects
 
 The synthetic generator records every defect it plants in `_defect_manifest.json`
-(loaded to `meta.defect_manifest`). `dq.dq_reconciliation` compares that with detected issues:
+(loaded to `meta.defect_manifest`). `dq.dq_reconciliation` compares that with detected issues.
+
+[Table](#table-reconciliation-of-planted-and-detected-defects) gives the result.
+
+**Table: Reconciliation of planted and detected defects.** Every planted defect type is found at exactly the planted count, and no row is rejected without a planted cause.
 
 | Result (seed 271) | |
 |---|---|
@@ -75,7 +98,8 @@ The synthetic generator records every defect it plants in `_defect_manifest.json
 | Exactly reconciled | **19 / 19** |
 | Rejected rows not explained by a planted defect | 0 |
 
-Load rates after data quality: NDRRMC 98.2%, DROMIC 99.6%, NGO lines 97.0%, LGU 98.8%.
+Load rates after data quality: NDRRMC 98.2%, DROMIC 99.6%, NGO lines 97.7%, LGU 98.8%; the
+outside-evacuation-center and lifeline reports load in full (100%).
 
 A warn-level test (`warn_unplanted_rejections`) flags reject rules firing with no planted
 cause. During development it caught a real parsing bug: monsoon incidents named

@@ -146,7 +146,8 @@ def test_excel_export_has_every_mart_and_a_dictionary(warehouse, tmp_path):
                     "--out", str(out)], cwd=ROOT, env=warehouse["env"], check=True, capture_output=True)
     wb = load_workbook(out)
     assert wb.sheetnames == ["About", "Event summary", "Impact cube", "Province impact", "Evacuation daily",
-                             "Response performance", "Relief by organization", "Data dictionary"]
+                             "Response performance", "Relief by organization", "Displacement daily",
+                             "Lifeline restoration", "Data dictionary"]
     summary = wb["Event summary"]
     assert summary.max_row == 2 and summary["A2"].value == "TC2024-KRISTINE"
     assert summary.freeze_panes == "A2" and summary.auto_filter.ref

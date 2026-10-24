@@ -1,17 +1,24 @@
 # Data Warehouse Design: Conceptual, Logical and Physical Models
 
 The design moves from business concepts to tables in three levels. The logical level is
-detailed in [dimensional-model.md](dimensional-model.md) (grains, bus matrix, SCD Type 2,
-design decisions); the full column list is in [data-dictionary.md](data-dictionary.md).
+detailed in the Dimensional Model section at the end of this chapter (grains, bus matrix, SCD
+Type 2, design decisions); the full column list is in [data-dictionary.md](data-dictionary.md).
 
 ## 1. Conceptual model
 
-The DRIW answers questions about four **business processes**, each recorded by a different
-agency. Every process involves the same core **entities**: a hazard event, a place, a date, the
+The DRIW answers questions about six **business processes**, each recorded by an agency. Every process involves the same core **entities**: a hazard event, a place, a date, the
 organizations involved and the source that reported it. These shared entities are what allow the
 processes to be analyzed together.
 
+[Figure](#figure-conceptual-model-of-driw) shows the conceptual model: the business processes and the entities they share.
+
 ![Conceptual model](img/conceptual.png)
+
+**Figure: Conceptual model of DRIW.** The six business processes (dark boxes) become fact tables; the shared entities in the centre become conformed dimensions, which is what lets the processes be analyzed together.
+
+[Table](#table-business-processes-the-agency-reporting-each-and-the-entities-involved) lists each process with the agency that reports it and the question it answers.
+
+**Table: Business processes, the agency reporting each, and the entities involved.** The entities of each process become the dimensions of its star.
 
 | Business process | Reported by | Key question it answers | Entities involved |
 |---|---|---|---|
@@ -19,18 +26,24 @@ processes to be analyzed together.
 | Evacuation | DSWD DROMIC | How many were displaced, and were centers adequate? | Event, Location, Date, Organization, Evacuation center, Source |
 | Relief distribution | NGOs, UN agencies, DSWD | Did relief reach the people affected? | Event, Location, Date, Organization, Relief resource, Source |
 | Response operations | LGUs / MDRRMOs | How fast did help arrive? | Event, Location, Date, Organization, Response type, Source |
+| Displacement outside centers | DSWD DROMIC | How many families stayed with relatives or friends instead of in a center? | Event, Location, Date, Organization, Source |
+| Lifeline status | NDRRMC | Which roads, bridges, power, water and communication lines went down, and for how long? | Event, Location, Date, Organization, Lifeline, Source |
 
 **Why a dimensional (Kimball) design.** The users ask aggregate, multi-perspective questions
-("damage by region by year by hazard"), not transactional ones. A dimensional model makes those
-questions simple to write and fast to run, and conformed dimensions let the four processes be
+("damage by region by year by hazard"), not transactional ones. A dimensional model (Kimball & Ross, 2013) makes those
+questions simple to write and fast to run, and conformed dimensions let the six processes be
 compared directly. The enterprise integration happens in the staging layer before data reaches
 the stars.
 
 ## 2. Logical model
 
 Each business process becomes a **fact table** at a stated grain; each entity becomes a
-**dimension**. The model is a set of four **star schemas** sharing conformed dimensions
+**dimension**. The model is a set of six **star schemas** sharing conformed dimensions
 (a "constellation").
+
+[Table](#table-fact-tables-of-the-logical-model) lists the six fact tables with their type, grain and measures.
+
+**Table: Fact tables of the logical model.** Each fact is declared at one grain and typed by how it records the business: transactions, periodic snapshots or accumulating snapshots.
 
 | Fact table | Type | Grain (one row per…) | Measures |
 |---|---|---|---|
@@ -38,17 +51,24 @@ Each business process becomes a **fact table** at a stated grain; each entity be
 | `fact_evacuation_snapshot` | Periodic snapshot | evacuation center × day × event | families inside, persons inside, capacity, over-capacity flag |
 | `fact_resource_distribution` | Transaction | relief item in one distribution | quantity (standard unit), value (PHP), beneficiary families |
 | `fact_response_action` | Accumulating snapshot | response request | hours to dispatch / arrive / on site / complete, personnel, completed flag |
+| `fact_displacement_outside` | Periodic snapshot | city/municipality × day × event | families and persons displaced outside evacuation centers |
+| `fact_lifeline_disruption` | Accumulating snapshot | event × city/municipality × lifeline | units affected, hours to restore, restored flag |
+
+[Table](#table-dimensions-of-the-logical-model) lists the ten dimensions with their keys, history handling and hierarchies.
+
+**Table: Dimensions of the logical model.** *History* says how changes are handled (Type 0 never changes, Type 1 overwrites, Type 2 keeps versions); the last column gives the drill-down paths.
 
 | Dimension | Natural key | History | Hierarchy / notable attributes |
 |---|---|---|---|
 | `dim_date` | calendar date | Type 0 | year → quarter → month → day; typhoon season; -1 "Not yet occurred" |
-| `dim_location` | PSGC code | **Type 2** | region → province → city/municipality |
+| `dim_location` | PSGC code | **Type 2** | region → province → city/municipality; population (Type 1, denominator for per-100,000 rates) |
 | `dim_event` | event code | Type 1 | hazard type → category → event |
 | `dim_organization` | org code | Type 1 | org type → organization |
 | `dim_resource` | item code | Type 1 | category → item |
 | `dim_evacuation_center` | EC code | Type 1 | type, barangay, capacity |
 | `dim_damage_category` | category | Type 0 | — |
 | `dim_response_type` | type code | Type 0 | cluster → type |
+| `dim_lifeline` | lifeline code | Type 0 | sector (transport, utilities) → lifeline; unit of measure |
 | `dim_source_system` | batch id | — | lineage: source system → file |
 
 **Star, not snowflake.** Dimensions are kept denormalized (region and province names sit in
@@ -58,14 +78,34 @@ are small. The PSGC master data itself stays normalized in `ref.psgc`, so the st
 from a single authoritative source.
 
 The bus matrix, measure additivity rules and the SCD Type 2 treatment of the 2022 Maguindanao
-split are in [dimensional-model.md](dimensional-model.md).
+split are in the Dimensional Model section at the end of this chapter.
 
 ## 3. Physical model
 
 **Platform.** PostgreSQL 17 (local; the same migrations run unchanged on Supabase). Database
 size about 80 MB.
 
+**Design and technology choices.** Each major choice was made against the requirements in
+Chapter 1, not for convenience. [Table](#table-design-and-technology-choices-and-the-reasons-for-them)
+lists the alternatives considered and the reason for each decision.
+
+**Table: Design and technology choices and the reasons for them.** Each decision traces to a requirement (FR or NFR, Chapter 1) or to the nature of the business questions.
+
+| Decision | Alternatives considered | Reason |
+|---|---|---|
+| Dimensional (Kimball) model | Normalized enterprise model (Inmon) | The business questions are aggregate and multi-perspective ("damage by region by year"); a dimensional model answers them with simple, fast queries, and conformed dimensions still integrate the agencies (Kimball & Ross, 2013). |
+| Star schema | Snowflake schema | One join per dimension keeps queries simple for analysts; hierarchies are small, so the extra storage is negligible. |
+| PostgreSQL 17 | SQL Server, Oracle, MySQL, a cloud warehouse | Free and runs on an agency's own server (NFR9); supports `CUBE`, `ROLLUP`, `GROUPING SETS`, materialized views and row-level security natively (FR8, FR11), which MySQL lacks; the same migrations run on a cloud database. |
+| ROLAP with materialized views | MOLAP cube server | No second server or copy of the data to manage; marts give dashboard speed (NFR2) while the facts keep full detail. |
+| Python and dbt for ETL | Graphical ETL tools (SSIS, Talend) | Python reads CSV, Excel and JSON natively; dbt keeps every transformation as version-controlled SQL with built-in tests and documentation (NFR7); both are free. |
+| Full reload each run | Incremental loads | At this volume a full reload takes about a minute and makes every run reproducible (NFR6); incremental loads are future work. |
+| Web dashboards on XAMPP with a PHP back-end | Power BI, Tableau | No licences; runs on the course's XAMPP stack; reads through a read-only login (NFR3). Power BI or Excel can still connect to the same marts. |
+
 **Schemas as layers.**
+
+[Table](#table-physical-layers-as-postgresql-schemas) shows how the layers of the architecture map to PostgreSQL schemas.
+
+**Table: Physical layers as PostgreSQL schemas.** Data moves down through the layers; business users only read the last ones.
 
 | Schema | Contents | Built by | Materialization |
 |---|---|---|---|
@@ -84,19 +124,19 @@ size about 80 MB.
 - Natural keys are kept as attributes (`psgc_code`, `event_code`, `ec_code`, `org_code`,
   `item_code`) for traceability.
 - Every dimension has a **primary key**; every fact has **foreign keys** to its dimensions
-  (26 in total), declared as real constraints so ERD tools draw the schema and the database
+  (38 in total), declared as real constraints so ERD tools draw the schema and the database
   enforces referential integrity.
 - Measures use `numeric` (exact money and counts) or `integer`; elapsed times are `numeric(…, 2)`
   hours; flags are `boolean`.
 - Degenerate dimensions stay on the fact (`sitrep_no`, `distribution_id` + `line_no`,
   `request_id`, `priority`).
 
-**Performance.** Dashboards read the marts (materialized views), not the facts: about 78× faster
+**Performance.** Dashboards read the marts (materialized views), not the facts: about 60–80× faster
 for the event summary. At the current volume every analytical query runs in well under 50 ms
 with sequential scans (see [query-performance.md](query-performance.md)). The scale-up path is
 B-tree indexes on the most-filtered fact foreign keys and partitioning facts by event year.
 
-**Security objects.** Row-level security policies on all four facts, grants declared in dbt
+**Security objects.** Row-level security policies on all six facts, grants declared in dbt
 (re-applied on every build), and the `governance.my_regions` view (see [governance.md](governance.md)).
 
 ### ER diagrams
@@ -104,10 +144,38 @@ B-tree indexes on the most-filtered fact foreign keys and partitioning facts by 
 Generated from the database catalog by `docs/build/diagrams.py`, so they always match the
 deployed schema.
 
+The six stars follow one by one, starting with [Figure](#figure-er-diagram-of-the-damage-assessment-star), the damage assessment star.
+
 ![ER diagram: damage assessment star](img/er_fact_damage_assessment.png)
+
+**Figure: ER diagram of the damage assessment star.** The transaction fact in the centre holds casualties, houses damaged and cost per event, city/municipality and damage category; each line is a foreign key to a dimension.
+
+[Figure](#figure-er-diagram-of-the-evacuation-snapshot-star) is the evacuation snapshot star.
 
 ![ER diagram: evacuation snapshot star](img/er_fact_evacuation_snapshot.png)
 
+**Figure: ER diagram of the evacuation snapshot star.** One row per evacuation center per day per event; its measures add up across centers but not across days.
+
+[Figure](#figure-er-diagram-of-the-resource-distribution-star) is the resource distribution star.
+
 ![ER diagram: resource distribution star](img/er_fact_resource_distribution.png)
 
+**Figure: ER diagram of the resource distribution star.** One row per relief item line; the organization and resource dimensions let relief be analyzed by provider and category.
+
+[Figure](#figure-er-diagram-of-the-response-action-star) is the response action star.
+
 ![ER diagram: response action star](img/er_fact_response_action.png)
+
+**Figure: ER diagram of the response action star.** An accumulating snapshot: its four date keys (request, dispatch, arrival, completion) each play the role of the date dimension.
+
+[Figure](#figure-er-diagram-of-the-displacement-outside-evacuation-centers-star) is the star for families displaced outside evacuation centers.
+
+![ER diagram: displacement outside evacuation centers star](img/er_fact_displacement_outside.png)
+
+**Figure: ER diagram of the displacement outside evacuation centers star.** Families staying with relatives or friends, per city/municipality and day; added to the evacuation snapshot for the same day it gives total displacement.
+
+[Figure](#figure-er-diagram-of-the-lifeline-disruption-star) is the lifeline disruption star.
+
+![ER diagram: lifeline disruption star](img/er_fact_lifeline_disruption.png)
+
+**Figure: ER diagram of the lifeline disruption star.** One row per lifeline that went down in a city/municipality during an event; the interrupted and restored dates both play the role of the date dimension.

@@ -11,7 +11,9 @@ with places as (
         p.geographic_level,
         p.province_name,
         p.region_code,
-        r.name             as region_name
+        r.name             as region_name,
+        p.population,
+        p.population_census
     from {{ source('ref', 'psgc') }} p
     left join {{ source('ref', 'psgc') }} r on r.psgc_code = p.region_code
     where p.geographic_level in ('City', 'Mun')
@@ -57,6 +59,8 @@ select
     )                                   as province_name,
     p.region_code,
     p.region_name,
+    p.population,                       -- type 1: denominator for per-100,000 rates
+    p.population_census                 as population_source,
     v.valid_from,
     v.valid_to,
     v.valid_to = date '9999-12-31'      as is_current

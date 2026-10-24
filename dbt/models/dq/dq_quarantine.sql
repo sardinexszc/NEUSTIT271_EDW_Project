@@ -8,8 +8,14 @@ with rejected as (
     select 'ndrrmc', _batch_id, _source_file, _row_number, null, dq_issues
     from {{ ref('stg_ndrrmc_damage') }} where dq_status = 'rejected'
     union all
+    select 'ndrrmc', _batch_id, _source_file, _row_number, null, dq_issues
+    from {{ ref('stg_ndrrmc_lifeline') }} where dq_status = 'rejected'
+    union all
     select 'dromic', _batch_id, _source_file, _row_number, null, dq_issues
     from {{ ref('stg_dromic_evacuation') }} where dq_status = 'rejected'
+    union all
+    select 'dromic', _batch_id, _source_file, _row_number, null, dq_issues
+    from {{ ref('stg_dromic_displaced_outside') }} where dq_status = 'rejected'
     union all
     select 'ngo', _batch_id, _source_file, _row_number, line_no, dq_issues
     from {{ ref('stg_ngo_distribution_line') }} where dq_status = 'rejected'

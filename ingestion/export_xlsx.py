@@ -31,6 +31,8 @@ MARTS = [  # (mart, sheet name, filterable by event)
     ("mart_evacuation_daily", "Evacuation daily", True),
     ("mart_response_performance", "Response performance", True),
     ("mart_relief_by_org_category", "Relief by organization", True),
+    ("mart_displacement_daily", "Displacement daily", True),
+    ("mart_lifeline_restoration", "Lifeline restoration", True),
 ]
 HEADER_FILL = PatternFill("solid", fgColor="14233A")
 NOTICE_FILL = PatternFill("solid", fgColor="FFF7E6")

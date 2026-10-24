@@ -15,9 +15,12 @@ from openpyxl import load_workbook
 
 from common import INTAKE_DIR, SOURCES_DIR, connect
 
-RAW_TABLES = ["ndrrmc_damage_report", "dromic_evacuation", "ngo_distribution", "pagasa_event", "lgu_response_log"]
+RAW_TABLES = ["ndrrmc_damage_report", "ndrrmc_lifeline_status", "dromic_evacuation", "dromic_displaced_outside",
+              "ngo_distribution", "pagasa_event", "lgu_response_log"]
 DROMIC_COLUMNS = ["report_date", "disaster_name", "region", "province", "municipality", "barangay",
                   "ec_code", "ec_name", "ec_type", "capacity_families", "families_inside", "persons_inside"]
+DROMIC_OUTSIDE_COLUMNS = ["report_date", "disaster_name", "region", "province", "municipality",
+                          "families_outside", "persons_outside"]
 
 
 def as_text(v) -> str | None:
@@ -42,6 +45,16 @@ def xlsx_rows(path):
     return DROMIC_COLUMNS, [[as_text(v) for v in r] for r in rows]
 
 
+def xlsx_outside_rows(path):
+    """Second DROMIC sheet: families displaced outside evacuation centers (absent in older or
+    submitted workbooks, which then contribute no rows)."""
+    wb = load_workbook(path, read_only=True)
+    if "Outside ECs" not in wb.sheetnames:
+        return DROMIC_OUTSIDE_COLUMNS, []
+    rows = wb["Outside ECs"].iter_rows(min_row=2, values_only=True)
+    return DROMIC_OUTSIDE_COLUMNS, [[as_text(v) for v in r] for r in rows]
+
+
 def json_rows(path):
     records = json.loads(path.read_text(encoding="utf-8"))
     return ["record"], [[json.dumps(r, ensure_ascii=False)] for r in records]
@@ -50,7 +63,9 @@ def json_rows(path):
 SOURCES = [  # (source system, folder/glob, raw table, reader)
     ("PAGASA", "pagasa/*.csv", "pagasa_event", csv_rows),
     ("NDRRMC", "ndrrmc/*.csv", "ndrrmc_damage_report", csv_rows),
+    ("NDRRMC", "ndrrmc/lifelines/*.csv", "ndrrmc_lifeline_status", csv_rows),
     ("DSWD_DROMIC", "dromic/*.xlsx", "dromic_evacuation", xlsx_rows),
+    ("DSWD_DROMIC", "dromic/*.xlsx", "dromic_displaced_outside", xlsx_outside_rows),
     ("NGO", "ngo/*.json", "ngo_distribution", json_rows),
     ("LGU", "lgu/*.csv", "lgu_response_log", csv_rows),
 ]
@@ -82,7 +97,7 @@ def main() -> None:
                     (len(rows), batch_id),
                 )
                 total += len(rows)
-            print(f"raw.{table:<22} {total:>8,} rows from {len(files)} file(s)")
+            print(f"raw.{table:<26} {total:>8,} rows from {len(files)} file(s)")
 
         manifest = json.loads((SOURCES_DIR / "_defect_manifest.json").read_text(encoding="utf-8"))
         conn.execute("truncate meta.defect_manifest")

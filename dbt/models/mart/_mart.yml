@@ -26,3 +26,9 @@ models:
 
   - name: mart_relief_by_org_category
     description: Relief delivered per event x organization x resource category.
+
+  - name: mart_displacement_daily
+    description: Everyone displaced per event per day, inside evacuation centers and outside (with relatives/friends).
+
+  - name: mart_lifeline_restoration
+    description: Roads, bridges, power, water and communications disrupted per event x lifeline, and restoration speed.

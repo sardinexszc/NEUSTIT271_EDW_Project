@@ -21,7 +21,8 @@ from psycopg import errors
 from conftest import ROOT
 
 MARTS = ["mart_event_summary", "mart_impact_cube", "mart_province_event_impact",
-         "mart_evacuation_daily", "mart_response_performance", "mart_relief_by_org_category"]
+         "mart_evacuation_daily", "mart_response_performance", "mart_relief_by_org_category",
+         "mart_displacement_daily", "mart_lifeline_restoration"]
 
 
 def php_binary():

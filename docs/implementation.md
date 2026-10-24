@@ -2,16 +2,24 @@
 
 ## 1. Technology stack
 
+[Table](#table-technology-stack) lists the technology used in each layer.
+
+**Table: Technology stack.** Every component is open source or free and runs on one laptop or an agency server.
+
 | Layer | Technology |
 |---|---|
-| Data warehouse | PostgreSQL 17.11 (local) |
-| ETL | Python 3.13 (extraction, loading), dbt Core 1.12 (transformation, data quality, tests) |
+| Data warehouse | PostgreSQL 17.11 (local; PostgreSQL Global Development Group, 2024) |
+| ETL | Python 3.13 (extraction, loading), dbt Core 1.12 (transformation, data quality, tests; dbt Labs, n.d.) |
 | OLAP | ROLAP in PostgreSQL: star schema, materialized views, `CUBE` / `ROLLUP` / `GROUPING SETS` |
 | Back-end | PHP 8.1 on XAMPP (Apache) with `pdo_pgsql` |
 | Dashboards | Next.js (static build) served by Apache |
 | Version control and CI | GitHub (`sardinexszc/NEUSTIT271_EDW_Project`), GitHub Actions |
 
 ## 2. Repository layout
+
+[Table](#table-repository-layout) describes the folders of the repository.
+
+**Table: Repository layout.** Each folder holds one part of the system; the documentation and its generators live with the code.
 
 | Folder | Contents |
 |---|---|

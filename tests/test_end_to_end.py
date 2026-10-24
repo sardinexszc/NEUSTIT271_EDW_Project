@@ -12,9 +12,11 @@ from conftest import ROOT, scalar
 
 sys.path.insert(0, str(ROOT / "ingestion"))
 
-FACTS = ["fact_damage_assessment", "fact_evacuation_snapshot", "fact_resource_distribution", "fact_response_action"]
+FACTS = ["fact_damage_assessment", "fact_evacuation_snapshot", "fact_resource_distribution", "fact_response_action",
+         "fact_displacement_outside", "fact_lifeline_disruption"]
 MARTS = ["mart_event_summary", "mart_impact_cube", "mart_province_event_impact",
-         "mart_evacuation_daily", "mart_response_performance", "mart_relief_by_org_category"]
+         "mart_evacuation_daily", "mart_response_performance", "mart_relief_by_org_category",
+         "mart_displacement_daily", "mart_lifeline_restoration"]
 
 
 def test_pipeline_ran_every_step(warehouse):
@@ -33,7 +35,8 @@ def test_every_planted_defect_is_detected_exactly(db):
 
 
 @pytest.mark.parametrize("schema,table", [("raw", t) for t in
-                         ["pagasa_event", "ndrrmc_damage_report", "dromic_evacuation", "ngo_distribution", "lgu_response_log"]]
+                         ["pagasa_event", "ndrrmc_damage_report", "ndrrmc_lifeline_status", "dromic_evacuation",
+                          "dromic_displaced_outside", "ngo_distribution", "lgu_response_log"]]
                          + [("dw", f) for f in FACTS] + [("mart", m) for m in MARTS])
 def test_no_layer_is_empty(db, schema, table):
     assert scalar(db, f"select count(*) from {schema}.{table}") > 0
@@ -43,6 +46,8 @@ def test_no_layer_is_empty(db, schema, table):
     ("pagasa_event", "stg_pagasa_event"),
     ("ndrrmc_damage_report", "stg_ndrrmc_damage"),
     ("dromic_evacuation", "stg_dromic_evacuation"),
+    ("dromic_displaced_outside", "stg_dromic_displaced_outside"),
+    ("ndrrmc_lifeline_status", "stg_ndrrmc_lifeline"),
     ("lgu_response_log", "stg_lgu_response"),
 ])
 def test_staging_keeps_every_raw_row(db, raw_table, staging_table):

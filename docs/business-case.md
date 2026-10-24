@@ -5,7 +5,11 @@
 **Government: disaster risk reduction and management (DRRM) in the Philippines.**
 
 The Philippines is struck by around twenty tropical cyclones a year, plus monsoon floods.
-Responding to one event involves many agencies, each with its own system:
+Responding to one event involves many agencies, each with its own system.
+
+[Table](#table-agencies-in-a-philippine-disaster-response-and-their-systems-of-record) lists the agencies involved and the system each one keeps.
+
+**Table: Agencies in a Philippine disaster response and their systems of record.** Five organizations report the same event in five unconnected systems; this fragmentation is the problem DRIW solves.
 
 | Organization | Role in a disaster | System of record (simulated) |
 |---|---|---|
@@ -15,16 +19,23 @@ Responding to one event involves many agencies, each with its own system:
 | PAGASA | Names and tracks hazard events | Weather bulletins (CSV) |
 | LGUs / MDRRMOs | Rescue, evacuation, road clearing, relief delivery | Response request logs (CSV) |
 
-These systems share no place codes, event names or units. Leadership therefore cannot answer
+The NDRRMC coordinates this response under the Philippine Disaster Risk Reduction and Management
+Act (Republic Act No. 10121, 2010); DROMIC and NDRRMC publish their reports online (DSWD, n.d.;
+NDRRMC, n.d.), and PAGASA names the events (PAGASA, n.d.). These systems share no place codes,
+event names or units. Leadership therefore cannot answer
 cross-agency questions without manual reconciliation in spreadsheets.
 
 **Scope.** Tropical cyclones and southwest-monsoon floods, 2020–2025: 31 events. Event names
 and dates (PAGASA) and all geography (PSA PSGC: 17 regions, 81 provinces, 1,634 cities and
 municipalities, 42,046 barangays) are real. Operational figures are synthetic, generated with
-counted, planted defects (85,841 source rows; 9,995 defects of 19 types), because agency data is
+counted, planted defects (113,191 source rows; 9,995 defects of 19 types), because agency data is
 not public and known defects let the ETL be proven correct.
 
 ## 2. Stakeholders and BI objectives
+
+Five groups of stakeholders use the warehouse; [Table](#table-stakeholders-their-needs-and-the-bi-objectives-that-serve-them) sets out what each needs and which part of DRIW serves it.
+
+**Table: Stakeholders, their needs and the BI objectives that serve them.** Each stakeholder group is mapped to the dashboard, mart or schema built for it.
 
 | Stakeholder | Needs | BI objective | Served by |
 |---|---|---|---|
@@ -36,22 +47,32 @@ not public and known defects let the ETL be proven correct.
 
 ## 3. Key business questions
 
+The design starts from the questions decision makers ask. [Table](#table-key-business-questions-bq1-bq12) lists the twelve key business questions and where each is answered.
+
+**Table: Key business questions (BQ1–BQ12).** Each question is answered by a sample query (Q-number) or a dashboard, so every part of the design traces back to a business need.
+
 | # | Business question | Answered by |
 |---|---|---|
 | BQ1 | Which events caused the most damage, deaths and displacement? | Q01, Q13; Executive dashboard |
 | BQ2 | How does damage trend by year and category, and how did each year compare with the last? | Q02, Q05, Q12; Executive dashboard |
 | BQ3 | Within an event, which regions, provinces and towns were hit hardest? | Q03 (drill-down) |
 | BQ4 | Which regions suffer most from typhoons versus monsoon floods? | Q04, Q05 (cube); Executive dashboard |
-| BQ5 | How many people were in evacuation centers at the peak, and for how long? | Q06; Operations dashboard |
+| BQ5 | How many people were displaced at the peak, in evacuation centers and outside them, and for how long? | Q06; Operations dashboard |
 | BQ6 | Which evacuation centers are repeatedly overcrowded? | Q07; Operations dashboard |
 | BQ7 | How quickly are response teams dispatched, by request type and priority, and where is it slowest? | Q08, Q09; Operations dashboard |
 | BQ8 | Did relief reach provinces in proportion to impact? Which were under-served? | Q10; Logistics dashboard |
-| BQ9 | Which organizations delivered which kinds of relief? | Q11; Logistics dashboard |
+| BQ9 | Which organizations delivered which kinds of relief, and who paid for it (DSWD, LGUs, NGOs, international)? | Q11; Logistics dashboard |
 | BQ10 | How reliable is the data: what was rejected, and why? | Q14; `dq.dq_reconciliation` |
+| BQ11 | Which events hit hardest relative to the population (deaths and affected per 100,000, Sendai targets A and B)? | `mart_event_summary`; Executive dashboard |
+| BQ12 | How long were roads, bridges, power, water and communications down, and which take longest to restore? | `mart_lifeline_restoration`; Operations dashboard |
 
 The Q-numbers refer to [`sample-queries.sql`](sample-queries.sql).
 
 ## 4. Functional requirements
+
+[Table](#table-functional-requirements-and-how-they-are-met) states what the system must do and how each requirement is met.
+
+**Table: Functional requirements and how they are met.** All twelve are met; the third column names the component that delivers each one.
 
 | # | Requirement | How it is met | Status |
 |---|---|---|---|
@@ -59,8 +80,8 @@ The Q-numbers refer to [`sample-queries.sql`](sample-queries.sql).
 | FR2 | Keep lineage from every warehouse row to its source file and row. | `meta.load_batch`, `_batch_id/_source_file/_row_number`, `dim_source_system`. | Met |
 | FR3 | Conform place names to the official PSGC codes. | `stg_location_resolution`: exact, normalized, fuzzy; 0 false matches on ground truth. | Met |
 | FR4 | Conform event names, organizations and relief units across sources. | Event aliases with time windows; organization and item alias maps; unit conversion. | Met |
-| FR5 | Detect, correct, flag or quarantine data-quality defects, with reasons. | 41 rules in `dq_rules`; `dq_quarantine`; 19/19 planted defect types reconciled. | Met |
-| FR6 | Store integrated data in a dimensional model with conformed dimensions. | Star schema: 4 facts, 9 dimensions (`docs/warehouse-design.md`). | Met |
+| FR5 | Detect, correct, flag or quarantine data-quality defects, with reasons. | 45 rules in `dq_rules`; `dq_quarantine`; 19/19 planted defect types reconciled. | Met |
+| FR6 | Store integrated data in a dimensional model with conformed dimensions. | Star schema: 6 facts, 10 dimensions (Chapter 2). | Met |
 | FR7 | Preserve history when administrative boundaries change. | SCD Type 2 `dim_location` (2022 Maguindanao split). | Met |
 | FR8 | Support OLAP analysis: roll-up, drill-down, slice, dice, pivot. | `GROUP BY CUBE / ROLLUP / GROUPING SETS`, marts, sample queries Q01–Q14. | Met |
 | FR9 | Provide dashboards for executive, operational and logistics users. | Next.js dashboards on XAMPP: Executive, Operations, Logistics. | Met |
@@ -70,12 +91,16 @@ The Q-numbers refer to [`sample-queries.sql`](sample-queries.sql).
 
 ## 5. Non-functional requirements
 
+[Table](#table-non-functional-requirements-targets-and-evidence) sets a measurable target for each quality attribute and gives the evidence that it was met.
+
+**Table: Non-functional requirements, targets and evidence.** Each quality attribute has a measurable target and the evidence that it was reached.
+
 | # | Requirement | Target | Evidence | Status |
 |---|---|---|---|---|
 | NFR1 | Data accuracy | Every planted defect type detected at the exact planted count | `dq.dq_reconciliation`: 19/19 match | Met |
-| NFR2 | Query performance | Analytical queries under 1 second | `docs/query-performance.md`: 14/14, slowest about 32 ms | Met |
-| NFR3 | Security | Least privilege; regional row-level restriction; no credentials in code | `docs/governance.md`; 21 per-role access tests + web-role test | Met |
-| NFR4 | Privacy | No personal data in the warehouse; casualty data aggregated | `docs/governance.md` § Privacy | Met |
+| NFR2 | Query performance | Analytical queries under 1 second | Query Performance Test Report (Chapter 8): 14/14, slowest about 34 ms | Met |
+| NFR3 | Security | Least privilege; regional row-level restriction; no credentials in code | Chapter 6; 27 governance tests (access per role) and the web-role tests | Met |
+| NFR4 | Privacy | No personal data in the warehouse; casualty data aggregated | Chapter 6, Privacy section | Met |
 | NFR5 | Reliability | A failed source row never stops the load; rejected rows are kept with reasons | Quarantine design; staging keeps every row | Met |
 | NFR6 | Reproducibility | Same inputs produce the same warehouse | Deterministic generator (seed 271); e2e test rebuilds from nothing | Met |
 | NFR7 | Maintainability | Version-controlled, tested, documented | GitHub repo, dbt tests, CI on every push, generated data dictionary | Met |
@@ -89,5 +114,7 @@ The Q-numbers refer to [`sample-queries.sql`](sample-queries.sql).
 - City population is estimated from barangay counts, because the PSA workbook with census
   population could not be downloaded automatically.
 - Loads are batch (full reload), not real time; near-real-time feeds are future work.
-- Standards followed: UNDRR Global Framework for Disaster-Related Statistics, Sendai Framework
-  2015–2030, UNDRR Data Strategy and Roadmap 2023–2027, PSA PSGC, Data Privacy Act of 2012 (RA 10173).
+- Standards followed: the Disaster-related Statistics Framework (ESCAP, 2018), the Sendai
+  Framework 2015–2030 and its monitoring guidance (UNDRR, 2015, 2017), the UNDRR Data Strategy and
+  Roadmap 2023–2027 (UNDRR, 2023), the PSGC (Philippine Statistics Authority, n.d.) and the Data
+  Privacy Act of 2012 (Republic Act No. 10173, 2012).
