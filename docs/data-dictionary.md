@@ -1,10 +1,12 @@
 # Data Dictionary and Metadata
 
-Generated from the live PostgreSQL catalog by `docs/build/data_dictionary.py` on 2026-10-24 20:56. Names, types, keys and nullability come from the database; descriptions are curated. Row counts are from the current build (seed 271).
+Generated from the live PostgreSQL catalog by `docs/build/data_dictionary.py` on 2026-10-25 03:30. Names, types, keys and nullability come from the database; descriptions are curated. Row counts are from the current build (seed 271).
 
 Last successful load: 2026-10-24 03:37.
 
 ## Schemas (layers)
+
+[Table](#table-database-schemas-and-the-layer-each-one-holds) lists the schemas, one per layer.
 
 **Table: Database schemas and the layer each one holds.** Each schema is one layer of the architecture, from raw extracts to the marts the dashboards read; *Objects* counts its tables and views.
 
@@ -20,6 +22,8 @@ Last successful load: 2026-10-24 03:37.
 | `secure` | Region-scoped views for regional users; they run with the caller's rights (row-level security). | 2 |
 
 ## Lineage
+
+[Table](#table-lineage-from-each-source-file-to-its-warehouse-table) traces each source to the warehouse.
 
 **Table: Lineage from each source file to its warehouse table.** Read a row left to right to follow one source through the raw, staging and warehouse layers; the same path can be followed backwards from any figure on a dashboard.
 
@@ -40,6 +44,8 @@ Every fact row carries `source_key` → `dw.dim_source_system` (the file and bat
 
 ### `dw.dim_damage_category`
 
+[Table](#table-columns-of-dw-dim-damage-category) lists its columns.
+
 **Table: Columns of `dw.dim_damage_category`.** Population, Housing, Infrastructure, Agriculture. *Table, 4 rows.* PK and FK mark the primary and foreign keys; *Null* says whether a value may be missing.
 
 | Column | Type | Key | Null | Description |
@@ -50,6 +56,8 @@ Every fact row carries `source_key` → `dw.dim_source_system` (the file and bat
 | `has_cost` | boolean |  | yes | Whether the category carries a PHP cost. |
 
 ### `dw.dim_date`
+
+[Table](#table-columns-of-dw-dim-date) lists its columns.
 
 **Table: Columns of `dw.dim_date`.** Calendar, 2019–2026, plus member -1 (“Not yet occurred”) for open milestones. Type 0. *Table, 2,923 rows.* PK and FK mark the primary and foreign keys; *Null* says whether a value may be missing.
 
@@ -72,6 +80,8 @@ Every fact row carries `source_key` → `dw.dim_source_system` (the file and bat
 
 ### `dw.dim_evacuation_center`
 
+[Table](#table-columns-of-dw-dim-evacuation-center) lists its columns.
+
 **Table: Columns of `dw.dim_evacuation_center`.** Evacuation centers from DROMIC reports. SCD Type 1 (latest attributes). *Table, 1,751 rows.* PK and FK mark the primary and foreign keys; *Null* says whether a value may be missing.
 
 | Column | Type | Key | Null | Description |
@@ -85,6 +95,8 @@ Every fact row carries `source_key` → `dw.dim_source_system` (the file and bat
 | `capacity_families` | integer |  | yes | Families the evacuation center can hold. |
 
 ### `dw.dim_event`
+
+[Table](#table-columns-of-dw-dim-event) lists its columns.
 
 **Table: Columns of `dw.dim_event`.** Hazard events (tropical cyclones and monsoon floods) from PAGASA bulletins. *Table, 31 rows.* PK and FK mark the primary and foreign keys; *Null* says whether a value may be missing.
 
@@ -108,6 +120,8 @@ Every fact row carries `source_key` → `dw.dim_source_system` (the file and bat
 
 ### `dw.dim_lifeline`
 
+[Table](#table-columns-of-dw-dim-lifeline) lists its columns.
+
 **Table: Columns of `dw.dim_lifeline`.** Lifelines tracked in NDRRMC sitreps: roads, bridges, power, water and communications. *Table, 5 rows.* PK and FK mark the primary and foreign keys; *Null* says whether a value may be missing.
 
 | Column | Type | Key | Null | Description |
@@ -119,6 +133,8 @@ Every fact row carries `source_key` → `dw.dim_source_system` (the file and bat
 | `unit_of_measure` | text |  | yes | What units_affected counts: road sections, bridges or barangays. |
 
 ### `dw.dim_location`
+
+[Table](#table-columns-of-dw-dim-location) lists its columns.
 
 **Table: Columns of `dw.dim_location`.** City/municipality, keyed on PSGC code. SCD Type 2: one row per period of unchanged attributes (valid_from–valid_to). *Table, 1,671 rows.* PK and FK mark the primary and foreign keys; *Null* says whether a value may be missing.
 
@@ -139,6 +155,8 @@ Every fact row carries `source_key` → `dw.dim_source_system` (the file and bat
 
 ### `dw.dim_organization`
 
+[Table](#table-columns-of-dw-dim-organization) lists its columns.
+
 **Table: Columns of `dw.dim_organization`.** Responding and reporting organizations (government, NGO, international, LGU). *Table, 13 rows.* PK and FK mark the primary and foreign keys; *Null* says whether a value may be missing.
 
 | Column | Type | Key | Null | Description |
@@ -150,6 +168,8 @@ Every fact row carries `source_key` → `dw.dim_source_system` (the file and bat
 | `parent_agency` | text |  | yes | Department the organization belongs to. |
 
 ### `dw.dim_resource`
+
+[Table](#table-columns-of-dw-dim-resource) lists its columns.
 
 **Table: Columns of `dw.dim_resource`.** Relief items with category, standard unit and unit cost. *Table, 10 rows.* PK and FK mark the primary and foreign keys; *Null* says whether a value may be missing.
 
@@ -164,6 +184,8 @@ Every fact row carries `source_key` → `dw.dim_source_system` (the file and bat
 
 ### `dw.dim_response_type`
 
+[Table](#table-columns-of-dw-dim-response-type) lists its columns.
+
 **Table: Columns of `dw.dim_response_type`.** Response request types and their cluster. *Table, 5 rows.* PK and FK mark the primary and foreign keys; *Null* says whether a value may be missing.
 
 | Column | Type | Key | Null | Description |
@@ -174,6 +196,8 @@ Every fact row carries `source_key` → `dw.dim_source_system` (the file and bat
 | `response_cluster` | text |  | yes | Life-saving, Logistics, or Access and infrastructure. |
 
 ### `dw.dim_source_system`
+
+[Table](#table-columns-of-dw-dim-source-system) lists its columns.
 
 **Table: Columns of `dw.dim_source_system`.** Lineage: one row per loaded source file (batch). *Table, 1,099 rows.* PK and FK mark the primary and foreign keys; *Null* says whether a value may be missing.
 
@@ -186,6 +210,8 @@ Every fact row carries `source_key` → `dw.dim_source_system` (the file and bat
 | `row_count` | integer |  | yes | Rows in the source file. |
 
 ### `dw.fact_damage_assessment`
+
+[Table](#table-columns-of-dw-fact-damage-assessment) lists its columns.
 
 **Table: Columns of `dw.fact_damage_assessment`.** Grain: event × city/municipality × damage category (latest valid sitrep). Transaction fact. *Table, 8,806 rows.* PK and FK mark the primary and foreign keys; *Null* says whether a value may be missing.
 
@@ -208,6 +234,8 @@ Every fact row carries `source_key` → `dw.dim_source_system` (the file and bat
 
 ### `dw.fact_displacement_outside`
 
+[Table](#table-columns-of-dw-fact-displacement-outside) lists its columns.
+
 **Table: Columns of `dw.fact_displacement_outside`.** Grain: city/municipality × day × event. Periodic snapshot of families displaced outside evacuation centers (with relatives or friends); semi-additive. *Table, 21,896 rows.* PK and FK mark the primary and foreign keys; *Null* says whether a value may be missing.
 
 | Column | Type | Key | Null | Description |
@@ -221,6 +249,8 @@ Every fact row carries `source_key` → `dw.dim_source_system` (the file and bat
 | `persons_outside` | integer |  | yes | Persons displaced outside evacuation centers (semi-additive). |
 
 ### `dw.fact_evacuation_snapshot`
+
+[Table](#table-columns-of-dw-fact-evacuation-snapshot) lists its columns.
 
 **Table: Columns of `dw.fact_evacuation_snapshot`.** Grain: evacuation center × day × event. Periodic snapshot; occupancy measures are semi-additive (never sum across days). *Table, 31,110 rows.* PK and FK mark the primary and foreign keys; *Null* says whether a value may be missing.
 
@@ -238,6 +268,8 @@ Every fact row carries `source_key` → `dw.dim_source_system` (the file and bat
 | `is_over_capacity` | boolean |  | yes | Families inside exceeded the center's capacity. |
 
 ### `dw.fact_lifeline_disruption`
+
+[Table](#table-columns-of-dw-fact-lifeline-disruption) lists its columns.
 
 **Table: Columns of `dw.fact_lifeline_disruption`.** Grain: event × city/municipality × lifeline. Accumulating snapshot: opens when the lifeline goes down, closes when service is restored. *Table, 2,677 rows.* PK and FK mark the primary and foreign keys; *Null* says whether a value may be missing.
 
@@ -258,6 +290,8 @@ Every fact row carries `source_key` → `dw.dim_source_system` (the file and bat
 
 ### `dw.fact_resource_distribution`
 
+[Table](#table-columns-of-dw-fact-resource-distribution) lists its columns.
+
 **Table: Columns of `dw.fact_resource_distribution`.** Grain: one relief item in one distribution. Transaction fact; quantities in standard units. *Table, 14,927 rows.* PK and FK mark the primary and foreign keys; *Null* says whether a value may be missing.
 
 | Column | Type | Key | Null | Description |
@@ -275,6 +309,8 @@ Every fact row carries `source_key` → `dw.dim_source_system` (the file and bat
 | `beneficiary_families` | integer |  | yes | Families served by the whole distribution; stored on its first line only so it stays additive. |
 
 ### `dw.fact_response_action`
+
+[Table](#table-columns-of-dw-fact-response-action) lists its columns.
 
 **Table: Columns of `dw.fact_response_action`.** Grain: one response request. Accumulating snapshot with four milestone dates. *Table, 32,347 rows.* PK and FK mark the primary and foreign keys; *Null* says whether a value may be missing.
 
@@ -304,6 +340,8 @@ Every fact row carries `source_key` → `dw.dim_source_system` (the file and bat
 
 ### `mart.mart_displacement_daily`
 
+[Table](#table-columns-of-mart-mart-displacement-daily) lists its columns.
+
 **Table: Columns of `mart.mart_displacement_daily`.** Everyone displaced per event per day: inside evacuation centers plus outside. *Materialized view, 509 rows.* PK and FK mark the primary and foreign keys; *Null* says whether a value may be missing.
 
 | Column | Type | Key | Null | Description |
@@ -320,6 +358,8 @@ Every fact row carries `source_key` → `dw.dim_source_system` (the file and bat
 
 ### `mart.mart_evacuation_daily`
 
+[Table](#table-columns-of-mart-mart-evacuation-daily) lists its columns.
+
 **Table: Columns of `mart.mart_evacuation_daily`.** Evacuation-center load per event per day (summed across centers only). *Materialized view, 372 rows.* PK and FK mark the primary and foreign keys; *Null* says whether a value may be missing.
 
 | Column | Type | Key | Null | Description |
@@ -335,6 +375,8 @@ Every fact row carries `source_key` → `dw.dim_source_system` (the file and bat
 | `occupancy_rate` | numeric |  | yes | Families inside divided by capacity, across open centers. |
 
 ### `mart.mart_event_summary`
+
+[Table](#table-columns-of-mart-mart-event-summary) lists its columns.
 
 **Table: Columns of `mart.mart_event_summary`.** One row per event: headline damage, evacuation, relief and response figures. *Materialized view, 31 rows.* PK and FK mark the primary and foreign keys; *Null* says whether a value may be missing.
 
@@ -394,6 +436,8 @@ Every fact row carries `source_key` → `dw.dim_source_system` (the file and bat
 
 ### `mart.mart_impact_cube`
 
+[Table](#table-columns-of-mart-mart-impact-cube) lists its columns.
+
 **Table: Columns of `mart.mart_impact_cube`.** GROUP BY CUBE over year × region × hazard type: every subtotal, labelled by grouping_level. *Materialized view, 160 rows.* PK and FK mark the primary and foreign keys; *Null* says whether a value may be missing.
 
 | Column | Type | Key | Null | Description |
@@ -409,6 +453,8 @@ Every fact row carries `source_key` → `dw.dim_source_system` (the file and bat
 | `damage_cost_php` | numeric |  | yes | Total damage cost, PHP. |
 
 ### `mart.mart_lifeline_restoration`
+
+[Table](#table-columns-of-mart-mart-lifeline-restoration) lists its columns.
 
 **Table: Columns of `mart.mart_lifeline_restoration`.** Per event × lifeline: places disrupted, restored, still down, and hours to restore. *Materialized view, 137 rows.* PK and FK mark the primary and foreign keys; *Null* says whether a value may be missing.
 
@@ -429,6 +475,8 @@ Every fact row carries `source_key` → `dw.dim_source_system` (the file and bat
 | `p90_hours_to_restore` | numeric |  | yes | 90th-percentile hours from interruption to restoration. |
 
 ### `mart.mart_province_event_impact`
+
+[Table](#table-columns-of-mart-mart-province-event-impact) lists its columns.
 
 **Table: Columns of `mart.mart_province_event_impact`.** Event × province impact next to relief delivered (coverage). *Materialized view, 168 rows.* PK and FK mark the primary and foreign keys; *Null* says whether a value may be missing.
 
@@ -454,6 +502,8 @@ Every fact row carries `source_key` → `dw.dim_source_system` (the file and bat
 
 ### `mart.mart_relief_by_org_category`
 
+[Table](#table-columns-of-mart-mart-relief-by-org-category) lists its columns.
+
 **Table: Columns of `mart.mart_relief_by_org_category`.** Relief delivered per event × organization × resource category. *Materialized view, 851 rows.* PK and FK mark the primary and foreign keys; *Null* says whether a value may be missing.
 
 | Column | Type | Key | Null | Description |
@@ -469,6 +519,8 @@ Every fact row carries `source_key` → `dw.dim_source_system` (the file and bat
 | `families_served` | bigint |  | yes | Sum of beneficiary families over distributions (a family can be served more than once). |
 
 ### `mart.mart_response_performance`
+
+[Table](#table-columns-of-mart-mart-response-performance) lists its columns.
 
 **Table: Columns of `mart.mart_response_performance`.** Response timeliness with GROUPING SETS roll-ups; 'All' marks a rolled-up value. *Materialized view, 671 rows.* PK and FK mark the primary and foreign keys; *Null* says whether a value may be missing.
 
@@ -488,6 +540,8 @@ Every fact row carries `source_key` → `dw.dim_source_system` (the file and bat
 ## Supporting layers
 
 Column-level detail for these layers is in the database itself; summarized here.
+
+[Table](#table-supporting-objects-in-the-raw-reference-staging-data-quality-and-governance-layers) summarizes them.
 
 **Table: Supporting objects in the raw, reference, staging, data-quality and governance layers.** These feed or protect the star schema; users of the dashboards never read them directly.
 

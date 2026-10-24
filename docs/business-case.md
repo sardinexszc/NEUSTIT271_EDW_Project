@@ -5,7 +5,9 @@
 **Government: disaster risk reduction and management (DRRM) in the Philippines.**
 
 The Philippines is struck by around twenty tropical cyclones a year, plus monsoon floods.
-Responding to one event involves many agencies, each with its own system:
+Responding to one event involves many agencies, each with its own system.
+
+[Table](#table-agencies-in-a-philippine-disaster-response-and-their-systems-of-record) lists the agencies involved and the system each one keeps.
 
 **Table: Agencies in a Philippine disaster response and their systems of record.** Five organizations report the same event in five unconnected systems; this fragmentation is the problem DRIW solves.
 
@@ -17,7 +19,10 @@ Responding to one event involves many agencies, each with its own system:
 | PAGASA | Names and tracks hazard events | Weather bulletins (CSV) |
 | LGUs / MDRRMOs | Rescue, evacuation, road clearing, relief delivery | Response request logs (CSV) |
 
-These systems share no place codes, event names or units. Leadership therefore cannot answer
+The NDRRMC coordinates this response under the Philippine Disaster Risk Reduction and Management
+Act (Republic Act No. 10121, 2010); DROMIC and NDRRMC publish their reports online (DSWD, n.d.;
+NDRRMC, n.d.), and PAGASA names the events (PAGASA, n.d.). These systems share no place codes,
+event names or units. Leadership therefore cannot answer
 cross-agency questions without manual reconciliation in spreadsheets.
 
 **Scope.** Tropical cyclones and southwest-monsoon floods, 2020–2025: 31 events. Event names
@@ -27,6 +32,8 @@ counted, planted defects (113,191 source rows; 9,995 defects of 19 types), becau
 not public and known defects let the ETL be proven correct.
 
 ## 2. Stakeholders and BI objectives
+
+Five groups of stakeholders use the warehouse; [Table](#table-stakeholders-their-needs-and-the-bi-objectives-that-serve-them) sets out what each needs and which part of DRIW serves it.
 
 **Table: Stakeholders, their needs and the BI objectives that serve them.** Each stakeholder group is mapped to the dashboard, mart or schema built for it.
 
@@ -39,6 +46,8 @@ not public and known defects let the ETL be proven correct.
 | Data stewards / IT | Data quality, reconciliation, operations | Measurable data quality with traceability to source | `dq.*`, quarantine, lineage |
 
 ## 3. Key business questions
+
+The design starts from the questions decision makers ask. [Table](#table-key-business-questions-bq1-bq12) lists the twelve key business questions and where each is answered.
 
 **Table: Key business questions (BQ1–BQ12).** Each question is answered by a sample query (Q-number) or a dashboard, so every part of the design traces back to a business need.
 
@@ -61,6 +70,8 @@ The Q-numbers refer to [`sample-queries.sql`](sample-queries.sql).
 
 ## 4. Functional requirements
 
+[Table](#table-functional-requirements-and-how-they-are-met) states what the system must do and how each requirement is met.
+
 **Table: Functional requirements and how they are met.** All twelve are met; the third column names the component that delivers each one.
 
 | # | Requirement | How it is met | Status |
@@ -79,6 +90,8 @@ The Q-numbers refer to [`sample-queries.sql`](sample-queries.sql).
 | FR12 | Rebuild the warehouse end to end with one command. | `python ingestion/pipeline.py`. | Met |
 
 ## 5. Non-functional requirements
+
+[Table](#table-non-functional-requirements-targets-and-evidence) sets a measurable target for each quality attribute and gives the evidence that it was met.
 
 **Table: Non-functional requirements, targets and evidence.** Each quality attribute has a measurable target and the evidence that it was reached.
 
@@ -101,5 +114,7 @@ The Q-numbers refer to [`sample-queries.sql`](sample-queries.sql).
 - City population is estimated from barangay counts, because the PSA workbook with census
   population could not be downloaded automatically.
 - Loads are batch (full reload), not real time; near-real-time feeds are future work.
-- Standards followed: Global Disaster-related Statistics Framework (ESCAP, UNDRR), Sendai Framework
-  2015–2030, UNDRR Data Strategy and Roadmap 2023–2027, PSA PSGC, Data Privacy Act of 2012 (RA 10173).
+- Standards followed: the Disaster-related Statistics Framework (ESCAP, 2018), the Sendai
+  Framework 2015–2030 and its monitoring guidance (UNDRR, 2015, 2017), the UNDRR Data Strategy and
+  Roadmap 2023–2027 (UNDRR, 2023), the PSGC (Philippine Statistics Authority, n.d.) and the Data
+  Privacy Act of 2012 (Republic Act No. 10173, 2012).

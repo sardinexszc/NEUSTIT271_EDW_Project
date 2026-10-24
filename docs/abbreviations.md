@@ -1,5 +1,7 @@
 # List of Abbreviations
 
+[Table](#table-abbreviations-and-acronyms-used-in-this-report) explains the abbreviations used in this report.
+
 **Table: Abbreviations and acronyms used in this report.** Agency names and technical terms are
 listed together in alphabetical order. BQ, FR, NFR and Q (sample query, Appendix A) are numbering
 prefixes used within this report.

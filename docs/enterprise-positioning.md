@@ -5,7 +5,9 @@
 A content management system (CMS) is for creating and editing content: web pages, documents,
 records typed in by users. An enterprise data warehouse (EDW) has a different job. It **receives**
 data from the systems where data is entered, **integrates** it, **keeps its history**, and serves it
-for analysis. The three kinds of system sit in a chain:
+for analysis. The three kinds of system sit in a chain.
+
+[Table](#table-source-systems-warehouse-and-business-intelligence-as-a-chain) places the three kinds of system in a chain.
 
 **Table: Source systems, warehouse and business intelligence as a chain.** Data is entered upstream, integrated in the warehouse and presented downstream; the warehouse itself is read-only.
 
@@ -19,13 +21,15 @@ DRIW deliberately has no data-entry screens. Data can enter only through the con
 pipeline, so every value is validated by the 45 data-quality rules, traceable to the file and row it
 came from, and reproducible by re-running the pipeline. A screen that let users edit warehouse
 figures would break all three guarantees. Where a CMS or portal belongs is upstream, as a way for an
-LGU to *submit* a file, which is what the Data exchange page in §2 provides, or downstream, to
+LGU to *submit* a file, which is what the Data exchange page in section 10.2 provides, or downstream, to
 publish reports. It is never the warehouse itself.
 
 ### What makes DRIW an enterprise data warehouse
 
-Inmon's classic definition calls a data warehouse subject-oriented, integrated, time-variant and
-non-volatile. DRIW meets each one:
+Inmon's classic definition (Inmon, 2005) calls a data warehouse subject-oriented, integrated, time-variant and
+non-volatile. DRIW meets each one.
+
+[Table](#table-inmon-s-characteristics-of-a-data-warehouse-and-the-evidence-in-driw) gives the evidence for each characteristic.
 
 **Table: Inmon's characteristics of a data warehouse, and the evidence in DRIW.** DRIW meets all four.
 
@@ -37,7 +41,9 @@ non-volatile. DRIW meets each one:
 | Non-volatile | Users can only read; loads happen through the pipeline; a full rebuild reproduces the same warehouse (a test enforces this). |
 
 "Enterprise" means the warehouse serves the whole organization, across agencies, from one governed
-model. DRIW has the capabilities that implies:
+model. DRIW has the capabilities that implies.
+
+[Table](#table-enterprise-capabilities-and-where-driw-provides-them) lists those capabilities and where each is described.
 
 **Table: Enterprise capabilities and where DRIW provides them.** Each capability points to the chapter that describes it.
 
@@ -48,8 +54,8 @@ model. DRIW has the capabilities that implies:
 | Metadata and lineage | Data dictionary generated from the catalog; every row traces to its source batch (Chapter 3) |
 | Data-quality management | Rule catalog, quarantine, reconciliation 19/19 (Chapter 5) |
 | Security and governance | Four roles, row-level security by region, read-only web role (Chapter 6) |
-| Serving many audiences | Executive, Operations and Logistics dashboards; CSV, Excel and API exports (Chapter 7, §2 below) |
-| Data exchange with LGUs and agencies | Excel templates, layout profiles, checked uploads, Excel export (§2 below) |
+| Serving many audiences | Executive, Operations and Logistics dashboards; CSV, Excel and API exports (Chapter 7, section 10.2) |
+| Data exchange with LGUs and agencies | Excel templates, layout profiles, checked uploads, Excel export (section 10.2) |
 | Reliability | 208 automated checks (117 dbt, 91 pytest), run on every change (Chapter 8) |
 | Room to grow | Standard PostgreSQL; the same migrations run on a cloud database such as Supabase |
 
@@ -59,6 +65,14 @@ DRIW exchanges data with LGUs and national DRRM offices in Excel. An office down
 template (or keeps its own layout), checks its report against the warehouse rules, submits it,
 and downloads the warehouse's data back as a formatted workbook. All of it happens on one page of
 the web application, **Data exchange** (`http://localhost/driw/exchange/`).
+
+This is an exchange **mechanism**, not a live integration. No agency system is connected to
+DRIW: offices exchange files, and the mechanism was tested with sample files written in the
+layouts of two offices (Albay PDRRMO and a Quezon City incident log), not with files submitted by
+those offices. Connecting real systems would need data-sharing agreements, sign-in for LGU users
+and scheduled loads (section 10.4).
+
+[Table](#table-capabilities-of-the-data-exchange-page) describes each capability of the page.
 
 **Table: Capabilities of the Data exchange page.** An office downloads a template, checks and submits its report, and downloads the warehouse's data back as an Excel workbook.
 
@@ -71,6 +85,8 @@ the web application, **Data exchange** (`http://localhost/driw/exchange/`).
 | **Submit** | The file is checked again, saved in the standard layout under `data/intake/`, and the warehouse is reloaded with all its tests. Valid rows reach the fact tables; rejected rows go to quarantine with their reasons. Submitting a corrected file with the same name replaces the earlier version. | `ingestion/intake.py submit` |
 | **Excel export** | All eight data marts as one workbook, live from the warehouse, for all events or one: an *About* sheet, one sheet per mart with styled, frozen headings, filters and number formats (pesos, percentages, hours), and a *Data dictionary* sheet describing every column. | `ingestion/export_xlsx.py`, `web/php/api/export.php` |
 
+[Figure](#figure-data-exchange-page) shows the page.
+
 ![Data exchange page: templates, the upload form, Excel export, supported layouts and the checking rules](img/dash_exchange.png)
 
 **Figure: Data exchange page.** Templates, the upload form, Excel export, the supported office layouts and the checking rules on one page.
@@ -79,11 +95,15 @@ the web application, **Data exchange** (`http://localhost/driw/exchange/`).
 
 The Albay PDRRMO keeps its evacuation report in its own workbook: two title rows, its own column
 headings, no region or province columns, and dates written month/day/year. With the Albay layout
-selected, DRIW reads it unchanged and returns this report:
+selected, DRIW reads it unchanged and returns this report.
+
+[Figure](#figure-check-of-the-albay-pdrrmo-evacuation-report) shows the report DRIW returns.
 
 ![Check of the Albay PDRRMO report: summary and the verdict on every row](img/dash_exchange_report.png)
 
 **Figure: Check of the Albay PDRRMO evacuation report.** A summary of the verdicts, then every row with its status and the reasons in plain language.
+
+[Table](#table-verdict-on-each-row-of-the-albay-report) explains the verdict on each row shown in [Figure](#figure-check-of-the-albay-pdrrmo-evacuation-report).
 
 **Table: Verdict on each row of the Albay report.** Corrected and flagged rows still load; rejected rows go to quarantine with their reason.
 
@@ -121,6 +141,8 @@ fact table, its three rejected rows went to quarantine, and every warehouse chec
 
 ## 3. Other ways in and out
 
+[Table](#table-other-ways-data-enters-and-leaves-driw) lists the other channels.
+
 **Table: Other ways data enters and leaves DRIW.** All of them pass through the same roles and checks as the dashboards.
 
 | Direction | Channel | Notes |
@@ -131,6 +153,8 @@ fact table, its three rejected rows went to quarantine, and every warehouse chec
 | Out | Direct SQL by role | ODBC/JDBC from Excel, Power BI or Tableau; analysts see all rows, regional officers their region |
 
 ## 4. Next steps
+
+[Table](#table-next-steps-for-data-exchange) lists the extensions that would come next.
 
 **Table: Next steps for data exchange.** Each builds on mechanisms already in the warehouse, such as row-level security and layout profiles.
 

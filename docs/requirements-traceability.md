@@ -2,6 +2,8 @@
 
 Each requirement of the IT271 semester project brief, and where this submission meets it.
 
+[Table](#table-requirements-traceability-matrix) maps each requirement of the project brief to the chapter and section that meets it.
+
 **Table: Requirements traceability matrix.** Every requirement of the IT271 project brief is listed with the chapter or section that meets it, so coverage can be checked item by item.
 
 | Brief section | Requirement | Where it is met |

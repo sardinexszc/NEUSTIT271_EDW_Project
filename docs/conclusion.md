@@ -9,6 +9,8 @@ relief records, PAGASA bulletins and LGU response logs into one dimensional mode
 traceable to its source file, checked by 45 data-quality rules, and served to three audiences through
 dashboards, CSV and Excel exports and an API.
 
+[Table](#table-project-objectives-and-what-was-achieved) matches each objective with what was achieved.
+
 **Table: Project objectives and what was achieved.** Each objective of the business case (Chapter 1)
 is matched with the evidence that it was reached; the evidence is detailed in the chapter named.
 
@@ -23,10 +25,14 @@ is matched with the evidence that it was reached; the evidence is detailed in th
 | Exchange data with LGUs and agencies | Excel templates, layout profiles, checked uploads, Excel export | Chapter 10 |
 | Rebuild and verify with one command | 117 dbt checks and 91 automated tests pass on every build | Chapter 8 |
 
-## 2. What the analysis shows
+## 2. What the analysis demonstrates
 
-On the synthetic data, the warehouse answers all twelve business questions. The figures illustrate
-the analysis, not real outcomes, but the patterns are the ones the dashboards are built to expose:
+The results fall into two kinds, and they should be read differently. **Demonstrated results**
+are properties of the system, measured by tests: the integration, the data-quality proof, the
+access rules and the query speed in section 11.1. **Illustrative findings** come from the
+synthetic figures: they show that the warehouse can answer all twelve business questions, but
+they are not findings about real Philippine disasters. On the synthetic data the dashboards
+expose patterns such as these:
 
 - **Cost and mortality rank events differently.** The costliest event is not the deadliest per
   100,000 people, so leadership needs both views (BQ1, BQ11).

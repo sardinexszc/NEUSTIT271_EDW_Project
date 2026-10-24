@@ -8,6 +8,7 @@ and slowest run, the rows returned, and which scan types the plan used.
 """
 
 import json
+import os
 import platform
 import re
 import statistics
@@ -40,6 +41,26 @@ def scan_types(plan: dict) -> set[str]:
     for child in plan.get("Plans", []):
         found |= scan_types(child)
     return found
+
+
+def hardware() -> str:
+    """CPU model, logical cores and memory, so the timings can be put in context."""
+    cpu, ram = platform.processor() or platform.machine(), ""
+    try:
+        import winreg
+        key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, r"HARDWARE\DESCRIPTION\System\CentralProcessor\0")
+        cpu = winreg.QueryValueEx(key, "ProcessorNameString")[0].strip()
+        import ctypes
+
+        class MemoryStatus(ctypes.Structure):
+            _fields_ = [("length", ctypes.c_ulong), ("load", ctypes.c_ulong)] +                        [(n, ctypes.c_ulonglong) for n in ("total", "avail", "total_page", "avail_page",
+                                                          "total_virtual", "avail_virtual", "ext")]
+        status = MemoryStatus(length=ctypes.sizeof(MemoryStatus))
+        ctypes.windll.kernel32.GlobalMemoryStatusEx(ctypes.byref(status))
+        ram = f", {status.total / 2**30:.0f} GB RAM"
+    except (ImportError, OSError, AttributeError):
+        pass
+    return f"{cpu}, {os.cpu_count()} logical cores{ram}"
 
 
 def main() -> None:
@@ -75,11 +96,19 @@ def main() -> None:
         f"{RUNS} times under `EXPLAIN (ANALYZE)`. Times are server-side planning + execution, in milliseconds.",
         f"- Acceptance criterion (NFR2, [business case](business-case.md)): every analytical query "
         f"completes in under {BUDGET_MS} ms.",
-        f"- Environment: PostgreSQL {version} on {platform.system()} {platform.release()} "
-        f"({platform.machine()}), local laptop.",
-        "- Data volume: " + ", ".join(f"{t} {n:,} rows" for t, n in fact_rows.items()) + ".",
+        f"- Environment: PostgreSQL {version} with default settings on {platform.system()} {platform.release()}, "
+        f"local laptop ({hardware()}); database and client on the same machine, no other load.",
+        "- Data volume (seed 271): " + ", ".join(f"{t} {n:,} rows" for t, n in fact_rows.items()) + ".",
+        "- Mart baseline: Q13 reads the event headline figures from `mart.mart_event_summary`; Q01 computes the "
+        "same figures (ranking events by damage with their human toll) from `dw.fact_damage_assessment`. "
+        "The ratio of their median times is the speed-up quoted below.",
+        "- Caveats: times are from one machine and include no network transfer; a warm cache favours repeated "
+        "dashboard queries. A mart read takes well under 0.1 ms, so its time, and with it the speed-up, "
+        "varies between runs (between about 60× and 80× in repeated runs); this report shows the latest run.",
         "",
         "## Results",
+        "",
+        f"[Table](#table-timing-of-the-{len(results)}-sample-analytical-queries) gives the timing of every query.",
         "",
         f"**Table: Timing of the {len(results)} sample analytical queries.** Each query is tied to a business "
         f"question and an OLAP operation; *Median ms* is the typical time over {RUNS} runs and *Slowest ms* "

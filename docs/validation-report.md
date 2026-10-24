@@ -4,6 +4,8 @@ How DRIW was tested, and the results. Data seed 271, run on PostgreSQL 17.11.
 
 ## Summary
 
+[Table](#table-test-suites-and-their-results) summarizes every test suite and its result.
+
 **Table: Test suites and their results.** Every suite passes; together they cover completeness, correctness, consistency, model integrity, reproducibility, data exchange and security.
 
 | Suite | Checks | Result |
@@ -75,7 +77,9 @@ build on every push (`.github/workflows/ci.yml`). Query timings are in
 
 ## Defects found by testing (and fixed)
 
-Testing earned its keep. Each of these was caught by a test, not by inspection:
+Testing earned its keep. Each of these was caught by a test, not by inspection.
+
+[Table](#table-defects-found-by-testing-and-their-fixes) lists the defects the tests found during development and how each was fixed.
 
 **Table: Defects found by testing, and their fixes.** Each was caught by an automated test or a review, not by chance, which shows the tests do real work.
 

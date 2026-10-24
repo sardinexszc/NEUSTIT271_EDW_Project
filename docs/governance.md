@@ -9,9 +9,11 @@ SQL tools, BI software or scripts.
 Access is granted to **group roles** that describe a job. People (or service accounts)
 are made members of a group; nobody is granted on objects directly.
 
+[Table](#table-database-roles-and-what-each-may-read) defines the four roles and what each may and may not read.
+
 **Table: Database roles and what each may read.** Access follows least privilege: each role sees only what its job needs.
 
-| Role | Stakeholder (proposal §4.1) | Can read | Cannot read |
+| Role | Stakeholder (section 1.2) | Can read | Cannot read |
 |---|---|---|---|
 | `driw_executive` | Executive leadership | `mart.*` aggregates | warehouse detail, staging, raw, quarantine |
 | `driw_analyst` | Data analysts | `dw.*` (all rows), `mart.*`, `secure.*`, DQ scorecards (`dq_rule_summary`, `dq_reconciliation`) | raw, staging, quarantine |
@@ -37,7 +39,9 @@ Its password lives only in the git-ignored `.env` and in a PHP config outside th
 
 ## Row-level security (regional users)
 
-`governance.region_access` maps a role to the region(s) it may see:
+`governance.region_access` maps a role to the region(s) it may see.
+
+[Table](#table-region-mapping-used-by-row-level-security) shows the mapping for the two demonstration users.
 
 **Table: Region mapping used by row-level security.** Each regional role is mapped to the region(s) whose rows it may see; a role with no mapping sees nothing.
 
@@ -90,7 +94,7 @@ second `dbt build` and check that policies and grants are still in place.
 
 `governance.v_access_matrix` lists, for every role and every object, whether the role can
 actually read it (schema `USAGE` and object `SELECT`) and whether row-level security
-applies. It is the access matrix above, generated from the database itself:
+applies. It is the role table ([Table](#table-database-roles-and-what-each-may-read)) generated from the database itself:
 
 ```sql
 select role_name, schema_name, count(*) filter (where can_select) as readable, count(*) as objects
@@ -99,10 +103,12 @@ from governance.v_access_matrix group by 1, 2 order by 1, 2;
 
 ## Privacy
 
-The governing law is the **Data Privacy Act of 2012 (Republic Act 10173)** and its implementing
+The governing law is the **Data Privacy Act of 2012** (Republic Act No. 10173, 2012) and its implementing
 rules. DRIW is designed so that it holds no personal information at all.
 
 **Data classification**
+
+[Table](#table-data-classification-under-the-data-privacy-act) classifies the data DRIW holds and how each class is handled.
 
 **Table: Data classification under the Data Privacy Act.** Personal information is not collected at all; sensitive aggregates are limited by role and region.
 
@@ -142,6 +148,15 @@ processing with the National Privacy Commission where required, appoint a data p
 officer, run a privacy impact assessment, and enable PostgreSQL connection and statement logging
 (`log_connections`, `pgaudit`) for an access audit trail.
 
+## Scope of the security evidence
+
+The governance tests (Chapter 8) show that the access rules work as designed: each role reads
+what it should and is refused what it should not, regional users see only their region, and the
+web login reaches only the marts. That is evidence about the design, not a certification of
+production readiness. DRIW has not had a security audit or a penetration test. Before real
+agency data is loaded, it would also need encrypted connections (TLS), a password and account
+policy, audit logging (`pgaudit`), hardening of the XAMPP server, and an independent review.
+
 ## Supabase
 
 The same migrations run on Supabase. There, signed-in users connect as Supabase's
@@ -150,6 +165,6 @@ or a JWT claim instead of `current_user`; the policies keep the same shape.
 
 ## Standards alignment
 
-This supports the UNDRR Data Strategy and Roadmap 2023–2027 emphasis on data governance:
+This supports the emphasis of the UNDRR Data Strategy and Roadmap 2023–2027 (UNDRR, 2023) on data governance:
 defined roles and responsibilities (stewardship), controlled access to sensitive
 operational data (casualties by locality), and auditable, reproducible data handling.

@@ -9,11 +9,15 @@ The ETL is a set of **custom Python and SQL scripts**: Python for extraction and
 .venv/Scripts/python ingestion/pipeline.py      # migrate → reference → psgc → generate → raw → dbt → export
 ```
 
+[Figure](#figure-etl-workflow) shows the workflow from source files to dashboards.
+
 ![ETL workflow](img/etl_workflow.png)
 
 **Figure: ETL workflow.** The source systems land unchanged in the raw layer, are typed, conformed and quality-checked in staging, and are loaded into the star schema and marts that the dashboards and exports read.
 
 ## 2. Data sources
+
+[Table](#table-data-sources-with-format-volume-and-planted-defects) lists every source with its format, volume and the defects it carries.
 
 **Table: Data sources with format, volume and planted defects.** Defects are planted on purpose and counted, so the transformation can be proven correct (Chapter 5).
 
@@ -26,7 +30,7 @@ The ETL is a set of **custom Python and SQL scripts**: Python for extraction and
 | NGO, UN and LGU relief distributions | nested JSON | 6 (one per year) | 8,438 records | organization aliases, partner item codes and units, missing locations, unknown items |
 | PAGASA bulletins | CSV | 1 | 39 | re-issued (duplicate) bulletins, local vs international names |
 | LGU / MDRRMO response logs | CSV | 1 | 32,749 | non-standard request types, arrival before dispatch, open requests, misspelled towns |
-| PSA PSGC geography | JSON (community API mirror of PSA codes) | 6 | 43,793 units | — (master data) |
+| PSA PSGC geography | JSON (community API mirror of PSA codes; PSGC API, n.d.) | 6 | 43,793 units | — (master data) |
 | Hand-curated reference data | CSV | 3 | events, 13 organizations, 10 relief items | — |
 
 **Mock vs real.** Event names, dates and geography are real; operational figures are synthetic,
@@ -85,6 +89,8 @@ staging never drops a row. Details: [data-quality-framework.md](data-quality-fra
 
 ## 6. Orchestration, scheduling and error handling
 
+[Table](#table-orchestration-scheduling-and-error-handling) summarizes how the pipeline is run, scheduled and protected against bad data.
+
 **Table: Orchestration, scheduling and error handling.** Row-level errors never stop a load, while a failing step or test stops the build before anything is published.
 
 | Concern | Design |
@@ -97,6 +103,8 @@ staging never drops a row. Details: [data-quality-framework.md](data-quality-fra
 | Monitoring | `dq.dq_rule_summary` (scorecard), `dq.dq_reconciliation`, `meta.load_batch` (row counts and times per file). |
 
 ## 7. Tools
+
+[Table](#table-tools-used-by-the-etl-pipeline) lists the tools used at each stage.
 
 **Table: Tools used by the ETL pipeline.** All are open source or free, so the pipeline runs on an agency's own hardware.
 

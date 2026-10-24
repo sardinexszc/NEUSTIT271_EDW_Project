@@ -6,6 +6,8 @@ DRIW implements OLAP relationally (ROLAP) in PostgreSQL rather than with a separ
 engine. The star schema is the cube: facts hold the measures, dimensions hold the hierarchies,
 and SQL's OLAP operators produce the cube's cells.
 
+[Table](#table-olap-operations-and-how-driw-performs-them-in-sql) shows how each OLAP operation is expressed in SQL.
+
 **Table: OLAP operations and how DRIW performs them in SQL.** Each operation is demonstrated by a sample query in Appendix A.
 
 | OLAP operation | How it is done | Example |
@@ -20,7 +22,7 @@ and SQL's OLAP operators produce the cube's cells.
 
 **Pre-aggregation.** Eight materialized views in the `mart` schema hold the aggregates the
 dashboards need. They refresh on every build and are tested to add back up to the facts. Reading a
-mart is about 80× faster than aggregating the facts (see [query-performance.md](query-performance.md)).
+mart is about 60–80× faster than aggregating the facts (see [query-performance.md](query-performance.md)).
 
 The full set of sample analytical queries, each tied to a business question, follows this chapter
 and is in [`sample-queries.sql`](sample-queries.sql).
@@ -35,6 +37,8 @@ part of it means. All figures shown are synthetic (see the notice on every page)
 
 ### Elements common to every page
 
+Some elements appear on every page; [Table](#table-elements-common-to-every-dashboard-page) explains them.
+
 **Table: Elements common to every dashboard page.** They let a user filter, check and export what any chart shows.
 
 | Element | What it means |
@@ -48,6 +52,8 @@ part of it means. All figures shown are synthetic (see the notice on every page)
 
 ### Executive overview
 
+[Figure](#figure-executive-dashboard) shows the Executive dashboard.
+
 ![Executive dashboard: headline figures, damage by year, costliest events and people affected by region](img/dash_executive.png)
 
 **Figure: Executive dashboard.** The six-year picture on one screen: total damage, headline tiles, damage by year, costliest events, people affected by region and deaths per 100,000 people.
@@ -57,7 +63,9 @@ on one screen: how bad it was, when, where, and how hard it hit relative to the 
 Answers BQ1, BQ2, BQ4 and BQ11. Data comes from `mart_event_summary` (one row per event) and
 `mart_impact_cube` (the `GROUP BY CUBE` mart).
 
-**Table: Parts of the Executive dashboard and how to read them.** Each row describes one part of the screen in the figure above; all figures are synthetic.
+[Table](#table-parts-of-the-executive-dashboard-and-how-to-read-them) explains each part of the screen in [Figure](#figure-executive-dashboard).
+
+**Table: Parts of the Executive dashboard and how to read them.** All figures are synthetic.
 
 | Part of the screen | What it shows and how to read it |
 |---|---|
@@ -66,7 +74,7 @@ Answers BQ1, BQ2, BQ4 and BQ11. Data comes from `mart_event_summary` (one row pe
 | Damage cost by year | Stacked columns by damage category. 2020 was the costliest year (₱142.6B, four events) and 2023 the lightest (₱32.2B). Agriculture is the largest category every year (₱83.9B of 2020's total), then infrastructure; housing is the smallest. |
 | Costliest events | The ten events ranked by damage: Kristine 2024 (₱54.1B), Rolly 2020 (₱53.4B) and Ulysses 2020 (₱53.1B) lead. Three of the top five struck in 2020. |
 | People affected by region | Region subtotals read straight from the CUBE mart: Bicol Region (2.64M people, ₱145.4B), then Cagayan Valley (2.00M) and Eastern Visayas (1.50M). |
-| Deaths per 100,000 people | The ten events with the highest death rate relative to the population of the places that reported damage (close-up below). |
+| Deaths per 100,000 people | The ten events with the highest death rate relative to the population of the places that reported damage (close-up in [Figure](#figure-close-up-of-deaths-per-100-000-people)). |
 | All events table | One row per event, now with a *Deaths /100k* column; its CSV carries 38 columns per event, including the rates, displacement, relief by provider and lifeline figures. |
 
 **What it means for decisions.** Damage is concentrated in a few strong typhoons and in a few
@@ -74,6 +82,8 @@ regions, Bicol above all. Agriculture absorbs the largest share of losses, so pr
 on crop protection and post-disaster agricultural recovery gives the most return.
 
 #### Close-up: headline tiles
+
+[Figure](#figure-close-up-of-the-executive-headline-tiles) enlarges the headline tiles.
 
 ![Executive headline tiles: total damage, deaths, people affected, houses destroyed, peak displaced, relief and response requests](img/part_executive_tiles.png)
 
@@ -88,13 +98,16 @@ needed food packs, water and transport home.
 
 #### Close-up: deaths per 100,000 people
 
+[Figure](#figure-close-up-of-deaths-per-100-000-people) enlarges the deaths-per-100,000 chart.
+
 ![Deaths per 100,000 people: top 10 events with the table of deaths and population](img/part_executive_per100k.png)
 
 **Figure: Close-up of deaths per 100,000 people.** Ranking by death rate instead of death count shows which events hit hardest relative to the population in their path (Sendai Framework target A).
 
 Raw death counts favour storms that crossed many densely populated places. This chart divides
 deaths by the population of the cities and municipalities that reported damage, the measure the
-**Sendai Framework for Disaster Risk Reduction** uses for its target A (mortality per 100,000).
+**Sendai Framework for Disaster Risk Reduction** uses for its target A (mortality per 100,000;
+UNDRR, 2015, 2017).
 The table under the chart shows the three inputs: deaths, population of the affected places, and
 the rate.
 
@@ -112,6 +125,8 @@ loaded, the same chart shows official rates without any code change.
 
 ### Operations (one event)
 
+[Figure](#figure-operations-dashboard-for-typhoon-kristine-october-2024) shows the Operations dashboard for Typhoon Kristine.
+
 ![Operations dashboard for Typhoon Kristine: evacuation curve, overcrowded centers and dispatch times](img/dash_operations.png)
 
 **Figure: Operations dashboard for Typhoon Kristine (October 2024).** One event's displacement, overcrowding, lifeline restoration and dispatch times on one page.
@@ -123,15 +138,17 @@ came back, and how fast teams were dispatched. Answers BQ5, BQ6, BQ7 and BQ12. S
 (October 2024); data comes from `mart_event_summary`, `mart_displacement_daily`,
 `mart_evacuation_daily`, `mart_lifeline_restoration` and `mart_response_performance`.
 
+[Table](#table-parts-of-the-operations-dashboard-and-how-to-read-them) explains each part of the screen in [Figure](#figure-operations-dashboard-for-typhoon-kristine-october-2024).
+
 **Table: Parts of the Operations dashboard and how to read them.** The figures are for Typhoon Kristine.
 
 | Part of the screen | What it shows and how to read it |
 |---|---|
 | Headline tiles | Peak displaced **302.3K** (inside plus outside centers) on the busiest day; peak in evacuation centers **130.5K** in **211** centers; **35** center-days over capacity; **2,117** response requests; median **59 minutes** from request to dispatch; **192** lifeline disruptions, restored in a median **58.2 hours**, one still down. |
-| People displaced, inside and outside evacuation centers | Stacked columns per day: evacuation centers (blue) and families staying with relatives or friends (orange). See the close-up below. |
+| People displaced, inside and outside evacuation centers | Stacked columns per day: evacuation centers (blue) and families staying with relatives or friends (orange). See [Figure](#figure-close-up-of-daily-displacement-for-kristine). |
 | People in evacuation centers | Total evacuees across all open centers, per day. It rises from 64,326 on 21 October (pre-emptive evacuation) to the peak of 130,515 on landfall day (22 October), then decays over about two weeks as families go home. |
 | Centers over capacity | Number of centers whose families exceeded capacity, per day: 33 centers on landfall day, 2 the day after, then none. Overcrowding is a one-to-two-day problem. |
-| Lifelines | For each lifeline, the cities and municipalities where it went down, split by how fast service came back. See the close-up below. |
+| Lifelines | For each lifeline, the cities and municipalities where it went down, split by how fast service came back. See [Figure](#figure-close-up-of-lifeline-restoration-for-kristine). |
 | Median time to dispatch | Grouped columns by response type and priority (P1 critical, P2 urgent, P3 routine). Life-saving work goes fastest: search-and-rescue P1 in 0.26 h (about 16 minutes), medical evacuation P1 in 0.33 h. Relief delivery and road clearing wait longest, especially when routine: 12.4 h and 7.9 h at P3. |
 
 **What it means for decisions.** Overflow centers must be ready *before* landfall, because nearly all
@@ -140,6 +157,8 @@ lanes are logistics (relief delivery, road clearing), where pre-positioned stock
 cut waiting most.
 
 #### Close-up: operations tiles
+
+[Figure](#figure-close-up-of-the-operations-headline-tiles-for-kristine) enlarges the headline tiles.
 
 ![Operations headline tiles for Kristine](img/part_operations_tiles.png)
 
@@ -152,6 +171,8 @@ combinations) and how long recovery took (median 58.2 hours, one bridge still im
 last report).
 
 #### Close-up: people displaced inside and outside evacuation centers
+
+[Figure](#figure-close-up-of-daily-displacement-for-kristine) enlarges the displacement chart.
 
 ![Displacement per day for Kristine: people in evacuation centers and people with relatives or friends](img/part_operations_displacement.png)
 
@@ -174,6 +195,8 @@ were outside centers. *Show table* gives the daily numbers and the share outside
 
 #### Close-up: lifelines (critical infrastructure and basic services)
 
+[Figure](#figure-close-up-of-lifeline-restoration-for-kristine) enlarges the lifeline chart.
+
 ![Lifeline restoration for Kristine: places where each lifeline went down, by restoration time, with the table](img/part_operations_lifelines.png)
 
 **Figure: Close-up of lifeline restoration for Kristine.** Each bar is one lifeline, split by how fast service came back; bridges and water take longest.
@@ -183,7 +206,9 @@ NDRRMC situation reports track the "lifelines" a community needs to function: ro
 is the number of cities and municipalities where it went down, split into restored within 72 hours
 (blue), restored later (orange) and still down at the last report (green).
 
-**Table: Lifeline disruption and restoration during Kristine.** Read with the figure above: the median gives typical recovery, and the last column what it means for operations.
+[Table](#table-lifeline-disruption-and-restoration-during-kristine) gives the figures behind each bar of [Figure](#figure-close-up-of-lifeline-restoration-for-kristine).
+
+**Table: Lifeline disruption and restoration during Kristine.** Read with [Figure](#figure-close-up-of-lifeline-restoration-for-kristine): the median gives typical recovery, and the last column what it means for operations.
 
 | Lifeline (Kristine) | Places disrupted | Median to restore | Reading |
 |---|---|---|---|
@@ -200,6 +225,8 @@ most often hit.
 
 ### Logistics (all events)
 
+[Figure](#figure-logistics-dashboard-for-all-events) shows the Logistics dashboard for all events.
+
 ![Logistics dashboard for all events: relief by organization and least-served provinces](img/dash_logistics.png)
 
 **Figure: Logistics dashboard for all events.** Relief by organization and resource category, cost of assistance by provider, and the provinces that received the least relief per affected person.
@@ -209,13 +236,15 @@ delivered what, and whether relief reached provinces in proportion to the impact
 BQ9 (including who paid for the relief). Data comes from `mart_relief_by_org_category`, `mart_province_event_impact` and
 `mart_event_summary`.
 
+[Table](#table-parts-of-the-logistics-dashboard-and-how-to-read-them) explains each part of the screen in [Figure](#figure-logistics-dashboard-for-all-events).
+
 **Table: Parts of the Logistics dashboard and how to read them.** The figures cover all 31 events.
 
 | Part of the screen | What it shows and how to read it |
 |---|---|
 | Headline tiles | **₱3.1B** of relief in **8,306** distributions; **3.3M** family servings (a family served twice counts twice); **₱264.6** per affected person; **1.27** servings per affected family; **53** provinces reached. |
 | Relief value by organization | One bar per organization, stacked by resource category in standard units valued at PHP. The six providers, including local government units (MDRRMO/CDRRMO/PDRRMO), each delivered between ₱483M and ₱535M. Food is 68–71% of every partner's value, and 88% for LGUs, which hand out family food packs first. |
-| Cost of assistance by provider | Relief value by type of provider, as DSWD DROMIC reports it (close-up below). |
+| Cost of assistance by provider | Relief value by type of provider, as DSWD DROMIC reports it (close-up in [Figure](#figure-close-up-of-the-cost-of-assistance-by-provider)). |
 | Least-served provinces | The ten provinces with the lowest relief value per affected person. Tarlac (₱138.8) and Davao Oriental (₱140.4) are lowest, about half the overall average of ₱264.6. |
 | Relief coverage by province | Every province, sorted from least to most relief per person, with servings per affected family. |
 
@@ -223,6 +252,8 @@ BQ9 (including who paid for the relief). Data comes from `mart_relief_by_org_cat
 the bottom of the coverage ranking is where the next allocation should go first.
 
 #### Close-up: cost of assistance by provider
+
+[Figure](#figure-close-up-of-the-cost-of-assistance-by-provider) enlarges the cost-of-assistance card.
 
 ![Cost of assistance by provider: national government, local government units, NGOs and international organizations](img/part_logistics_providers.png)
 
@@ -243,6 +274,8 @@ international partners gave about ₱80M each, and DSWD and LGUs about ₱43M ea
 
 ### Logistics filtered to one event
 
+[Figure](#figure-logistics-dashboard-filtered-to-typhoon-kristine) shows the same page filtered to one event.
+
 ![Logistics dashboard filtered to Typhoon Kristine](img/dash_logistics_event.png)
 
 **Figure: Logistics dashboard filtered to Typhoon Kristine.** Every tile, chart and table re-computes for the selected event, which shows the gaps between provinces within one storm.
@@ -256,6 +289,8 @@ Camarines Norte.
 
 ### About the warehouse
 
+[Figure](#figure-about-page) shows the About page.
+
 ![About page: architecture layers, fact tables, source systems and data-quality proof](img/dash_about.png)
 
 **Figure: About page.** A plain-language explanation of the layers, fact tables, sources and data-quality proof for non-technical readers.
@@ -268,9 +303,13 @@ before anyone asks.
 
 ### The PHP API (back-end)
 
+[Figure](#figure-api-health-check) shows the health check of the API.
+
 ![API health check](img/api_health.png)
 
 **Figure: API health check.** The PHP back-end confirms the database, its version, and that it connects as the read-only role `driw_web`.
+
+[Figure](#figure-api-response-for-the-event-summary-mart) shows one of its responses: the event summary for Kristine as JSON.
 
 ![API response: the event summary for Kristine](img/api_marts.png)
 
@@ -285,6 +324,8 @@ Power BI through a web query.
 
 ### Narrow screens
 
+[Figure](#figure-operations-page-on-a-narrow-screen) shows the Operations page on a phone-sized screen.
+
 ![Operations page on a narrow screen](img/dash_mobile.png)
 
 **Figure: Operations page on a narrow screen.** Tiles and charts reflow into one or two columns, so field staff can use the dashboards on a phone or tablet.
@@ -294,6 +335,9 @@ column, with no sideways scrolling, so field staff can use the dashboards on a t
 during operations.
 
 ## 3. Sample findings (synthetic data)
+
+The findings in this section show the kind of answer each dashboard gives. Because the operational figures
+are synthetic, they demonstrate analytical capability, not facts about real disasters.
 
 - **Kristine (2024)** was the costliest event at about ₱54 billion; total damage across the
   31 events is ₱558.3 billion.

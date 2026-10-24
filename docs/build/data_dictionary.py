@@ -285,6 +285,8 @@ def main() -> None:
         "",
         "## Schemas (layers)",
         "",
+        "[Table](#table-database-schemas-and-the-layer-each-one-holds) lists the schemas, one per layer.",
+        "",
         "**Table: Database schemas and the layer each one holds.** Each schema is one layer of the "
         "architecture, from raw extracts to the marts the dashboards read; *Objects* counts its tables "
         "and views.",
@@ -297,6 +299,8 @@ def main() -> None:
         lines.append(f"| `{s}` | {purpose} | {n} |")
 
     lines += ["", "## Lineage", "",
+              "[Table](#table-lineage-from-each-source-file-to-its-warehouse-table) traces each source to the "
+              "warehouse.", "",
               "**Table: Lineage from each source file to its warehouse table.** Read a row left to right to "
               "follow one source through the raw, staging and warehouse layers; the same path can be followed "
               "backwards from any figure on a dashboard.", "",
@@ -326,7 +330,8 @@ def main() -> None:
         for s, t, kind, _ in tables:
             if s != schema:
                 continue
-            lines += [f"### `{s}.{t}`", "",
+            ref = f"#table-columns-of-{s}-{t}".replace("_", "-")
+            lines += [f"### `{s}.{t}`", "", f"[Table]({ref}) lists its columns.", "",
                       f"**Table: Columns of `{s}.{t}`.** {TABLES.get(t, '')} *{kinds[kind].capitalize()}, "
                       f"{counts[(s, t)]:,} rows.* PK and FK mark the primary and foreign keys; *Null* says "
                       "whether a value may be missing.", "",
@@ -338,6 +343,8 @@ def main() -> None:
 
     lines += ["## Supporting layers", "",
               "Column-level detail for these layers is in the database itself; summarized here.", "",
+              "[Table](#table-supporting-objects-in-the-raw-reference-staging-data-quality-and-governance-layers) "
+              "summarizes them.", "",
               "**Table: Supporting objects in the raw, reference, staging, data-quality and governance "
               "layers.** These feed or protect the star schema; users of the dashboards never read them "
               "directly.", "",
