@@ -42,7 +42,9 @@ IMAGE_FIT_HEIGHT_CM = 18.5   # pieces taller than this are narrowed so the capti
 HEADER_FILL = "E7E6E6"
 CODE_FILL = "F2F2F2"
 # title page: filled in when known, left out when empty
-UNIVERSITY, DEPARTMENT, SUBMITTED_TO = "", "", ""
+UNIVERSITY = "Nueva Ecija University of Science and Technology"
+DEPARTMENT = "NEUST Graduate School"
+SUBMITTED_TO = "Jet C. Aquino"
 
 # (chapter title, [(markdown file, heading-level shift)]); front matter is unnumbered
 FRONT_MATTER = [
