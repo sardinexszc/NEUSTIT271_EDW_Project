@@ -154,6 +154,7 @@ def setup(doc: Document) -> None:
         h.paragraph_format.space_before = Pt(14 if level <= 2 else 10)
         h.paragraph_format.space_after = Pt(6)
         h.paragraph_format.keep_with_next = True
+        h.paragraph_format.page_break_before = level == 1   # every chapter starts a page
 
 
 def footer(doc: Document) -> None:
@@ -193,15 +194,16 @@ def title_page(doc: Document) -> None:
     r = p.add_run("Data notice: event names, dates and PSGC geography are real. All damage, evacuation, relief "
                   "and response figures are synthetic, generated for demonstration.")
     r.font.size, r.font.italic, r.font.color.rgb = Pt(9.5), True, GREY
-    doc.add_paragraph().add_run().add_break(WD_BREAK.PAGE)
+    # new pages start with "page break before" on their heading, never an empty break paragraph:
+    # one that falls at the top of a page would leave that page blank
     for heading, instruction in (("Contents", 'TOC \\o "1-2" \\h \\z \\u'),
                                  ("List of Figures", 'TOC \\h \\z \\c "Figure"'),
                                  ("List of Tables", 'TOC \\h \\z \\c "Table"')):
         p = doc.add_paragraph()
+        p.paragraph_format.page_break_before = True
         r = p.add_run(heading)
         r.font.size, r.font.bold, r.font.color.rgb = Pt(18), True, NAVY
         add_field(doc.add_paragraph(), instruction)
-        doc.add_paragraph().add_run().add_break(WD_BREAK.PAGE)
 
 
 # ----------------------------------------------------------------------------- markdown -> docx
@@ -323,10 +325,16 @@ class Renderer:
         table.autofit = False
         for i, cells in enumerate(rows):
             row = table.add_row()
+            tr_pr = row._tr.get_or_add_trPr()
+            tr_pr.append(OxmlElement("w:cantSplit"))       # a row never breaks across pages
+            if i == 0:
+                tr_pr.append(OxmlElement("w:tblHeader"))   # the header repeats on every page
             for j in range(ncols):
                 cell = row.cells[j]
                 cell.width = widths[j]
                 cell.paragraphs[0].paragraph_format.space_after = Pt(0)
+                # short tables stay on one page, so no row is left alone on the next one
+                cell.paragraphs[0].paragraph_format.keep_with_next = len(rows) <= 8 and i < len(rows) - 1
                 if j < len(cells):
                     self.inline(cell.paragraphs[0], cells[j], size=size, bold=(i == 0))
                 if i == 0:
@@ -334,9 +342,11 @@ class Renderer:
         self.doc.add_paragraph().paragraph_format.space_after = Pt(2)
 
     def code(self, text: str):
-        for line in text.rstrip("\n").split("\n"):
+        lines = text.rstrip("\n").split("\n")
+        for k, line in enumerate(lines):
             p = self.doc.add_paragraph()
             p.paragraph_format.space_after = Pt(0)
+            p.paragraph_format.keep_with_next = len(lines) <= 25 and k < len(lines) - 1  # short blocks stay whole
             p.paragraph_format.left_indent = Cm(0.3)
             shade(p._p, CODE_FILL)
             r = p.add_run(line if line else " ")
@@ -461,13 +471,23 @@ def main() -> None:
         for k, (name, shift) in enumerate(files):
             text = links_to_text((DOCS / name).read_text(encoding="utf-8"))
             renderer.render(text, shift, chapter_title if k == 0 else None, number or None)
-        doc.add_paragraph().add_run().add_break(WD_BREAK.PAGE)
     sample_queries_appendix(renderer)
+    drop_spacers_before_breaks(doc)
     doc.save(DOCX)
     print(f"wrote {DOCX.relative_to(ROOT)}: {renderer.counts['Figure']} figures, {renderer.counts['Table']} tables")
     for item in renderer.uncaptioned:
         print(f"  no caption: {item}")
     finish_with_word()
+
+
+def drop_spacers_before_breaks(doc: Document) -> None:
+    """Remove empty spacer paragraphs right before a chapter heading: when a chapter ends at the
+    foot of a page, the spacer alone would spill onto a page of its own, which is then left blank."""
+    for p in list(doc.paragraphs):
+        nxt = p._p.getnext()
+        if (p.text == "" and not p._p.xpath(".//w:drawing | .//w:fldChar") and nxt is not None
+                and nxt.tag == qn("w:p") and nxt.xpath("./w:pPr/w:pStyle[@w:val='Heading1']")):
+            p._p.getparent().remove(p._p)
 
 
 def finish_with_word() -> None:
