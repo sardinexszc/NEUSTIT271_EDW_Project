@@ -19,12 +19,16 @@ raw.*  ──▶  staging.stg_*  ──────────────▶  
 Staging models never drop rows. Each raw row keeps its lineage (`_batch_id`, `_source_file`,
 `_row_number`) and gets:
 
+**Table: Data-quality columns added to every staging row.** Together they tell the loader which rows may reach the warehouse, and record why the others did not.
+
 | Column | Meaning |
 |---|---|
 | `dq_issues` | Array of rule codes that fired, e.g. `{LOC_NAME_VARIANT, MISSING_VALUE:dead}` |
 | `dq_status` | `valid` · `warning` · `rejected` · `duplicate` |
 
 ## Severity policy
+
+**Table: Severity policy of the data-quality rules.** The severity decides whether a problem is corrected, flagged or quarantined.
 
 | Severity | Action | Reaches the warehouse? | Example |
 |---|---|---|---|
@@ -69,13 +73,16 @@ place + center name + barangay always carries a single code elsewhere; otherwise
 The synthetic generator records every defect it plants in `_defect_manifest.json`
 (loaded to `meta.defect_manifest`). `dq.dq_reconciliation` compares that with detected issues:
 
+**Table: Reconciliation of planted and detected defects.** Every planted defect type is found at exactly the planted count, and no row is rejected without a planted cause.
+
 | Result (seed 271) | |
 |---|---|
 | Defect types planted | 19 |
 | Exactly reconciled | **19 / 19** |
 | Rejected rows not explained by a planted defect | 0 |
 
-Load rates after data quality: NDRRMC 98.2%, DROMIC 99.6%, NGO lines 97.0%, LGU 98.8%.
+Load rates after data quality: NDRRMC 98.2%, DROMIC 99.6%, NGO lines 97.7%, LGU 98.8%; the
+outside-evacuation-center and lifeline reports load in full (100%).
 
 A warn-level test (`warn_unplanted_rejections`) flags reject rules firing with no planted
 cause. During development it caught a real parsing bug: monsoon incidents named

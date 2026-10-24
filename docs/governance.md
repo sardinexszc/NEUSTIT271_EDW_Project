@@ -9,6 +9,8 @@ SQL tools, BI software or scripts.
 Access is granted to **group roles** that describe a job. People (or service accounts)
 are made members of a group; nobody is granted on objects directly.
 
+**Table: Database roles and what each may read.** Access follows least privilege: each role sees only what its job needs.
+
 | Role | Stakeholder (proposal §4.1) | Can read | Cannot read |
 |---|---|---|---|
 | `driw_executive` | Executive leadership | `mart.*` aggregates | warehouse detail, staging, raw, quarantine |
@@ -36,6 +38,8 @@ Its password lives only in the git-ignored `.env` and in a PHP config outside th
 ## Row-level security (regional users)
 
 `governance.region_access` maps a role to the region(s) it may see:
+
+**Table: Region mapping used by row-level security.** Each regional role is mapped to the region(s) whose rows it may see; a role with no mapping sees nothing.
 
 | role_name | region_code | region |
 |---|---|---|
@@ -99,6 +103,8 @@ The governing law is the **Data Privacy Act of 2012 (Republic Act 10173)** and i
 rules. DRIW is designed so that it holds no personal information at all.
 
 **Data classification**
+
+**Table: Data classification under the Data Privacy Act.** Personal information is not collected at all; sensitive aggregates are limited by role and region.
 
 | Class | Examples in DRIW | Handling |
 |---|---|---|

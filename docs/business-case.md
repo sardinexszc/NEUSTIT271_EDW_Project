@@ -7,6 +7,8 @@
 The Philippines is struck by around twenty tropical cyclones a year, plus monsoon floods.
 Responding to one event involves many agencies, each with its own system:
 
+**Table: Agencies in a Philippine disaster response and their systems of record.** Five organizations report the same event in five unconnected systems; this fragmentation is the problem DRIW solves.
+
 | Organization | Role in a disaster | System of record (simulated) |
 |---|---|---|
 | NDRRMC / Office of Civil Defense | Consolidates damage and casualty figures | Situation reports (CSV), cumulative, re-issued per event |
@@ -21,10 +23,12 @@ cross-agency questions without manual reconciliation in spreadsheets.
 **Scope.** Tropical cyclones and southwest-monsoon floods, 2020–2025: 31 events. Event names
 and dates (PAGASA) and all geography (PSA PSGC: 17 regions, 81 provinces, 1,634 cities and
 municipalities, 42,046 barangays) are real. Operational figures are synthetic, generated with
-counted, planted defects (85,841 source rows; 9,995 defects of 19 types), because agency data is
+counted, planted defects (113,191 source rows; 9,995 defects of 19 types), because agency data is
 not public and known defects let the ETL be proven correct.
 
 ## 2. Stakeholders and BI objectives
+
+**Table: Stakeholders, their needs and the BI objectives that serve them.** Each stakeholder group is mapped to the dashboard, mart or schema built for it.
 
 | Stakeholder | Needs | BI objective | Served by |
 |---|---|---|---|
@@ -35,6 +39,8 @@ not public and known defects let the ETL be proven correct.
 | Data stewards / IT | Data quality, reconciliation, operations | Measurable data quality with traceability to source | `dq.*`, quarantine, lineage |
 
 ## 3. Key business questions
+
+**Table: Key business questions (BQ1–BQ12).** Each question is answered by a sample query (Q-number) or a dashboard, so every part of the design traces back to a business need.
 
 | # | Business question | Answered by |
 |---|---|---|
@@ -55,6 +61,8 @@ The Q-numbers refer to [`sample-queries.sql`](sample-queries.sql).
 
 ## 4. Functional requirements
 
+**Table: Functional requirements and how they are met.** All twelve are met; the third column names the component that delivers each one.
+
 | # | Requirement | How it is met | Status |
 |---|---|---|---|
 | FR1 | Ingest data from the five agency systems in their native formats (CSV, Excel, JSON). | `ingestion/load_raw.py` lands every file in `raw.*` unchanged. | Met |
@@ -62,7 +70,7 @@ The Q-numbers refer to [`sample-queries.sql`](sample-queries.sql).
 | FR3 | Conform place names to the official PSGC codes. | `stg_location_resolution`: exact, normalized, fuzzy; 0 false matches on ground truth. | Met |
 | FR4 | Conform event names, organizations and relief units across sources. | Event aliases with time windows; organization and item alias maps; unit conversion. | Met |
 | FR5 | Detect, correct, flag or quarantine data-quality defects, with reasons. | 45 rules in `dq_rules`; `dq_quarantine`; 19/19 planted defect types reconciled. | Met |
-| FR6 | Store integrated data in a dimensional model with conformed dimensions. | Star schema: 4 facts, 9 dimensions (`docs/warehouse-design.md`). | Met |
+| FR6 | Store integrated data in a dimensional model with conformed dimensions. | Star schema: 6 facts, 10 dimensions (Chapter 2). | Met |
 | FR7 | Preserve history when administrative boundaries change. | SCD Type 2 `dim_location` (2022 Maguindanao split). | Met |
 | FR8 | Support OLAP analysis: roll-up, drill-down, slice, dice, pivot. | `GROUP BY CUBE / ROLLUP / GROUPING SETS`, marts, sample queries Q01–Q14. | Met |
 | FR9 | Provide dashboards for executive, operational and logistics users. | Next.js dashboards on XAMPP: Executive, Operations, Logistics. | Met |
@@ -72,12 +80,14 @@ The Q-numbers refer to [`sample-queries.sql`](sample-queries.sql).
 
 ## 5. Non-functional requirements
 
+**Table: Non-functional requirements, targets and evidence.** Each quality attribute has a measurable target and the evidence that it was reached.
+
 | # | Requirement | Target | Evidence | Status |
 |---|---|---|---|---|
 | NFR1 | Data accuracy | Every planted defect type detected at the exact planted count | `dq.dq_reconciliation`: 19/19 match | Met |
-| NFR2 | Query performance | Analytical queries under 1 second | `docs/query-performance.md`: 14/14, slowest about 32 ms | Met |
-| NFR3 | Security | Least privilege; regional row-level restriction; no credentials in code | `docs/governance.md`; 21 per-role access tests + web-role test | Met |
-| NFR4 | Privacy | No personal data in the warehouse; casualty data aggregated | `docs/governance.md` § Privacy | Met |
+| NFR2 | Query performance | Analytical queries under 1 second | Query Performance Test Report (Chapter 8): 14/14, slowest about 34 ms | Met |
+| NFR3 | Security | Least privilege; regional row-level restriction; no credentials in code | Chapter 6; 27 governance tests (access per role) and the web-role tests | Met |
+| NFR4 | Privacy | No personal data in the warehouse; casualty data aggregated | Chapter 6, Privacy section | Met |
 | NFR5 | Reliability | A failed source row never stops the load; rejected rows are kept with reasons | Quarantine design; staging keeps every row | Met |
 | NFR6 | Reproducibility | Same inputs produce the same warehouse | Deterministic generator (seed 271); e2e test rebuilds from nothing | Met |
 | NFR7 | Maintainability | Version-controlled, tested, documented | GitHub repo, dbt tests, CI on every push, generated data dictionary | Met |
@@ -91,5 +101,5 @@ The Q-numbers refer to [`sample-queries.sql`](sample-queries.sql).
 - City population is estimated from barangay counts, because the PSA workbook with census
   population could not be downloaded automatically.
 - Loads are batch (full reload), not real time; near-real-time feeds are future work.
-- Standards followed: UNDRR Global Framework for Disaster-Related Statistics, Sendai Framework
+- Standards followed: Global Disaster-related Statistics Framework (ESCAP, UNDRR), Sendai Framework
   2015–2030, UNDRR Data Strategy and Roadmap 2023–2027, PSA PSGC, Data Privacy Act of 2012 (RA 10173).

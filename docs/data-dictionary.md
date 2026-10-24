@@ -1,10 +1,12 @@
 # Data Dictionary and Metadata
 
-Generated from the live PostgreSQL catalog by `docs/build/data_dictionary.py` on 2026-10-24 05:06. Names, types, keys and nullability come from the database; descriptions are curated. Row counts are from the current build (seed 271).
+Generated from the live PostgreSQL catalog by `docs/build/data_dictionary.py` on 2026-10-24 20:56. Names, types, keys and nullability come from the database; descriptions are curated. Row counts are from the current build (seed 271).
 
 Last successful load: 2026-10-24 03:37.
 
 ## Schemas (layers)
+
+**Table: Database schemas and the layer each one holds.** Each schema is one layer of the architecture, from raw extracts to the marts the dashboards read; *Objects* counts its tables and views.
 
 | Schema | Purpose | Objects |
 |---|---|---:|
@@ -19,10 +21,14 @@ Last successful load: 2026-10-24 03:37.
 
 ## Lineage
 
+**Table: Lineage from each source file to its warehouse table.** Read a row left to right to follow one source through the raw, staging and warehouse layers; the same path can be followed backwards from any figure on a dashboard.
+
 | Source system | Source file(s) | Raw table | Staging model | Warehouse fact |
 |---|---|---|---|---|
 | NDRRMC situation reports | `ndrrmc/sitreps_<event>.csv` | `raw.ndrrmc_damage_report` | `staging.stg_ndrrmc_damage` | `dw.fact_damage_assessment` |
+| NDRRMC lifeline status | `ndrrmc/lifelines/lifelines_<event>.csv` | `raw.ndrrmc_lifeline_status` | `staging.stg_ndrrmc_lifeline` | `dw.fact_lifeline_disruption` |
 | DSWD DROMIC | `dromic/dromic_<event>.xlsx` | `raw.dromic_evacuation` | `staging.stg_dromic_evacuation` | `dw.fact_evacuation_snapshot` |
+| DSWD DROMIC, sheet *Outside ECs* | `dromic/dromic_<event>.xlsx` | `raw.dromic_displaced_outside` | `staging.stg_dromic_displaced_outside` | `dw.fact_displacement_outside` |
 | NGO / agency partners | `ngo/distributions_<year>.json` | `raw.ngo_distribution` | `staging.stg_ngo_distribution_line` | `dw.fact_resource_distribution` |
 | PAGASA | `pagasa/tc_bulletins.csv` | `raw.pagasa_event` | `staging.stg_pagasa_event` | `dw.dim_event` |
 | LGU / MDRRMO | `lgu/response_logs.csv` | `raw.lgu_response_log` | `staging.stg_lgu_response` | `dw.fact_response_action` |
@@ -34,7 +40,7 @@ Every fact row carries `source_key` → `dw.dim_source_system` (the file and bat
 
 ### `dw.dim_damage_category`
 
-Population, Housing, Infrastructure, Agriculture. *table, 4 rows.*
+**Table: Columns of `dw.dim_damage_category`.** Population, Housing, Infrastructure, Agriculture. *Table, 4 rows.* PK and FK mark the primary and foreign keys; *Null* says whether a value may be missing.
 
 | Column | Type | Key | Null | Description |
 |---|---|---|---|---|
@@ -45,7 +51,7 @@ Population, Housing, Infrastructure, Agriculture. *table, 4 rows.*
 
 ### `dw.dim_date`
 
-Calendar, 2019–2026, plus member -1 (“Not yet occurred”) for open milestones. Type 0. *table, 2,923 rows.*
+**Table: Columns of `dw.dim_date`.** Calendar, 2019–2026, plus member -1 (“Not yet occurred”) for open milestones. Type 0. *Table, 2,923 rows.* PK and FK mark the primary and foreign keys; *Null* says whether a value may be missing.
 
 | Column | Type | Key | Null | Description |
 |---|---|---|---|---|
@@ -66,7 +72,7 @@ Calendar, 2019–2026, plus member -1 (“Not yet occurred”) for open mileston
 
 ### `dw.dim_evacuation_center`
 
-Evacuation centers from DROMIC reports. SCD Type 1 (latest attributes). *table, 1,751 rows.*
+**Table: Columns of `dw.dim_evacuation_center`.** Evacuation centers from DROMIC reports. SCD Type 1 (latest attributes). *Table, 1,751 rows.* PK and FK mark the primary and foreign keys; *Null* says whether a value may be missing.
 
 | Column | Type | Key | Null | Description |
 |---|---|---|---|---|
@@ -80,7 +86,7 @@ Evacuation centers from DROMIC reports. SCD Type 1 (latest attributes). *table, 
 
 ### `dw.dim_event`
 
-Hazard events (tropical cyclones and monsoon floods) from PAGASA bulletins. *table, 31 rows.*
+**Table: Columns of `dw.dim_event`.** Hazard events (tropical cyclones and monsoon floods) from PAGASA bulletins. *Table, 31 rows.* PK and FK mark the primary and foreign keys; *Null* says whether a value may be missing.
 
 | Column | Type | Key | Null | Description |
 |---|---|---|---|---|
@@ -102,7 +108,7 @@ Hazard events (tropical cyclones and monsoon floods) from PAGASA bulletins. *tab
 
 ### `dw.dim_lifeline`
 
-Lifelines tracked in NDRRMC sitreps: roads, bridges, power, water and communications. *table, 5 rows.*
+**Table: Columns of `dw.dim_lifeline`.** Lifelines tracked in NDRRMC sitreps: roads, bridges, power, water and communications. *Table, 5 rows.* PK and FK mark the primary and foreign keys; *Null* says whether a value may be missing.
 
 | Column | Type | Key | Null | Description |
 |---|---|---|---|---|
@@ -114,7 +120,7 @@ Lifelines tracked in NDRRMC sitreps: roads, bridges, power, water and communicat
 
 ### `dw.dim_location`
 
-City/municipality, keyed on PSGC code. SCD Type 2: one row per period of unchanged attributes (valid_from–valid_to). *table, 1,671 rows.*
+**Table: Columns of `dw.dim_location`.** City/municipality, keyed on PSGC code. SCD Type 2: one row per period of unchanged attributes (valid_from–valid_to). *Table, 1,671 rows.* PK and FK mark the primary and foreign keys; *Null* says whether a value may be missing.
 
 | Column | Type | Key | Null | Description |
 |---|---|---|---|---|
@@ -133,7 +139,7 @@ City/municipality, keyed on PSGC code. SCD Type 2: one row per period of unchang
 
 ### `dw.dim_organization`
 
-Responding and reporting organizations (government, NGO, international, LGU). *table, 13 rows.*
+**Table: Columns of `dw.dim_organization`.** Responding and reporting organizations (government, NGO, international, LGU). *Table, 13 rows.* PK and FK mark the primary and foreign keys; *Null* says whether a value may be missing.
 
 | Column | Type | Key | Null | Description |
 |---|---|---|---|---|
@@ -145,7 +151,7 @@ Responding and reporting organizations (government, NGO, international, LGU). *t
 
 ### `dw.dim_resource`
 
-Relief items with category, standard unit and unit cost. *table, 10 rows.*
+**Table: Columns of `dw.dim_resource`.** Relief items with category, standard unit and unit cost. *Table, 10 rows.* PK and FK mark the primary and foreign keys; *Null* says whether a value may be missing.
 
 | Column | Type | Key | Null | Description |
 |---|---|---|---|---|
@@ -158,7 +164,7 @@ Relief items with category, standard unit and unit cost. *table, 10 rows.*
 
 ### `dw.dim_response_type`
 
-Response request types and their cluster. *table, 5 rows.*
+**Table: Columns of `dw.dim_response_type`.** Response request types and their cluster. *Table, 5 rows.* PK and FK mark the primary and foreign keys; *Null* says whether a value may be missing.
 
 | Column | Type | Key | Null | Description |
 |---|---|---|---|---|
@@ -169,7 +175,7 @@ Response request types and their cluster. *table, 5 rows.*
 
 ### `dw.dim_source_system`
 
-Lineage: one row per loaded source file (batch). *table, 1,099 rows.*
+**Table: Columns of `dw.dim_source_system`.** Lineage: one row per loaded source file (batch). *Table, 1,099 rows.* PK and FK mark the primary and foreign keys; *Null* says whether a value may be missing.
 
 | Column | Type | Key | Null | Description |
 |---|---|---|---|---|
@@ -181,7 +187,7 @@ Lineage: one row per loaded source file (batch). *table, 1,099 rows.*
 
 ### `dw.fact_damage_assessment`
 
-Grain: event × city/municipality × damage category (latest valid sitrep). Transaction fact. *table, 8,806 rows.*
+**Table: Columns of `dw.fact_damage_assessment`.** Grain: event × city/municipality × damage category (latest valid sitrep). Transaction fact. *Table, 8,806 rows.* PK and FK mark the primary and foreign keys; *Null* says whether a value may be missing.
 
 | Column | Type | Key | Null | Description |
 |---|---|---|---|---|
@@ -202,7 +208,7 @@ Grain: event × city/municipality × damage category (latest valid sitrep). Tran
 
 ### `dw.fact_displacement_outside`
 
-Grain: city/municipality × day × event. Periodic snapshot of families displaced outside evacuation centers (with relatives or friends); semi-additive. *table, 21,896 rows.*
+**Table: Columns of `dw.fact_displacement_outside`.** Grain: city/municipality × day × event. Periodic snapshot of families displaced outside evacuation centers (with relatives or friends); semi-additive. *Table, 21,896 rows.* PK and FK mark the primary and foreign keys; *Null* says whether a value may be missing.
 
 | Column | Type | Key | Null | Description |
 |---|---|---|---|---|
@@ -216,7 +222,7 @@ Grain: city/municipality × day × event. Periodic snapshot of families displace
 
 ### `dw.fact_evacuation_snapshot`
 
-Grain: evacuation center × day × event. Periodic snapshot; occupancy measures are semi-additive (never sum across days). *table, 31,110 rows.*
+**Table: Columns of `dw.fact_evacuation_snapshot`.** Grain: evacuation center × day × event. Periodic snapshot; occupancy measures are semi-additive (never sum across days). *Table, 31,110 rows.* PK and FK mark the primary and foreign keys; *Null* says whether a value may be missing.
 
 | Column | Type | Key | Null | Description |
 |---|---|---|---|---|
@@ -233,7 +239,7 @@ Grain: evacuation center × day × event. Periodic snapshot; occupancy measures 
 
 ### `dw.fact_lifeline_disruption`
 
-Grain: event × city/municipality × lifeline. Accumulating snapshot: opens when the lifeline goes down, closes when service is restored. *table, 2,677 rows.*
+**Table: Columns of `dw.fact_lifeline_disruption`.** Grain: event × city/municipality × lifeline. Accumulating snapshot: opens when the lifeline goes down, closes when service is restored. *Table, 2,677 rows.* PK and FK mark the primary and foreign keys; *Null* says whether a value may be missing.
 
 | Column | Type | Key | Null | Description |
 |---|---|---|---|---|
@@ -252,7 +258,7 @@ Grain: event × city/municipality × lifeline. Accumulating snapshot: opens when
 
 ### `dw.fact_resource_distribution`
 
-Grain: one relief item in one distribution. Transaction fact; quantities in standard units. *table, 14,927 rows.*
+**Table: Columns of `dw.fact_resource_distribution`.** Grain: one relief item in one distribution. Transaction fact; quantities in standard units. *Table, 14,927 rows.* PK and FK mark the primary and foreign keys; *Null* says whether a value may be missing.
 
 | Column | Type | Key | Null | Description |
 |---|---|---|---|---|
@@ -270,7 +276,7 @@ Grain: one relief item in one distribution. Transaction fact; quantities in stan
 
 ### `dw.fact_response_action`
 
-Grain: one response request. Accumulating snapshot with four milestone dates. *table, 32,347 rows.*
+**Table: Columns of `dw.fact_response_action`.** Grain: one response request. Accumulating snapshot with four milestone dates. *Table, 32,347 rows.* PK and FK mark the primary and foreign keys; *Null* says whether a value may be missing.
 
 | Column | Type | Key | Null | Description |
 |---|---|---|---|---|
@@ -298,7 +304,7 @@ Grain: one response request. Accumulating snapshot with four milestone dates. *t
 
 ### `mart.mart_displacement_daily`
 
-Everyone displaced per event per day: inside evacuation centers plus outside. *materialized view, 509 rows.*
+**Table: Columns of `mart.mart_displacement_daily`.** Everyone displaced per event per day: inside evacuation centers plus outside. *Materialized view, 509 rows.* PK and FK mark the primary and foreign keys; *Null* says whether a value may be missing.
 
 | Column | Type | Key | Null | Description |
 |---|---|---|---|---|
@@ -314,7 +320,7 @@ Everyone displaced per event per day: inside evacuation centers plus outside. *m
 
 ### `mart.mart_evacuation_daily`
 
-Evacuation-center load per event per day (summed across centers only). *materialized view, 372 rows.*
+**Table: Columns of `mart.mart_evacuation_daily`.** Evacuation-center load per event per day (summed across centers only). *Materialized view, 372 rows.* PK and FK mark the primary and foreign keys; *Null* says whether a value may be missing.
 
 | Column | Type | Key | Null | Description |
 |---|---|---|---|---|
@@ -330,7 +336,7 @@ Evacuation-center load per event per day (summed across centers only). *material
 
 ### `mart.mart_event_summary`
 
-One row per event: headline damage, evacuation, relief and response figures. *materialized view, 31 rows.*
+**Table: Columns of `mart.mart_event_summary`.** One row per event: headline damage, evacuation, relief and response figures. *Materialized view, 31 rows.* PK and FK mark the primary and foreign keys; *Null* says whether a value may be missing.
 
 | Column | Type | Key | Null | Description |
 |---|---|---|---|---|
@@ -388,7 +394,7 @@ One row per event: headline damage, evacuation, relief and response figures. *ma
 
 ### `mart.mart_impact_cube`
 
-GROUP BY CUBE over year × region × hazard type: every subtotal, labelled by grouping_level. *materialized view, 160 rows.*
+**Table: Columns of `mart.mart_impact_cube`.** GROUP BY CUBE over year × region × hazard type: every subtotal, labelled by grouping_level. *Materialized view, 160 rows.* PK and FK mark the primary and foreign keys; *Null* says whether a value may be missing.
 
 | Column | Type | Key | Null | Description |
 |---|---|---|---|---|
@@ -404,7 +410,7 @@ GROUP BY CUBE over year × region × hazard type: every subtotal, labelled by gr
 
 ### `mart.mart_lifeline_restoration`
 
-Per event × lifeline: places disrupted, restored, still down, and hours to restore. *materialized view, 137 rows.*
+**Table: Columns of `mart.mart_lifeline_restoration`.** Per event × lifeline: places disrupted, restored, still down, and hours to restore. *Materialized view, 137 rows.* PK and FK mark the primary and foreign keys; *Null* says whether a value may be missing.
 
 | Column | Type | Key | Null | Description |
 |---|---|---|---|---|
@@ -424,7 +430,7 @@ Per event × lifeline: places disrupted, restored, still down, and hours to rest
 
 ### `mart.mart_province_event_impact`
 
-Event × province impact next to relief delivered (coverage). *materialized view, 168 rows.*
+**Table: Columns of `mart.mart_province_event_impact`.** Event × province impact next to relief delivered (coverage). *Materialized view, 168 rows.* PK and FK mark the primary and foreign keys; *Null* says whether a value may be missing.
 
 | Column | Type | Key | Null | Description |
 |---|---|---|---|---|
@@ -448,7 +454,7 @@ Event × province impact next to relief delivered (coverage). *materialized view
 
 ### `mart.mart_relief_by_org_category`
 
-Relief delivered per event × organization × resource category. *materialized view, 851 rows.*
+**Table: Columns of `mart.mart_relief_by_org_category`.** Relief delivered per event × organization × resource category. *Materialized view, 851 rows.* PK and FK mark the primary and foreign keys; *Null* says whether a value may be missing.
 
 | Column | Type | Key | Null | Description |
 |---|---|---|---|---|
@@ -464,7 +470,7 @@ Relief delivered per event × organization × resource category. *materialized v
 
 ### `mart.mart_response_performance`
 
-Response timeliness with GROUPING SETS roll-ups; 'All' marks a rolled-up value. *materialized view, 671 rows.*
+**Table: Columns of `mart.mart_response_performance`.** Response timeliness with GROUPING SETS roll-ups; 'All' marks a rolled-up value. *Materialized view, 671 rows.* PK and FK mark the primary and foreign keys; *Null* says whether a value may be missing.
 
 | Column | Type | Key | Null | Description |
 |---|---|---|---|---|
@@ -482,6 +488,8 @@ Response timeliness with GROUPING SETS roll-ups; 'All' marks a rolled-up value. 
 ## Supporting layers
 
 Column-level detail for these layers is in the database itself; summarized here.
+
+**Table: Supporting objects in the raw, reference, staging, data-quality and governance layers.** These feed or protect the star schema; users of the dashboards never read them directly.
 
 | Object | Kind | Rows | Columns |
 |---|---|---:|---|

@@ -6,6 +6,8 @@ DRIW implements OLAP relationally (ROLAP) in PostgreSQL rather than with a separ
 engine. The star schema is the cube: facts hold the measures, dimensions hold the hierarchies,
 and SQL's OLAP operators produce the cube's cells.
 
+**Table: OLAP operations and how DRIW performs them in SQL.** Each operation is demonstrated by a sample query in Appendix A.
+
 | OLAP operation | How it is done | Example |
 |---|---|---|
 | Roll-up | `GROUP BY ROLLUP`, or grouping at a higher hierarchy level | Q02: damage by year with yearly subtotals |
@@ -18,7 +20,7 @@ and SQL's OLAP operators produce the cube's cells.
 
 **Pre-aggregation.** Eight materialized views in the `mart` schema hold the aggregates the
 dashboards need. They refresh on every build and are tested to add back up to the facts. Reading a
-mart is about 78× faster than aggregating the facts (see [query-performance.md](query-performance.md)).
+mart is about 80× faster than aggregating the facts (see [query-performance.md](query-performance.md)).
 
 The full set of sample analytical queries, each tied to a business question, follows this chapter
 and is in [`sample-queries.sql`](sample-queries.sql).
@@ -33,6 +35,8 @@ part of it means. All figures shown are synthetic (see the notice on every page)
 
 ### Elements common to every page
 
+**Table: Elements common to every dashboard page.** They let a user filter, check and export what any chart shows.
+
 | Element | What it means |
 |---|---|
 | Navigation bar | Executive, Operations and Logistics (one per audience), Data exchange (templates, checked uploads and Excel export for LGUs and agencies, see Chapter 10) and About. |
@@ -46,10 +50,14 @@ part of it means. All figures shown are synthetic (see the notice on every page)
 
 ![Executive dashboard: headline figures, damage by year, costliest events and people affected by region](img/dash_executive.png)
 
+**Figure: Executive dashboard.** The six-year picture on one screen: total damage, headline tiles, damage by year, costliest events, people affected by region and deaths per 100,000 people.
+
 **Audience and purpose.** Leadership (NDRRMC council, regional directors) needs the six-year picture
 on one screen: how bad it was, when, where, and how hard it hit relative to the population.
 Answers BQ1, BQ2, BQ4 and BQ11. Data comes from `mart_event_summary` (one row per event) and
 `mart_impact_cube` (the `GROUP BY CUBE` mart).
+
+**Table: Parts of the Executive dashboard and how to read them.** Each row describes one part of the screen in the figure above; all figures are synthetic.
 
 | Part of the screen | What it shows and how to read it |
 |---|---|
@@ -69,6 +77,8 @@ on crop protection and post-disaster agricultural recovery gives the most return
 
 ![Executive headline tiles: total damage, deaths, people affected, houses destroyed, peak displaced, relief and response requests](img/part_executive_tiles.png)
 
+**Figure: Close-up of the Executive headline tiles.** The peak-displaced tile counts people inside and outside evacuation centers, more than twice the number in centers alone.
+
 The tile row is the first thing leadership reads. The hero figure (₱558.3B) is the six-year cost;
 the tiles beside it count people, not pesos. The *Peak displaced* tile is the one to read
 carefully: **318.3K** people were displaced on Typhoon Tino's worst day in November 2025, but only
@@ -79,6 +89,8 @@ needed food packs, water and transport home.
 #### Close-up: deaths per 100,000 people
 
 ![Deaths per 100,000 people: top 10 events with the table of deaths and population](img/part_executive_per100k.png)
+
+**Figure: Close-up of deaths per 100,000 people.** Ranking by death rate instead of death count shows which events hit hardest relative to the population in their path (Sendai Framework target A).
 
 Raw death counts favour storms that crossed many densely populated places. This chart divides
 deaths by the population of the cities and municipalities that reported damage, the measure the
@@ -102,12 +114,16 @@ loaded, the same chart shows official rates without any code change.
 
 ![Operations dashboard for Typhoon Kristine: evacuation curve, overcrowded centers and dispatch times](img/dash_operations.png)
 
+**Figure: Operations dashboard for Typhoon Kristine (October 2024).** One event's displacement, overcrowding, lifeline restoration and dispatch times on one page.
+
 **Audience and purpose.** Regional operations managers and incident commanders. For one event,
 it shows how many people were displaced (inside and outside evacuation centers), where centers were
 overcrowded, which roads, bridges, power, water and communication lines went down and how fast they
 came back, and how fast teams were dispatched. Answers BQ5, BQ6, BQ7 and BQ12. Shown here for Kristine
 (October 2024); data comes from `mart_event_summary`, `mart_displacement_daily`,
 `mart_evacuation_daily`, `mart_lifeline_restoration` and `mart_response_performance`.
+
+**Table: Parts of the Operations dashboard and how to read them.** The figures are for Typhoon Kristine.
 
 | Part of the screen | What it shows and how to read it |
 |---|---|
@@ -127,6 +143,8 @@ cut waiting most.
 
 ![Operations headline tiles for Kristine](img/part_operations_tiles.png)
 
+**Figure: Close-up of the Operations headline tiles for Kristine.** Six numbers summarize the size of the displacement, the overcrowding, the response and the lifeline disruption.
+
 Six numbers summarise the operation. The first two together show the size of the displacement:
 302.3K people at the peak, of whom 130.5K were in centers. The last tile, *Lifelines disrupted*,
 tells the incident commander how much of the area lost basic services (192 city-and-lifeline
@@ -136,6 +154,8 @@ last report).
 #### Close-up: people displaced inside and outside evacuation centers
 
 ![Displacement per day for Kristine: people in evacuation centers and people with relatives or friends](img/part_operations_displacement.png)
+
+**Figure: Close-up of daily displacement for Kristine.** Blue is people in evacuation centers, orange people with relatives or friends; the orange part is the majority and lasts longer.
 
 DSWD's DROMIC reports count displaced families in two places: inside evacuation centers, and
 outside them, staying with relatives or friends. The chart stacks both for every day of Kristine:
@@ -156,10 +176,14 @@ were outside centers. *Show table* gives the daily numbers and the share outside
 
 ![Lifeline restoration for Kristine: places where each lifeline went down, by restoration time, with the table](img/part_operations_lifelines.png)
 
+**Figure: Close-up of lifeline restoration for Kristine.** Each bar is one lifeline, split by how fast service came back; bridges and water take longest.
+
 NDRRMC situation reports track the "lifelines" a community needs to function: roads and bridges
 (transport) and power, water and communications (utilities). Each bar is one lifeline; its length
 is the number of cities and municipalities where it went down, split into restored within 72 hours
 (blue), restored later (orange) and still down at the last report (green).
+
+**Table: Lifeline disruption and restoration during Kristine.** Read with the figure above: the median gives typical recovery, and the last column what it means for operations.
 
 | Lifeline (Kristine) | Places disrupted | Median to restore | Reading |
 |---|---|---|---|
@@ -178,10 +202,14 @@ most often hit.
 
 ![Logistics dashboard for all events: relief by organization and least-served provinces](img/dash_logistics.png)
 
+**Figure: Logistics dashboard for all events.** Relief by organization and resource category, cost of assistance by provider, and the provinces that received the least relief per affected person.
+
 **Audience and purpose.** Relief and logistics officers of DSWD and partner NGOs. It shows who
 delivered what, and whether relief reached provinces in proportion to the impact. Answers BQ8 and
 BQ9 (including who paid for the relief). Data comes from `mart_relief_by_org_category`, `mart_province_event_impact` and
 `mart_event_summary`.
+
+**Table: Parts of the Logistics dashboard and how to read them.** The figures cover all 31 events.
 
 | Part of the screen | What it shows and how to read it |
 |---|---|
@@ -197,6 +225,8 @@ the bottom of the coverage ranking is where the next allocation should go first.
 #### Close-up: cost of assistance by provider
 
 ![Cost of assistance by provider: national government, local government units, NGOs and international organizations](img/part_logistics_providers.png)
+
+**Figure: Close-up of the cost of assistance by provider.** Relief value and families reached by national government, LGUs, NGOs and international organizations, grouped as DROMIC reports them.
 
 DROMIC reports always state who paid for the assistance: DSWD (national government), the local
 government units, NGOs, and other partners. This card groups every organization by that type and
@@ -215,6 +245,8 @@ international partners gave about ₱80M each, and DSWD and LGUs about ₱43M ea
 
 ![Logistics dashboard filtered to Typhoon Kristine](img/dash_logistics_event.png)
 
+**Figure: Logistics dashboard filtered to Typhoon Kristine.** Every tile, chart and table re-computes for the selected event, which shows the gaps between provinces within one storm.
+
 The same page sliced to Kristine through the event selector (`/logistics/?event=TC2024-KRISTINE`).
 Every tile, chart and table re-computes for that event: ₱246.3M in 514 distributions across 7
 provinces, ₱337 per affected person. Within one storm the gap is sharper: **Camarines Norte**
@@ -226,6 +258,8 @@ Camarines Norte.
 
 ![About page: architecture layers, fact tables, source systems and data-quality proof](img/dash_about.png)
 
+**Figure: About page.** A plain-language explanation of the layers, fact tables, sources and data-quality proof for non-technical readers.
+
 A plain-language explanation of the system for any visitor, especially non-technical stakeholders:
 the four layers (`raw`, `staging`, `dw`, `mart`), the six fact tables and their grain, the five
 source systems with the defects each one carries, and the data-quality result (all 19 planted defect
@@ -236,7 +270,11 @@ before anyone asks.
 
 ![API health check](img/api_health.png)
 
+**Figure: API health check.** The PHP back-end confirms the database, its version, and that it connects as the read-only role `driw_web`.
+
 ![API response: the event summary for Kristine](img/api_marts.png)
+
+**Figure: API response for the event summary mart.** The same JSON the dashboards read, here for Kristine, available to any other system.
 
 The dashboards are static pages; their data comes from two PHP endpoints. `health.php` (first image)
 confirms the connection: database `driw`, PostgreSQL 17.11, connected as `driw_web`. That role is a
@@ -248,6 +286,8 @@ Power BI through a web query.
 ### Narrow screens
 
 ![Operations page on a narrow screen](img/dash_mobile.png)
+
+**Figure: Operations page on a narrow screen.** Tiles and charts reflow into one or two columns, so field staff can use the dashboards on a phone or tablet.
 
 The same Operations page on a narrow screen. Tiles fall into two columns and charts stack in one
 column, with no sideways scrolling, so field staff can use the dashboards on a tablet or phone

@@ -19,6 +19,8 @@ read-only login, and row-level security limits regional users to their own regio
 
 ## What is real and what is simulated
 
+**Table: What is real and what is synthetic in DRIW.** Everything that shows the warehouse works is real; only the operational figures, and the source files that carry them, are generated.
+
 | Real | Simulated (synthetic) |
 |---|---|
 | The architecture, ETL pipeline, data-quality rules, star schema, marts, security and dashboards: built and run exactly as they would be on agency data | Every damage, casualty, evacuation, relief and response **figure** in this report and on the dashboards |
@@ -34,18 +36,22 @@ files only (see the Privacy section of Chapter 6).
 
 ## Results
 
+**Table: Headline results of the project.** Each result is measured by an automated test or report described in Chapter 8.
+
 | Measure | Result |
 |---|---|
-| Source rows integrated | 85,841 from 5 systems in 4 formats |
+| Source rows integrated | 113,191 from 5 systems in 4 formats |
 | Planted defects detected | 19 of 19 types, each at the exact count (9,995 defects) |
 | Location names matched to PSGC | 63,347 rows, 0 false matches |
-| Automated checks | 99 dbt checks and 62 end-to-end, governance and API tests, all passing |
-| Query performance | 14 of 14 sample queries within 1 s (slowest about 32 ms); marts about 78× faster than the facts |
+| Automated checks | 117 dbt checks and 91 end-to-end, governance, API and data-exchange tests, all passing |
+| Query performance | 14 of 14 sample queries within 1 s (slowest about 34 ms); marts about 80× faster than the facts |
 | Access control | 4 roles; row-level security verified per role |
 
 ## How to read this report
 
 The Requirements Coverage page that follows maps each item of the project brief to the chapter
-that meets it. Chapters 1–2 cover the business case and the design, 3–5 the metadata, ETL and
-data quality, 6 governance and privacy, 7 the analytics, 8 testing, and 9 how to run the live
-demo. Appendix A lists the sample queries.
+that meets it, and the List of Abbreviations explains the agency and technical acronyms. Chapters
+1–2 cover the business case and the design, 3–5 the metadata, ETL and data quality, 6 governance
+and privacy, 7 the analytics, 8 testing, 9 how to run the live demo, 10 the warehouse's place in
+the enterprise and its data exchange with LGUs, and 11 the conclusions and recommendations. The
+References list the standards and sources cited, and Appendix A lists the sample queries.

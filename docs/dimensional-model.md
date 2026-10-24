@@ -7,6 +7,8 @@ event and place.
 
 ## Fact tables
 
+**Table: Fact tables with grain and row counts.** The row counts are the volume each star holds after data-quality filtering (seed 271).
+
 | Fact | Type | Grain (one row per…) | Rows* | Measures |
 |---|---|---|---|---|
 | `fact_damage_assessment` | Transaction | event × city/municipality × damage category | 8,806 | dead, injured, missing, affected families/persons, houses partially/totally damaged, cost (PHP) |
@@ -49,6 +51,8 @@ event and place.
 
 ## Dimensions
 
+**Table: Dimension tables with natural keys and row counts.** Location is the only Type 2 dimension; the date dimension includes the member −1 for milestones not yet reached.
+
 | Dimension | Natural key | Rows | Notes |
 |---|---|---|---|
 | `dim_date` | calendar date | 2,923 | 2019–2026 + member −1. Month, quarter, year, weekend, typhoon-season flag. Role-plays four times in `fact_response_action`. |
@@ -70,6 +74,8 @@ Maguindanao into *Maguindanao del Norte* and *Maguindanao del Sur*. The change l
 city/municipality with its new province and effective date (2022-09-18). `dim_location`
 turns it into versions:
 
+**Table: SCD Type 2 versions of Parang, Maguindanao.** The same PSGC code has two versions; a fact joins to the one valid on its own date, so history is reported under the provinces of the time.
+
 | psgc_code | city_muni_name | province_name | valid_from | valid_to | is_current |
 |---|---|---|---|---|---|
 | 1903811000 | Parang | Maguindanao | 1900-01-01 | 2022-09-17 | false |
@@ -80,6 +86,8 @@ reports under the new provinces, while any earlier event would still roll up to
 "Maguindanao". New PSGC releases are handled by appending rows to the change log.
 
 ## Bus matrix
+
+**Table: Bus matrix of facts and conformed dimensions.** A tick means the fact uses the dimension. Dimensions ticked for several facts (date, location, event, organization, source) are the conformed dimensions that integrate the stars.
 
 | Fact \ Dimension | Date | Location | Event | Organization | Resource | Evac Center | Damage Cat | Response Type | Lifeline | Source |
 |---|---|---|---|---|---|---|---|---|---|---|
@@ -105,6 +113,8 @@ check that:
 
 Materialized views refreshed by every `dbt build`, each shaped for a dashboard. A dbt test
 checks that every mart adds back up to the facts it summarizes.
+
+**Table: Data marts and the dashboards they feed.** Each materialized view pre-aggregates one view of the facts, so the dashboards never scan the facts directly.
 
 | Mart | Grain | Used by |
 |---|---|---|

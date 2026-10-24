@@ -2,6 +2,8 @@
 
 ## 1. Technology stack
 
+**Table: Technology stack.** Every component is open source or free and runs on one laptop or an agency server.
+
 | Layer | Technology |
 |---|---|
 | Data warehouse | PostgreSQL 17.11 (local) |
@@ -12,6 +14,8 @@
 | Version control and CI | GitHub (`sardinexszc/NEUSTIT271_EDW_Project`), GitHub Actions |
 
 ## 2. Repository layout
+
+**Table: Repository layout.** Each folder holds one part of the system; the documentation and its generators live with the code.
 
 | Folder | Contents |
 |---|---|

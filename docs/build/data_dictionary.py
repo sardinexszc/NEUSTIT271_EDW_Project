@@ -285,6 +285,10 @@ def main() -> None:
         "",
         "## Schemas (layers)",
         "",
+        "**Table: Database schemas and the layer each one holds.** Each schema is one layer of the "
+        "architecture, from raw extracts to the marts the dashboards read; *Objects* counts its tables "
+        "and views.",
+        "",
         "| Schema | Purpose | Objects |",
         "|---|---|---:|",
     ]
@@ -293,12 +297,19 @@ def main() -> None:
         lines.append(f"| `{s}` | {purpose} | {n} |")
 
     lines += ["", "## Lineage", "",
+              "**Table: Lineage from each source file to its warehouse table.** Read a row left to right to "
+              "follow one source through the raw, staging and warehouse layers; the same path can be followed "
+              "backwards from any figure on a dashboard.", "",
               "| Source system | Source file(s) | Raw table | Staging model | Warehouse fact |",
               "|---|---|---|---|---|",
               "| NDRRMC situation reports | `ndrrmc/sitreps_<event>.csv` | `raw.ndrrmc_damage_report` | "
               "`staging.stg_ndrrmc_damage` | `dw.fact_damage_assessment` |",
+              "| NDRRMC lifeline status | `ndrrmc/lifelines/lifelines_<event>.csv` | `raw.ndrrmc_lifeline_status` | "
+              "`staging.stg_ndrrmc_lifeline` | `dw.fact_lifeline_disruption` |",
               "| DSWD DROMIC | `dromic/dromic_<event>.xlsx` | `raw.dromic_evacuation` | `staging.stg_dromic_evacuation` | "
               "`dw.fact_evacuation_snapshot` |",
+              "| DSWD DROMIC, sheet *Outside ECs* | `dromic/dromic_<event>.xlsx` | `raw.dromic_displaced_outside` | "
+              "`staging.stg_dromic_displaced_outside` | `dw.fact_displacement_outside` |",
               "| NGO / agency partners | `ngo/distributions_<year>.json` | `raw.ngo_distribution` | "
               "`staging.stg_ngo_distribution_line` | `dw.fact_resource_distribution` |",
               "| PAGASA | `pagasa/tc_bulletins.csv` | `raw.pagasa_event` | `staging.stg_pagasa_event` | `dw.dim_event` |",
@@ -315,7 +326,10 @@ def main() -> None:
         for s, t, kind, _ in tables:
             if s != schema:
                 continue
-            lines += [f"### `{s}.{t}`", "", f"{TABLES.get(t, '')} *{kinds[kind]}, {counts[(s, t)]:,} rows.*", "",
+            lines += [f"### `{s}.{t}`", "",
+                      f"**Table: Columns of `{s}.{t}`.** {TABLES.get(t, '')} *{kinds[kind].capitalize()}, "
+                      f"{counts[(s, t)]:,} rows.* PK and FK mark the primary and foreign keys; *Null* says "
+                      "whether a value may be missing.", "",
                       "| Column | Type | Key | Null | Description |", "|---|---|---|---|---|"]
             for col, typ, notnull in cols_by_table[(s, t)]:
                 lines.append(f"| `{col}` | {typ} | {key_marks.get((s, t, col), '')} | "
@@ -324,6 +338,9 @@ def main() -> None:
 
     lines += ["## Supporting layers", "",
               "Column-level detail for these layers is in the database itself; summarized here.", "",
+              "**Table: Supporting objects in the raw, reference, staging, data-quality and governance "
+              "layers.** These feed or protect the star schema; users of the dashboards never read them "
+              "directly.", "",
               "| Object | Kind | Rows | Columns |", "|---|---|---:|---|"]
     for s, t, kind, _ in tables:
         if s in ("dw", "mart"):

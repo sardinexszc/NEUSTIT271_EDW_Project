@@ -2,6 +2,8 @@
 
 Each requirement of the IT271 semester project brief, and where this submission meets it.
 
+**Table: Requirements traceability matrix.** Every requirement of the IT271 project brief is listed with the chapter or section that meets it, so coverage can be checked item by item.
+
 | Brief section | Requirement | Where it is met |
 |---|---|---|
 | 1. Overview | Requirements gathering and BI objectives | Chapter 1 (Business Case), §2–§5 |
@@ -25,9 +27,9 @@ Each requirement of the IT271 semester project brief, and where this submission 
 | 2B | ETL pipelines (tools or custom Python/SQL) | Python + dbt, `ingestion/pipeline.py` (Chapter 4) |
 | 2B | OLAP cube / analytical queries | `mart_impact_cube` (CUBE), GROUPING SETS, 14 sample queries (Chapter 7, Appendix A) |
 | 2B | Reports/dashboards (Power BI, Tableau or similar) | Executive, Operations, Logistics dashboards on XAMPP, with a screenshot and discussion of every page (Chapter 7 §2) |
-| 2C | Validation of ETL: completeness, correctness, accuracy | Chapter 8 (99 dbt checks, 28 end-to-end, 19/19 reconciliation, 0 false matches) |
+| 2C | Validation of ETL: completeness, correctness, accuracy | Chapter 8 (117 dbt checks, 91 automated tests, 19/19 reconciliation, 0 false matches) |
 | 2C | Test reports for data consistency and query performance | Chapter 8 (consistency); Query Performance Test Report |
 | 2D | Live demo | Chapter 9 §4 (demo script) |
 | 2D | Showcase of sample queries, OLAP analysis, dashboards | Appendix A, Chapter 7 |
-| 2D | Defense of design choices | Chapter 2 (star vs snowflake, ROLAP), dimensional-model design decisions, Chapter 4 (full reload, quarantine) |
+| 2D | Defense of design choices | Chapter 2 (star vs snowflake, ROLAP), dimensional-model design decisions, Chapter 4 (full reload, quarantine); Chapter 11 (conclusions and recommendations) |
 | 2D | Enterprise positioning | Why an EDW needs no CMS; Excel data exchange with LGUs and agencies: templates, layout profiles, checked uploads, Excel export (Chapter 10) |

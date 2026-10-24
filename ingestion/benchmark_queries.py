@@ -49,7 +49,8 @@ def main() -> None:
         version = conn.execute("show server_version").fetchone()[0]
         fact_rows = {t: conn.execute(f"select count(*) from dw.{t}").fetchone()[0] for t in
                      ["fact_damage_assessment", "fact_evacuation_snapshot",
-                      "fact_resource_distribution", "fact_response_action"]}
+                      "fact_resource_distribution", "fact_response_action",
+                      "fact_displacement_outside", "fact_lifeline_disruption"]}
         for q in queries:
             rows = len(conn.execute(q["sql"]).fetchall())  # warm-up and row count
             times, scans = [], set()
@@ -79,6 +80,10 @@ def main() -> None:
         "- Data volume: " + ", ".join(f"{t} {n:,} rows" for t, n in fact_rows.items()) + ".",
         "",
         "## Results",
+        "",
+        f"**Table: Timing of the {len(results)} sample analytical queries.** Each query is tied to a business "
+        f"question and an OLAP operation; *Median ms* is the typical time over {RUNS} runs and *Slowest ms* "
+        f"the worst run, compared with the {BUDGET_MS} ms budget.",
         "",
         "| Query | Business question | OLAP operation | Rows | Median ms | Slowest ms | Within budget |",
         "|---|---|---|---:|---:|---:|---|",

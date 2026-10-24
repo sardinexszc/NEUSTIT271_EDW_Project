@@ -11,7 +11,11 @@ The ETL is a set of **custom Python and SQL scripts**: Python for extraction and
 
 ![ETL workflow](img/etl_workflow.png)
 
+**Figure: ETL workflow.** The source systems land unchanged in the raw layer, are typed, conformed and quality-checked in staging, and are loaded into the star schema and marts that the dashboards and exports read.
+
 ## 2. Data sources
+
+**Table: Data sources with format, volume and planted defects.** Defects are planted on purpose and counted, so the transformation can be proven correct (Chapter 5).
 
 | Source system | Format | Files | Rows landed | Typical defects (planted and counted) |
 |---|---|---:|---:|---|
@@ -81,16 +85,20 @@ staging never drops a row. Details: [data-quality-framework.md](data-quality-fra
 
 ## 6. Orchestration, scheduling and error handling
 
+**Table: Orchestration, scheduling and error handling.** Row-level errors never stop a load, while a failing step or test stops the build before anything is published.
+
 | Concern | Design |
 |---|---|
 | Orchestration | `ingestion/pipeline.py` runs the steps in order; any step can be run alone (`pipeline.py dbt export`). |
 | Scheduling | Batch, on demand or by a scheduler (Windows Task Scheduler / cron) running `pipeline.py`; GitHub Actions runs the full pipeline on every push. |
 | Idempotency | Full reload plus dbt's rebuild make every run produce the same warehouse from the same inputs (tested). |
 | Row-level errors | Never stop the load: bad rows go to `dq.dq_quarantine` with their reasons and source file and row. |
-| Step failures | `pipeline.py` stops at the first failing step; `dbt build` fails if any of its 99 tests fail, so a bad build is never published. |
+| Step failures | `pipeline.py` stops at the first failing step; `dbt build` fails if any of its 76 data tests fail, so a bad build is never published. |
 | Monitoring | `dq.dq_rule_summary` (scorecard), `dq.dq_reconciliation`, `meta.load_batch` (row counts and times per file). |
 
 ## 7. Tools
+
+**Table: Tools used by the ETL pipeline.** All are open source or free, so the pipeline runs on an agency's own hardware.
 
 | Purpose | Tool |
 |---|---|

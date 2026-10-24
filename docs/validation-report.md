@@ -4,14 +4,16 @@ How DRIW was tested, and the results. Data seed 271, run on PostgreSQL 17.11.
 
 ## Summary
 
+**Table: Test suites and their results.** Every suite passes; together they cover completeness, correctness, consistency, model integrity, reproducibility, data exchange and security.
+
 | Suite | Checks | Result |
 |---|---|---|
-| dbt build (models + data tests) | 99 | **99 pass** |
-| End-to-end tests (`tests/test_end_to_end.py`) | 28 | **28 pass** |
-| Governance tests (`tests/test_governance.py`) | 21 | **21 pass** |
-| PHP API tests (`tests/test_php_api.py`) | 13 | **13 pass** (skipped where PHP is not installed, e.g. CI) |
+| dbt build (39 models, 2 seeds, 76 data tests) | 117 | **117 pass** |
+| End-to-end tests (`tests/test_end_to_end.py`) | 36 | **36 pass** |
+| Governance tests (`tests/test_governance.py`) | 27 | **27 pass** |
+| PHP API tests (`tests/test_php_api.py`) | 15 | **15 pass** (skipped where PHP is not installed, e.g. CI) |
 | Data exchange tests (`tests/test_intake.py`) | 13 | **13 pass** |
-| Query performance (`ingestion/benchmark_queries.py`) | 14 queries | **14 within the 1 s budget**, slowest about 32 ms |
+| Query performance (`ingestion/benchmark_queries.py`) | 14 queries | **14 within the 1 s budget**, slowest about 34 ms |
 | Dashboards (`npm run lint`, `npm run build`) | lint + type check + static build | **pass** |
 
 Run everything with `.venv/Scripts/python -m pytest tests`. It builds a brand-new database
@@ -24,7 +26,7 @@ build on every push (`.github/workflows/ci.yml`). Query timings are in
 ## What is validated
 
 ### 1. Completeness: nothing is lost between layers
-- Every raw row reaches staging (5 sources; NGO checked at item-line level).
+- Every raw row reaches staging (7 raw tables from 5 sources; NGO checked at item-line level).
 - Every staged row has a status; every rejected row is in quarantine.
 - Every valid/warning row reaches its fact table (dbt `assert_facts_reconcile_to_staging`).
 - Every layer, fact and mart is non-empty.
@@ -42,7 +44,7 @@ build on every push (`.github/workflows/ci.yml`). Query timings are in
   `web/src/data/` is identical to a fresh build (fails if someone forgets to re-export).
 
 ### 4. Model integrity
-- Primary and foreign keys on the star schema (9 PKs, 26 FKs).
+- Primary and foreign keys on the star schema (10 PKs, 38 FKs).
 - One row per declared grain in each fact.
 - SCD Type 2: no overlapping or missing validity periods, exactly one current version;
   Typhoon Paeng (Oct 2022) rolls up to Maguindanao del Norte/del Sur.
@@ -50,7 +52,7 @@ build on every push (`.github/workflows/ci.yml`). Query timings are in
 ### 5. Reproducibility
 - The generator is deterministic: two runs with the same seed produce identical content.
 - A fresh database built from scratch matches the working database row for row
-  (83,442 fact rows, 1,548 Bicol damage rows in both).
+  (111,763 fact rows, 1,548 Bicol damage rows in both).
 - A second dbt build gives identical fact counts and keeps grants and row-level security.
 
 ### 6. Data exchange (see Chapter 10)
@@ -65,7 +67,7 @@ build on every push (`.github/workflows/ci.yml`). Query timings are in
 ### 7. Security (see [governance.md](governance.md))
 - Executive reads marts only; denied on warehouse detail, staging, raw, quarantine.
 - Analyst sees every fact row, marts and DQ scorecards; denied raw and quarantine.
-- Regional officers (Bicol, Cagayan Valley) see exactly their region's rows in all four
+- Regional officers (Bicol, Cagayan Valley) see exactly their region's rows in all six
   facts and in the secure views, and zero rows from other regions.
 - An unmapped regional user sees zero rows (default deny).
 - Regional users cannot read the mapping, grant themselves roles, or edit their mapping.
@@ -74,6 +76,8 @@ build on every push (`.github/workflows/ci.yml`). Query timings are in
 ## Defects found by testing (and fixed)
 
 Testing earned its keep. Each of these was caught by a test, not by inspection:
+
+**Table: Defects found by testing, and their fixes.** Each was caught by an automated test or a review, not by chance, which shows the tests do real work.
 
 | Found by | Problem | Fix |
 |---|---|---|
