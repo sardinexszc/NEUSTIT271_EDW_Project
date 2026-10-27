@@ -17,6 +17,8 @@ const MARTS = [
     'mart_evacuation_daily' => true,
     'mart_response_performance' => true,
     'mart_relief_by_org_category' => true,
+    'mart_displacement_daily' => true,
+    'mart_lifeline_restoration' => true,
 ];
 
 $name = $_GET['name'] ?? '';

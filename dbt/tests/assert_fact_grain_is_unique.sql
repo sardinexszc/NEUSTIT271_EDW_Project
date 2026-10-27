@@ -13,3 +13,13 @@ select 'fact_resource_distribution', count(*)
 from (select distribution_id, line_no from {{ ref('fact_resource_distribution') }}
       group by 1, 2 having count(*) > 1) d
 having count(*) > 0
+union all
+select 'fact_displacement_outside', count(*)
+from (select location_key, snapshot_date_key, event_key from {{ ref('fact_displacement_outside') }}
+      group by 1, 2, 3 having count(*) > 1) d
+having count(*) > 0
+union all
+select 'fact_lifeline_disruption', count(*)
+from (select event_key, location_key, lifeline_key from {{ ref('fact_lifeline_disruption') }}
+      group by 1, 2, 3 having count(*) > 1) d
+having count(*) > 0

@@ -34,6 +34,9 @@ models:
         data_tests: [not_null]
       - name: province_name
         data_tests: [not_null]
+      - name: population
+        description: Residents; source in population_source (census or estimate). Denominator for per-100k rates.
+        data_tests: [not_null]
 
   - name: dim_event
     description: PAGASA hazard events (tropical cyclones and monsoon floods), 2020-2025.
@@ -83,6 +86,16 @@ models:
       post_hook: "{{ primary_key('response_type_key') }}"
     columns:
       - name: response_type_key
+        data_tests: [unique, not_null]
+
+  - name: dim_lifeline
+    description: Lifelines tracked in NDRRMC sitreps (roads, bridges, power, water, communications).
+    config:
+      post_hook: "{{ primary_key('lifeline_key') }}"
+    columns:
+      - name: lifeline_key
+        data_tests: [unique, not_null]
+      - name: lifeline_code
         data_tests: [unique, not_null]
 
   - name: dim_source_system
@@ -168,3 +181,43 @@ models:
     columns:
       - name: request_id
         data_tests: [unique, not_null]
+
+  - name: fact_displacement_outside
+    description: >
+      Periodic snapshot. Grain: city/municipality x day x event. Families displaced outside
+      evacuation centers (with relatives or friends). Semi-additive: never sum across days.
+    config:
+      post_hook:
+        - "{{ region_row_security() }}"
+        - >
+          {{ foreign_keys({
+              'snapshot_date_key': ['dim_date', 'date_key'],
+              'location_key': ['dim_location', 'location_key'],
+              'event_key': ['dim_event', 'event_key'],
+              'organization_key': ['dim_organization', 'organization_key'],
+              'source_key': ['dim_source_system', 'source_key']}) }}
+    columns:
+      - name: persons_outside
+        data_tests:
+          - non_negative
+
+  - name: fact_lifeline_disruption
+    description: >
+      Accumulating snapshot. Grain: event x city/municipality x lifeline. Opens when the lifeline
+      goes down, closes when restored (restored_date_key -1 = still down at the latest sitrep).
+    config:
+      post_hook:
+        - "{{ region_row_security() }}"
+        - >
+          {{ foreign_keys({
+              'interrupted_date_key': ['dim_date', 'date_key'],
+              'restored_date_key': ['dim_date', 'date_key'],
+              'location_key': ['dim_location', 'location_key'],
+              'event_key': ['dim_event', 'event_key'],
+              'lifeline_key': ['dim_lifeline', 'lifeline_key'],
+              'organization_key': ['dim_organization', 'organization_key'],
+              'source_key': ['dim_source_system', 'source_key']}) }}
+    columns:
+      - name: hours_to_restore
+        data_tests:
+          - non_negative

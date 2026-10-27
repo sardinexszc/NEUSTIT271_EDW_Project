@@ -42,6 +42,7 @@ TABLES = {
     "dim_damage_category": "Population, Housing, Infrastructure, Agriculture.",
     "dim_response_type": "Response request types and their cluster.",
     "dim_source_system": "Lineage: one row per loaded source file (batch).",
+    "dim_lifeline": "Lifelines tracked in NDRRMC sitreps: roads, bridges, power, water and communications.",
     "fact_damage_assessment": "Grain: event × city/municipality × damage category (latest valid sitrep). "
                               "Transaction fact.",
     "fact_evacuation_snapshot": "Grain: evacuation center × day × event. Periodic snapshot; occupancy measures "
@@ -49,12 +50,18 @@ TABLES = {
     "fact_resource_distribution": "Grain: one relief item in one distribution. Transaction fact; quantities in "
                                   "standard units.",
     "fact_response_action": "Grain: one response request. Accumulating snapshot with four milestone dates.",
+    "fact_displacement_outside": "Grain: city/municipality × day × event. Periodic snapshot of families displaced "
+                                 "outside evacuation centers (with relatives or friends); semi-additive.",
+    "fact_lifeline_disruption": "Grain: event × city/municipality × lifeline. Accumulating snapshot: opens when the "
+                                "lifeline goes down, closes when service is restored.",
     "mart_event_summary": "One row per event: headline damage, evacuation, relief and response figures.",
     "mart_impact_cube": "GROUP BY CUBE over year × region × hazard type: every subtotal, labelled by grouping_level.",
     "mart_province_event_impact": "Event × province impact next to relief delivered (coverage).",
     "mart_evacuation_daily": "Evacuation-center load per event per day (summed across centers only).",
     "mart_response_performance": "Response timeliness with GROUPING SETS roll-ups; 'All' marks a rolled-up value.",
     "mart_relief_by_org_category": "Relief delivered per event × organization × resource category.",
+    "mart_displacement_daily": "Everyone displaced per event per day: inside evacuation centers plus outside.",
+    "mart_lifeline_restoration": "Per event × lifeline: places disrupted, restored, still down, and hours to restore.",
 }
 
 COLUMNS = {
@@ -194,6 +201,47 @@ COLUMNS = {
     "value_php": "Value of the line, PHP.",
     "year_month": "YYYY-MM.",
     "year_number": "Calendar year.",
+    "affected_area_population": "Population of the cities/municipalities that reported damage (denominator of the per-100k rates).",
+    "affected_per_100k": "Persons affected per 100,000 population of the affected places (Sendai target B).",
+    "dead_per_100k": "Deaths per 100,000 population (Sendai target A); event: affected places, province: whole province.",
+    "dead_per_100k_national": "Deaths per 100,000 of the national population.",
+    "families_outside": "Families displaced outside evacuation centers (semi-additive).",
+    "hours_to_restore": "Hours from interruption to restoration (null while still down).",
+    "interrupted_at": "Timestamp the lifeline went down.",
+    "interrupted_date_key": "Date the lifeline went down (role-playing dim_date).",
+    "is_restored": "Whether service has been restored.",
+    "lifeline": "Lifeline code as reported: ROAD, BRIDGE, POWER, WATER or COMMS.",
+    "lifeline_code": "Lifeline code (natural key): ROAD, BRIDGE, POWER, WATER or COMMS.",
+    "lifeline_disruptions": "Places × lifelines that went down during the event.",
+    "lifeline_key": "Surrogate key of dim_lifeline.",
+    "lifeline_name": "Lifeline name, e.g. Road sections not passable.",
+    "lifeline_sector": "Transport or Utilities.",
+    "lifelines_still_down": "Disruptions not yet restored at the latest sitrep.",
+    "median_hours_to_restore": "Median hours from interruption to restoration.",
+    "missing_per_100k": "Missing persons per 100,000 population of the affected places.",
+    "p90_hours_to_restore": "90th-percentile hours from interruption to restoration.",
+    "peak_persons_displaced": "Highest daily total of persons displaced, inside plus outside centers.",
+    "peak_persons_outside_centers": "Highest daily total of persons displaced outside centers.",
+    "persons_displaced": "Persons inside plus outside evacuation centers that day.",
+    "persons_outside": "Persons displaced outside evacuation centers (semi-additive).",
+    "places_disrupted": "Cities/municipalities where the lifeline went down.",
+    "places_restored": "Of those, places where service was restored.",
+    "places_still_down": "Places still without the lifeline at the latest sitrep.",
+    "population": "Residents (estimate: barangay count × 2,600 unless a census figure is loaded).",
+    "population_census": "Source of the population figure (census name or 'Estimate').",
+    "population_source": "Source of the population figure (census name or 'Estimate').",
+    "province_population": "Population of the whole province at the time of the event.",
+    "relief_international_php": "Relief value provided by international organizations (UN), PHP.",
+    "relief_lgu_php": "Relief value provided by local government units, PHP.",
+    "relief_national_government_php": "Relief value provided by national government (DSWD), PHP.",
+    "relief_ngo_php": "Relief value provided by NGOs, PHP.",
+    "restored_at": "Timestamp service was restored (null while still down).",
+    "restored_date_key": "Date service was restored (role-playing dim_date; -1 = not yet).",
+    "restored_within_72h": "Places where service came back within 72 hours.",
+    "share_outside_centers": "Share of displaced persons staying outside centers, 0–1.",
+    "share_restored_within_72h": "Share of disrupted places restored within 72 hours, 0–1.",
+    "unit_of_measure": "What units_affected counts: road sections, bridges or barangays.",
+    "units_affected": "Road sections, bridges or barangays affected.",
 }
 
 
@@ -237,6 +285,12 @@ def main() -> None:
         "",
         "## Schemas (layers)",
         "",
+        "[Table](#table-database-schemas-and-the-layer-each-one-holds) lists the schemas, one per layer.",
+        "",
+        "**Table: Database schemas and the layer each one holds.** Each schema is one layer of the "
+        "architecture, from raw extracts to the marts the dashboards read; *Objects* counts its tables "
+        "and views.",
+        "",
         "| Schema | Purpose | Objects |",
         "|---|---|---:|",
     ]
@@ -245,12 +299,21 @@ def main() -> None:
         lines.append(f"| `{s}` | {purpose} | {n} |")
 
     lines += ["", "## Lineage", "",
+              "[Table](#table-lineage-from-each-source-file-to-its-warehouse-table) traces each source to the "
+              "warehouse.", "",
+              "**Table: Lineage from each source file to its warehouse table.** Read a row left to right to "
+              "follow one source through the raw, staging and warehouse layers; the same path can be followed "
+              "backwards from any figure on a dashboard.", "",
               "| Source system | Source file(s) | Raw table | Staging model | Warehouse fact |",
               "|---|---|---|---|---|",
               "| NDRRMC situation reports | `ndrrmc/sitreps_<event>.csv` | `raw.ndrrmc_damage_report` | "
               "`staging.stg_ndrrmc_damage` | `dw.fact_damage_assessment` |",
+              "| NDRRMC lifeline status | `ndrrmc/lifelines/lifelines_<event>.csv` | `raw.ndrrmc_lifeline_status` | "
+              "`staging.stg_ndrrmc_lifeline` | `dw.fact_lifeline_disruption` |",
               "| DSWD DROMIC | `dromic/dromic_<event>.xlsx` | `raw.dromic_evacuation` | `staging.stg_dromic_evacuation` | "
               "`dw.fact_evacuation_snapshot` |",
+              "| DSWD DROMIC, sheet *Outside ECs* | `dromic/dromic_<event>.xlsx` | `raw.dromic_displaced_outside` | "
+              "`staging.stg_dromic_displaced_outside` | `dw.fact_displacement_outside` |",
               "| NGO / agency partners | `ngo/distributions_<year>.json` | `raw.ngo_distribution` | "
               "`staging.stg_ngo_distribution_line` | `dw.fact_resource_distribution` |",
               "| PAGASA | `pagasa/tc_bulletins.csv` | `raw.pagasa_event` | `staging.stg_pagasa_event` | `dw.dim_event` |",
@@ -267,7 +330,11 @@ def main() -> None:
         for s, t, kind, _ in tables:
             if s != schema:
                 continue
-            lines += [f"### `{s}.{t}`", "", f"{TABLES.get(t, '')} *{kinds[kind]}, {counts[(s, t)]:,} rows.*", "",
+            ref = f"#table-columns-of-{s}-{t}".replace("_", "-")
+            lines += [f"### `{s}.{t}`", "", f"[Table]({ref}) lists its columns.", "",
+                      f"**Table: Columns of `{s}.{t}`.** {TABLES.get(t, '')} *{kinds[kind].capitalize()}, "
+                      f"{counts[(s, t)]:,} rows.* PK and FK mark the primary and foreign keys; *Null* says "
+                      "whether a value may be missing.", "",
                       "| Column | Type | Key | Null | Description |", "|---|---|---|---|---|"]
             for col, typ, notnull in cols_by_table[(s, t)]:
                 lines.append(f"| `{col}` | {typ} | {key_marks.get((s, t, col), '')} | "
@@ -276,6 +343,11 @@ def main() -> None:
 
     lines += ["## Supporting layers", "",
               "Column-level detail for these layers is in the database itself; summarized here.", "",
+              "[Table](#table-supporting-objects-in-the-raw-reference-staging-data-quality-and-governance-layers) "
+              "summarizes them.", "",
+              "**Table: Supporting objects in the raw, reference, staging, data-quality and governance "
+              "layers.** These feed or protect the star schema; users of the dashboards never read them "
+              "directly.", "",
               "| Object | Kind | Rows | Columns |", "|---|---|---:|---|"]
     for s, t, kind, _ in tables:
         if s in ("dw", "mart"):

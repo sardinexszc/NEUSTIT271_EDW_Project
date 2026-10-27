@@ -10,8 +10,16 @@ with issues as (
     from {{ ref('stg_ndrrmc_damage') }}, unnest(dq_issues) i
 
     union all
+    select 'ndrrmc', _batch_id, _source_file, _row_number, null, i
+    from {{ ref('stg_ndrrmc_lifeline') }}, unnest(dq_issues) i
+
+    union all
     select 'dromic', _batch_id, _source_file, _row_number, null, i
     from {{ ref('stg_dromic_evacuation') }}, unnest(dq_issues) i
+
+    union all
+    select 'dromic', _batch_id, _source_file, _row_number, null, i
+    from {{ ref('stg_dromic_displaced_outside') }}, unnest(dq_issues) i
 
     -- header issues are repeated on every line of a record; log them once per record
     union all

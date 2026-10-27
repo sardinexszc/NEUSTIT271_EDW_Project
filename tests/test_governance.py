@@ -10,7 +10,8 @@ from psycopg import errors
 
 from conftest import scalar
 
-FACTS = ["fact_damage_assessment", "fact_evacuation_snapshot", "fact_resource_distribution", "fact_response_action"]
+FACTS = ["fact_damage_assessment", "fact_evacuation_snapshot", "fact_resource_distribution", "fact_response_action",
+         "fact_displacement_outside", "fact_lifeline_disruption"]
 BICOL, CAGAYAN = "0500000000", "0200000000"
 
 

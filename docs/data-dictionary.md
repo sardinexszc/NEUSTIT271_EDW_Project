@@ -1,28 +1,38 @@
 # Data Dictionary and Metadata
 
-Generated from the live PostgreSQL catalog by `docs/build/data_dictionary.py` on 2026-10-23 22:59. Names, types, keys and nullability come from the database; descriptions are curated. Row counts are from the current build (seed 271).
+Generated from the live PostgreSQL catalog by `docs/build/data_dictionary.py` on 2026-10-25 03:30. Names, types, keys and nullability come from the database; descriptions are curated. Row counts are from the current build (seed 271).
 
-Last successful load: 2026-10-23 22:54.
+Last successful load: 2026-10-24 03:37.
 
 ## Schemas (layers)
 
+[Table](#table-database-schemas-and-the-layer-each-one-holds) lists the schemas, one per layer.
+
+**Table: Database schemas and the layer each one holds.** Each schema is one layer of the architecture, from raw extracts to the marts the dashboards read; *Objects* counts its tables and views.
+
 | Schema | Purpose | Objects |
 |---|---|---:|
-| `raw` | Landing zone. Source extracts exactly as received, every business column as text, plus lineage columns `_batch_id`, `_source_file`, `_row_number`. Loaded by `ingestion/load_raw.py` (full reload). | 5 |
+| `raw` | Landing zone. Source extracts exactly as received, every business column as text, plus lineage columns `_batch_id`, `_source_file`, `_row_number`. Loaded by `ingestion/load_raw.py` (full reload). | 7 |
 | `ref` | Master and reference data: PSGC geography, canonical organizations and relief items, and the alias maps that conform source spellings to them. | 7 |
 | `meta` | Pipeline metadata: one row per loaded file (`load_batch`), applied migrations, and the defect manifest written by the synthetic generator. | 3 |
-| `staging` | Cleansed and conformed source data (dbt). Keeps every raw row and adds `dq_issues` (rules that fired) and `dq_status` (valid, warning, rejected, duplicate). | 7 |
+| `staging` | Cleansed and conformed source data (dbt). Keeps every raw row and adds `dq_issues` (rules that fired) and `dq_status` (valid, warning, rejected, duplicate). | 9 |
 | `dq` | Data-quality layer (dbt): rule catalog, issue log, scorecard, quarantine and reconciliation. | 5 |
-| `dw` | Enterprise star schema (dbt): conformed dimensions and fact tables. Only valid/warning rows load. | 13 |
-| `mart` | Data marts (dbt materialized views) shaped for the dashboards, including ROLAP aggregates. | 6 |
+| `dw` | Enterprise star schema (dbt): conformed dimensions and fact tables. Only valid/warning rows load. | 16 |
+| `mart` | Data marts (dbt materialized views) shaped for the dashboards, including ROLAP aggregates. | 8 |
 | `secure` | Region-scoped views for regional users; they run with the caller's rights (row-level security). | 2 |
 
 ## Lineage
 
+[Table](#table-lineage-from-each-source-file-to-its-warehouse-table) traces each source to the warehouse.
+
+**Table: Lineage from each source file to its warehouse table.** Read a row left to right to follow one source through the raw, staging and warehouse layers; the same path can be followed backwards from any figure on a dashboard.
+
 | Source system | Source file(s) | Raw table | Staging model | Warehouse fact |
 |---|---|---|---|---|
 | NDRRMC situation reports | `ndrrmc/sitreps_<event>.csv` | `raw.ndrrmc_damage_report` | `staging.stg_ndrrmc_damage` | `dw.fact_damage_assessment` |
+| NDRRMC lifeline status | `ndrrmc/lifelines/lifelines_<event>.csv` | `raw.ndrrmc_lifeline_status` | `staging.stg_ndrrmc_lifeline` | `dw.fact_lifeline_disruption` |
 | DSWD DROMIC | `dromic/dromic_<event>.xlsx` | `raw.dromic_evacuation` | `staging.stg_dromic_evacuation` | `dw.fact_evacuation_snapshot` |
+| DSWD DROMIC, sheet *Outside ECs* | `dromic/dromic_<event>.xlsx` | `raw.dromic_displaced_outside` | `staging.stg_dromic_displaced_outside` | `dw.fact_displacement_outside` |
 | NGO / agency partners | `ngo/distributions_<year>.json` | `raw.ngo_distribution` | `staging.stg_ngo_distribution_line` | `dw.fact_resource_distribution` |
 | PAGASA | `pagasa/tc_bulletins.csv` | `raw.pagasa_event` | `staging.stg_pagasa_event` | `dw.dim_event` |
 | LGU / MDRRMO | `lgu/response_logs.csv` | `raw.lgu_response_log` | `staging.stg_lgu_response` | `dw.fact_response_action` |
@@ -34,7 +44,9 @@ Every fact row carries `source_key` → `dw.dim_source_system` (the file and bat
 
 ### `dw.dim_damage_category`
 
-Population, Housing, Infrastructure, Agriculture. *table, 4 rows.*
+[Table](#table-columns-of-dw-dim-damage-category) lists its columns.
+
+**Table: Columns of `dw.dim_damage_category`.** Population, Housing, Infrastructure, Agriculture. *Table, 4 rows.* PK and FK mark the primary and foreign keys; *Null* says whether a value may be missing.
 
 | Column | Type | Key | Null | Description |
 |---|---|---|---|---|
@@ -45,7 +57,9 @@ Population, Housing, Infrastructure, Agriculture. *table, 4 rows.*
 
 ### `dw.dim_date`
 
-Calendar, 2019–2026, plus member -1 (“Not yet occurred”) for open milestones. Type 0. *table, 2,923 rows.*
+[Table](#table-columns-of-dw-dim-date) lists its columns.
+
+**Table: Columns of `dw.dim_date`.** Calendar, 2019–2026, plus member -1 (“Not yet occurred”) for open milestones. Type 0. *Table, 2,923 rows.* PK and FK mark the primary and foreign keys; *Null* says whether a value may be missing.
 
 | Column | Type | Key | Null | Description |
 |---|---|---|---|---|
@@ -66,7 +80,9 @@ Calendar, 2019–2026, plus member -1 (“Not yet occurred”) for open mileston
 
 ### `dw.dim_evacuation_center`
 
-Evacuation centers from DROMIC reports. SCD Type 1 (latest attributes). *table, 1,751 rows.*
+[Table](#table-columns-of-dw-dim-evacuation-center) lists its columns.
+
+**Table: Columns of `dw.dim_evacuation_center`.** Evacuation centers from DROMIC reports. SCD Type 1 (latest attributes). *Table, 1,751 rows.* PK and FK mark the primary and foreign keys; *Null* says whether a value may be missing.
 
 | Column | Type | Key | Null | Description |
 |---|---|---|---|---|
@@ -80,7 +96,9 @@ Evacuation centers from DROMIC reports. SCD Type 1 (latest attributes). *table, 
 
 ### `dw.dim_event`
 
-Hazard events (tropical cyclones and monsoon floods) from PAGASA bulletins. *table, 31 rows.*
+[Table](#table-columns-of-dw-dim-event) lists its columns.
+
+**Table: Columns of `dw.dim_event`.** Hazard events (tropical cyclones and monsoon floods) from PAGASA bulletins. *Table, 31 rows.* PK and FK mark the primary and foreign keys; *Null* says whether a value may be missing.
 
 | Column | Type | Key | Null | Description |
 |---|---|---|---|---|
@@ -100,9 +118,25 @@ Hazard events (tropical cyclones and monsoon floods) from PAGASA bulletins. *tab
 | `event_year` | integer |  | yes | Year the event started. |
 | `affected_areas` | text |  | yes | Provinces named in the PAGASA bulletin, as published. |
 
+### `dw.dim_lifeline`
+
+[Table](#table-columns-of-dw-dim-lifeline) lists its columns.
+
+**Table: Columns of `dw.dim_lifeline`.** Lifelines tracked in NDRRMC sitreps: roads, bridges, power, water and communications. *Table, 5 rows.* PK and FK mark the primary and foreign keys; *Null* says whether a value may be missing.
+
+| Column | Type | Key | Null | Description |
+|---|---|---|---|---|
+| `lifeline_key` | integer | PK | no | Surrogate key of dim_lifeline. |
+| `lifeline_code` | text |  | yes | Lifeline code (natural key): ROAD, BRIDGE, POWER, WATER or COMMS. |
+| `lifeline_name` | text |  | yes | Lifeline name, e.g. Road sections not passable. |
+| `lifeline_sector` | text |  | yes | Transport or Utilities. |
+| `unit_of_measure` | text |  | yes | What units_affected counts: road sections, bridges or barangays. |
+
 ### `dw.dim_location`
 
-City/municipality, keyed on PSGC code. SCD Type 2: one row per period of unchanged attributes (valid_from–valid_to). *table, 1,671 rows.*
+[Table](#table-columns-of-dw-dim-location) lists its columns.
+
+**Table: Columns of `dw.dim_location`.** City/municipality, keyed on PSGC code. SCD Type 2: one row per period of unchanged attributes (valid_from–valid_to). *Table, 1,671 rows.* PK and FK mark the primary and foreign keys; *Null* says whether a value may be missing.
 
 | Column | Type | Key | Null | Description |
 |---|---|---|---|---|
@@ -113,13 +147,17 @@ City/municipality, keyed on PSGC code. SCD Type 2: one row per period of unchang
 | `province_name` | text |  | yes | Province in force on the fact's date (e.g. Maguindanao del Sur after Sep 2022). |
 | `region_code` | character(10) |  | yes | PSGC region code. |
 | `region_name` | text |  | yes | Region name. |
+| `population` | integer |  | yes | Residents (estimate: barangay count × 2,600 unless a census figure is loaded). |
+| `population_source` | text |  | yes | Source of the population figure (census name or 'Estimate'). |
 | `valid_from` | date |  | yes | SCD2: first day this version applies. |
 | `valid_to` | date |  | yes | SCD2: last day this version applies (9999-12-31 = current). |
 | `is_current` | boolean |  | yes | Whether this SCD2 version is the current one. |
 
 ### `dw.dim_organization`
 
-Responding and reporting organizations (government, NGO, international, LGU). *table, 13 rows.*
+[Table](#table-columns-of-dw-dim-organization) lists its columns.
+
+**Table: Columns of `dw.dim_organization`.** Responding and reporting organizations (government, NGO, international, LGU). *Table, 13 rows.* PK and FK mark the primary and foreign keys; *Null* says whether a value may be missing.
 
 | Column | Type | Key | Null | Description |
 |---|---|---|---|---|
@@ -131,7 +169,9 @@ Responding and reporting organizations (government, NGO, international, LGU). *t
 
 ### `dw.dim_resource`
 
-Relief items with category, standard unit and unit cost. *table, 10 rows.*
+[Table](#table-columns-of-dw-dim-resource) lists its columns.
+
+**Table: Columns of `dw.dim_resource`.** Relief items with category, standard unit and unit cost. *Table, 10 rows.* PK and FK mark the primary and foreign keys; *Null* says whether a value may be missing.
 
 | Column | Type | Key | Null | Description |
 |---|---|---|---|---|
@@ -144,7 +184,9 @@ Relief items with category, standard unit and unit cost. *table, 10 rows.*
 
 ### `dw.dim_response_type`
 
-Response request types and their cluster. *table, 5 rows.*
+[Table](#table-columns-of-dw-dim-response-type) lists its columns.
+
+**Table: Columns of `dw.dim_response_type`.** Response request types and their cluster. *Table, 5 rows.* PK and FK mark the primary and foreign keys; *Null* says whether a value may be missing.
 
 | Column | Type | Key | Null | Description |
 |---|---|---|---|---|
@@ -155,7 +197,9 @@ Response request types and their cluster. *table, 5 rows.*
 
 ### `dw.dim_source_system`
 
-Lineage: one row per loaded source file (batch). *table, 703 rows.*
+[Table](#table-columns-of-dw-dim-source-system) lists its columns.
+
+**Table: Columns of `dw.dim_source_system`.** Lineage: one row per loaded source file (batch). *Table, 1,099 rows.* PK and FK mark the primary and foreign keys; *Null* says whether a value may be missing.
 
 | Column | Type | Key | Null | Description |
 |---|---|---|---|---|
@@ -167,7 +211,9 @@ Lineage: one row per loaded source file (batch). *table, 703 rows.*
 
 ### `dw.fact_damage_assessment`
 
-Grain: event × city/municipality × damage category (latest valid sitrep). Transaction fact. *table, 8,806 rows.*
+[Table](#table-columns-of-dw-fact-damage-assessment) lists its columns.
+
+**Table: Columns of `dw.fact_damage_assessment`.** Grain: event × city/municipality × damage category (latest valid sitrep). Transaction fact. *Table, 8,806 rows.* PK and FK mark the primary and foreign keys; *Null* says whether a value may be missing.
 
 | Column | Type | Key | Null | Description |
 |---|---|---|---|---|
@@ -186,9 +232,27 @@ Grain: event × city/municipality × damage category (latest valid sitrep). Tran
 | `houses_totally_damaged` | numeric |  | yes | Houses totally destroyed. |
 | `cost_php` | numeric |  | yes | Damage cost, PHP (Housing, Infrastructure, Agriculture rows). |
 
+### `dw.fact_displacement_outside`
+
+[Table](#table-columns-of-dw-fact-displacement-outside) lists its columns.
+
+**Table: Columns of `dw.fact_displacement_outside`.** Grain: city/municipality × day × event. Periodic snapshot of families displaced outside evacuation centers (with relatives or friends); semi-additive. *Table, 21,896 rows.* PK and FK mark the primary and foreign keys; *Null* says whether a value may be missing.
+
+| Column | Type | Key | Null | Description |
+|---|---|---|---|---|
+| `snapshot_date_key` | integer | FK → dim_date | yes | Date of the snapshot (dim_date). |
+| `location_key` | integer | FK → dim_location | yes | Surrogate key of dim_location (the SCD2 version valid on the fact's date). |
+| `event_key` | integer | FK → dim_event | yes | Surrogate key of dim_event. |
+| `organization_key` | integer | FK → dim_organization | yes | Surrogate key of dim_organization. |
+| `source_key` | integer | FK → dim_source_system | yes | Surrogate key of dim_source_system (lineage to the loaded file). |
+| `families_outside` | integer |  | yes | Families displaced outside evacuation centers (semi-additive). |
+| `persons_outside` | integer |  | yes | Persons displaced outside evacuation centers (semi-additive). |
+
 ### `dw.fact_evacuation_snapshot`
 
-Grain: evacuation center × day × event. Periodic snapshot; occupancy measures are semi-additive (never sum across days). *table, 31,110 rows.*
+[Table](#table-columns-of-dw-fact-evacuation-snapshot) lists its columns.
+
+**Table: Columns of `dw.fact_evacuation_snapshot`.** Grain: evacuation center × day × event. Periodic snapshot; occupancy measures are semi-additive (never sum across days). *Table, 31,110 rows.* PK and FK mark the primary and foreign keys; *Null* says whether a value may be missing.
 
 | Column | Type | Key | Null | Description |
 |---|---|---|---|---|
@@ -203,9 +267,32 @@ Grain: evacuation center × day × event. Periodic snapshot; occupancy measures 
 | `capacity_families` | integer |  | yes | Families the evacuation center can hold. |
 | `is_over_capacity` | boolean |  | yes | Families inside exceeded the center's capacity. |
 
+### `dw.fact_lifeline_disruption`
+
+[Table](#table-columns-of-dw-fact-lifeline-disruption) lists its columns.
+
+**Table: Columns of `dw.fact_lifeline_disruption`.** Grain: event × city/municipality × lifeline. Accumulating snapshot: opens when the lifeline goes down, closes when service is restored. *Table, 2,677 rows.* PK and FK mark the primary and foreign keys; *Null* says whether a value may be missing.
+
+| Column | Type | Key | Null | Description |
+|---|---|---|---|---|
+| `interrupted_date_key` | integer | FK → dim_date | yes | Date the lifeline went down (role-playing dim_date). |
+| `restored_date_key` | integer | FK → dim_date | yes | Date service was restored (role-playing dim_date; -1 = not yet). |
+| `location_key` | integer | FK → dim_location | yes | Surrogate key of dim_location (the SCD2 version valid on the fact's date). |
+| `event_key` | integer | FK → dim_event | yes | Surrogate key of dim_event. |
+| `lifeline_key` | integer | FK → dim_lifeline | yes | Surrogate key of dim_lifeline. |
+| `organization_key` | integer | FK → dim_organization | yes | Surrogate key of dim_organization. |
+| `source_key` | integer | FK → dim_source_system | yes | Surrogate key of dim_source_system (lineage to the loaded file). |
+| `interrupted_at` | timestamp without time zone |  | yes | Timestamp the lifeline went down. |
+| `restored_at` | timestamp without time zone |  | yes | Timestamp service was restored (null while still down). |
+| `units_affected` | integer |  | yes | Road sections, bridges or barangays affected. |
+| `hours_to_restore` | numeric |  | yes | Hours from interruption to restoration (null while still down). |
+| `is_restored` | boolean |  | yes | Whether service has been restored. |
+
 ### `dw.fact_resource_distribution`
 
-Grain: one relief item in one distribution. Transaction fact; quantities in standard units. *table, 11,179 rows.*
+[Table](#table-columns-of-dw-fact-resource-distribution) lists its columns.
+
+**Table: Columns of `dw.fact_resource_distribution`.** Grain: one relief item in one distribution. Transaction fact; quantities in standard units. *Table, 14,927 rows.* PK and FK mark the primary and foreign keys; *Null* says whether a value may be missing.
 
 | Column | Type | Key | Null | Description |
 |---|---|---|---|---|
@@ -223,7 +310,9 @@ Grain: one relief item in one distribution. Transaction fact; quantities in stan
 
 ### `dw.fact_response_action`
 
-Grain: one response request. Accumulating snapshot with four milestone dates. *table, 32,347 rows.*
+[Table](#table-columns-of-dw-fact-response-action) lists its columns.
+
+**Table: Columns of `dw.fact_response_action`.** Grain: one response request. Accumulating snapshot with four milestone dates. *Table, 32,347 rows.* PK and FK mark the primary and foreign keys; *Null* says whether a value may be missing.
 
 | Column | Type | Key | Null | Description |
 |---|---|---|---|---|
@@ -249,9 +338,29 @@ Grain: one response request. Accumulating snapshot with four milestone dates. *t
 
 ## `mart` · Data marts
 
+### `mart.mart_displacement_daily`
+
+[Table](#table-columns-of-mart-mart-displacement-daily) lists its columns.
+
+**Table: Columns of `mart.mart_displacement_daily`.** Everyone displaced per event per day: inside evacuation centers plus outside. *Materialized view, 509 rows.* PK and FK mark the primary and foreign keys; *Null* says whether a value may be missing.
+
+| Column | Type | Key | Null | Description |
+|---|---|---|---|---|
+| `event_code` | text |  | yes | Event natural key, TC<year>-<LOCAL NAME> (e.g. TC2024-KRISTINE); 'All' in roll-up rows. |
+| `snapshot_date` | date |  | yes | Date of the daily snapshot. |
+| `day_of_event` | integer |  | yes | Days since the event started (negative = pre-emptive evacuation). |
+| `families_inside` | bigint |  | yes | Families inside the center (semi-additive). |
+| `persons_inside` | bigint |  | yes | Persons inside the center (semi-additive). |
+| `families_outside` | bigint |  | yes | Families displaced outside evacuation centers (semi-additive). |
+| `persons_outside` | bigint |  | yes | Persons displaced outside evacuation centers (semi-additive). |
+| `persons_displaced` | bigint |  | yes | Persons inside plus outside evacuation centers that day. |
+| `share_outside_centers` | numeric |  | yes | Share of displaced persons staying outside centers, 0–1. |
+
 ### `mart.mart_evacuation_daily`
 
-Evacuation-center load per event per day (summed across centers only). *materialized view, 372 rows.*
+[Table](#table-columns-of-mart-mart-evacuation-daily) lists its columns.
+
+**Table: Columns of `mart.mart_evacuation_daily`.** Evacuation-center load per event per day (summed across centers only). *Materialized view, 372 rows.* PK and FK mark the primary and foreign keys; *Null* says whether a value may be missing.
 
 | Column | Type | Key | Null | Description |
 |---|---|---|---|---|
@@ -267,7 +376,9 @@ Evacuation-center load per event per day (summed across centers only). *material
 
 ### `mart.mart_event_summary`
 
-One row per event: headline damage, evacuation, relief and response figures. *materialized view, 31 rows.*
+[Table](#table-columns-of-mart-mart-event-summary) lists its columns.
+
+**Table: Columns of `mart.mart_event_summary`.** One row per event: headline damage, evacuation, relief and response figures. *Materialized view, 31 rows.* PK and FK mark the primary and foreign keys; *Null* says whether a value may be missing.
 
 | Column | Type | Key | Null | Description |
 |---|---|---|---|---|
@@ -295,12 +406,23 @@ One row per event: headline damage, evacuation, relief and response figures. *ma
 | `agriculture_cost_php` | numeric |  | yes | Agricultural damage, PHP. |
 | `cities_municipalities_affected` | bigint |  | yes | Distinct cities/municipalities with reported damage. |
 | `provinces_affected` | bigint |  | yes | Distinct provinces with reported damage. |
+| `affected_area_population` | bigint |  | yes | Population of the cities/municipalities that reported damage (denominator of the per-100k rates). |
+| `dead_per_100k` | numeric |  | yes | Deaths per 100,000 population (Sendai target A); event: affected places, province: whole province. |
+| `missing_per_100k` | numeric |  | yes | Missing persons per 100,000 population of the affected places. |
+| `affected_per_100k` | numeric |  | yes | Persons affected per 100,000 population of the affected places (Sendai target B). |
+| `dead_per_100k_national` | numeric |  | yes | Deaths per 100,000 of the national population. |
 | `peak_persons_in_centers` | bigint |  | yes | Highest daily total of persons in centers (sum across centers, max across days). |
 | `peak_families_in_centers` | bigint |  | yes | Highest daily total of families in centers. |
 | `days_with_evacuees` | bigint |  | yes | Days on which any center held evacuees. |
 | `centers_used` | bigint |  | yes | Distinct evacuation centers used during the event. |
 | `over_capacity_center_days` | bigint |  | yes | Center-days in which a center was over capacity. |
+| `peak_persons_outside_centers` | bigint |  | yes | Highest daily total of persons displaced outside centers. |
+| `peak_persons_displaced` | bigint |  | yes | Highest daily total of persons displaced, inside plus outside centers. |
 | `relief_value_php` | numeric |  | yes | Relief value, PHP (standard quantity × unit cost). |
+| `relief_national_government_php` | numeric |  | yes | Relief value provided by national government (DSWD), PHP. |
+| `relief_lgu_php` | numeric |  | yes | Relief value provided by local government units, PHP. |
+| `relief_ngo_php` | numeric |  | yes | Relief value provided by NGOs, PHP. |
+| `relief_international_php` | numeric |  | yes | Relief value provided by international organizations (UN), PHP. |
 | `families_served` | bigint |  | yes | Sum of beneficiary families over distributions (a family can be served more than once). |
 | `distributions` | bigint |  | yes | Number of distinct distributions. |
 | `relief_php_per_affected_person` | numeric |  | yes | Relief value divided by persons affected, PHP. |
@@ -308,10 +430,15 @@ One row per event: headline damage, evacuation, relief and response figures. *ma
 | `median_hours_to_dispatch` | numeric |  | yes | Median hours from request to dispatch. |
 | `median_hours_to_arrive` | numeric |  | yes | Median hours from dispatch to arrival. |
 | `completion_rate` | numeric |  | yes | Share of requests completed, 0–1. |
+| `lifeline_disruptions` | bigint |  | yes | Places × lifelines that went down during the event. |
+| `lifelines_still_down` | bigint |  | yes | Disruptions not yet restored at the latest sitrep. |
+| `median_hours_to_restore` | numeric |  | yes | Median hours from interruption to restoration. |
 
 ### `mart.mart_impact_cube`
 
-GROUP BY CUBE over year × region × hazard type: every subtotal, labelled by grouping_level. *materialized view, 160 rows.*
+[Table](#table-columns-of-mart-mart-impact-cube) lists its columns.
+
+**Table: Columns of `mart.mart_impact_cube`.** GROUP BY CUBE over year × region × hazard type: every subtotal, labelled by grouping_level. *Materialized view, 160 rows.* PK and FK mark the primary and foreign keys; *Null* says whether a value may be missing.
 
 | Column | Type | Key | Null | Description |
 |---|---|---|---|---|
@@ -325,9 +452,33 @@ GROUP BY CUBE over year × region × hazard type: every subtotal, labelled by gr
 | `houses_totally_damaged` | numeric |  | yes | Houses totally destroyed. |
 | `damage_cost_php` | numeric |  | yes | Total damage cost, PHP. |
 
+### `mart.mart_lifeline_restoration`
+
+[Table](#table-columns-of-mart-mart-lifeline-restoration) lists its columns.
+
+**Table: Columns of `mart.mart_lifeline_restoration`.** Per event × lifeline: places disrupted, restored, still down, and hours to restore. *Materialized view, 137 rows.* PK and FK mark the primary and foreign keys; *Null* says whether a value may be missing.
+
+| Column | Type | Key | Null | Description |
+|---|---|---|---|---|
+| `event_code` | text |  | yes | Event natural key, TC<year>-<LOCAL NAME> (e.g. TC2024-KRISTINE); 'All' in roll-up rows. |
+| `lifeline_code` | text |  | yes | Lifeline code (natural key): ROAD, BRIDGE, POWER, WATER or COMMS. |
+| `lifeline_name` | text |  | yes | Lifeline name, e.g. Road sections not passable. |
+| `lifeline_sector` | text |  | yes | Transport or Utilities. |
+| `unit_of_measure` | text |  | yes | What units_affected counts: road sections, bridges or barangays. |
+| `places_disrupted` | bigint |  | yes | Cities/municipalities where the lifeline went down. |
+| `units_affected` | bigint |  | yes | Road sections, bridges or barangays affected. |
+| `places_restored` | bigint |  | yes | Of those, places where service was restored. |
+| `places_still_down` | bigint |  | yes | Places still without the lifeline at the latest sitrep. |
+| `restored_within_72h` | bigint |  | yes | Places where service came back within 72 hours. |
+| `share_restored_within_72h` | numeric |  | yes | Share of disrupted places restored within 72 hours, 0–1. |
+| `median_hours_to_restore` | numeric |  | yes | Median hours from interruption to restoration. |
+| `p90_hours_to_restore` | numeric |  | yes | 90th-percentile hours from interruption to restoration. |
+
 ### `mart.mart_province_event_impact`
 
-Event × province impact next to relief delivered (coverage). *materialized view, 168 rows.*
+[Table](#table-columns-of-mart-mart-province-event-impact) lists its columns.
+
+**Table: Columns of `mart.mart_province_event_impact`.** Event × province impact next to relief delivered (coverage). *Materialized view, 168 rows.* PK and FK mark the primary and foreign keys; *Null* says whether a value may be missing.
 
 | Column | Type | Key | Null | Description |
 |---|---|---|---|---|
@@ -341,6 +492,9 @@ Event × province impact next to relief delivered (coverage). *materialized view
 | `affected_families` | numeric |  | yes | Families affected (NDRRMC). |
 | `houses_totally_damaged` | numeric |  | yes | Houses totally destroyed. |
 | `damage_cost_php` | numeric |  | yes | Total damage cost, PHP. |
+| `province_population` | bigint |  | yes | Population of the whole province at the time of the event. |
+| `dead_per_100k` | numeric |  | yes | Deaths per 100,000 population (Sendai target A); event: affected places, province: whole province. |
+| `affected_per_100k` | numeric |  | yes | Persons affected per 100,000 population of the affected places (Sendai target B). |
 | `relief_value_php` | numeric |  | yes | Relief value, PHP (standard quantity × unit cost). |
 | `families_served` | bigint |  | yes | Sum of beneficiary families over distributions (a family can be served more than once). |
 | `relief_php_per_affected_person` | numeric |  | yes | Relief value divided by persons affected, PHP. |
@@ -348,7 +502,9 @@ Event × province impact next to relief delivered (coverage). *materialized view
 
 ### `mart.mart_relief_by_org_category`
 
-Relief delivered per event × organization × resource category. *materialized view, 730 rows.*
+[Table](#table-columns-of-mart-mart-relief-by-org-category) lists its columns.
+
+**Table: Columns of `mart.mart_relief_by_org_category`.** Relief delivered per event × organization × resource category. *Materialized view, 851 rows.* PK and FK mark the primary and foreign keys; *Null* says whether a value may be missing.
 
 | Column | Type | Key | Null | Description |
 |---|---|---|---|---|
@@ -364,7 +520,9 @@ Relief delivered per event × organization × resource category. *materialized v
 
 ### `mart.mart_response_performance`
 
-Response timeliness with GROUPING SETS roll-ups; 'All' marks a rolled-up value. *materialized view, 671 rows.*
+[Table](#table-columns-of-mart-mart-response-performance) lists its columns.
+
+**Table: Columns of `mart.mart_response_performance`.** Response timeliness with GROUPING SETS roll-ups; 'All' marks a rolled-up value. *Materialized view, 671 rows.* PK and FK mark the primary and foreign keys; *Null* says whether a value may be missing.
 
 | Column | Type | Key | Null | Description |
 |---|---|---|---|---|
@@ -383,12 +541,18 @@ Response timeliness with GROUPING SETS roll-ups; 'All' marks a rolled-up value. 
 
 Column-level detail for these layers is in the database itself; summarized here.
 
+[Table](#table-supporting-objects-in-the-raw-reference-staging-data-quality-and-governance-layers) summarizes them.
+
+**Table: Supporting objects in the raw, reference, staging, data-quality and governance layers.** These feed or protect the star schema; users of the dashboards never read them directly.
+
 | Object | Kind | Rows | Columns |
 |---|---|---:|---|
+| `raw.dromic_displaced_outside` | table | 21,896 | report_date, disaster_name, region, province, municipality, families_outside, persons_outside, _batch_id, _source_file, _row_number |
 | `raw.dromic_evacuation` | table | 31,241 | report_date, disaster_name, region, province, municipality, barangay, ec_code, ec_name, ec_type, capacity_families, families_inside, persons_inside, _batch_id, _source_file, _row_number |
 | `raw.lgu_response_log` | table | 32,749 | request_id, incident, province, lgu_name, request_type, priority, requested_at, dispatched_at, arrived_at, completed_at, responding_unit, personnel_count, _batch_id, _source_file, _row_number |
 | `raw.ndrrmc_damage_report` | table | 16,151 | sitrep_no, report_date, incident_name, region, province, city_muni, damage_category, dead, injured, missing, affected_families, affected_persons, houses_partial, houses_total, cost_php, remarks, _batch_id, _source_file, _row_number |
-| `raw.ngo_distribution` | table | 5,661 | record, _batch_id, _source_file, _row_number |
+| `raw.ndrrmc_lifeline_status` | table | 2,677 | incident_name, region, province, city_muni, lifeline, units_affected, interrupted_at, restored_at, _batch_id, _source_file, _row_number |
+| `raw.ngo_distribution` | table | 8,438 | record, _batch_id, _source_file, _row_number |
 | `raw.pagasa_event` | table | 39 | local_name, international_name, category, max_wind_kph, max_signal, start_date, end_date, affected_areas, _batch_id, _source_file, _row_number |
 | `ref.location_alias` | table | 0 | alias_name, alias_scope, psgc_code, match_method |
 | `ref.organization` | table | 13 | org_code, org_name, org_type, parent_agency |
@@ -398,19 +562,21 @@ Column-level detail for these layers is in the database itself; summarized here.
 | `ref.resource_item` | table | 10 | item_code, item_name, category, standard_unit, unit_cost_php |
 | `ref.resource_item_alias` | table | 25 | source_item_code, item_code, source_unit, to_standard_factor |
 | `meta.defect_manifest` | table | 19 | source_system, defect, planted_count, seed, loaded_at |
-| `meta.load_batch` | table | 703 | batch_id, source_system, source_file, row_count, started_at, finished_at, status, origin |
-| `meta.schema_migration` | table | 7 | version, applied_at |
+| `meta.load_batch` | table | 1,099 | batch_id, source_system, source_file, row_count, started_at, finished_at, status, origin |
+| `meta.schema_migration` | table | 8 | version, applied_at |
+| `staging.stg_dromic_displaced_outside` | table | 21,896 | _batch_id, _source_file, _row_number, raw_report_date, report_date, disaster_name, province, raw_municipality, families_outside, persons_outside, psgc_code, location_match_method, event_key, dq_issues, dq_status |
 | `staging.stg_dromic_evacuation` | table | 31,241 | _batch_id, _source_file, _row_number, raw_report_date, date_format, dominant_date_format, report_date, disaster_name, province, raw_municipality, barangay, raw_ec_code, ec_name, ec_type, capacity_families, families_inside, persons_inside, psgc_code, location_match_method, event_key, ec_code, dq_issues, dq_status |
 | `staging.stg_event_alias` | table | 124 | event_key, alias, start_date, end_date |
 | `staging.stg_lgu_response` | table | 32,749 | _batch_id, _source_file, _row_number, request_id, incident, province, raw_lgu_name, raw_request_type, request_type, priority, requested_at, dispatched_at, arrived_at, completed_at, responding_unit, personnel_count, psgc_code, location_match_method, event_key, org_code, hours_to_dispatch, hours_to_arrive, hours_on_site, hours_to_complete, dq_issues, dq_status |
 | `staging.stg_location_resolution` | table | 2,969 | raw_province, raw_name, psgc_code, official_name, match_method, edit_distance |
 | `staging.stg_ndrrmc_damage` | table | 16,151 | _batch_id, _source_file, _row_number, copy_number, sitrep_no, report_date, incident_name, province, raw_city_muni, damage_category, dead, injured, missing, affected_families, affected_persons, houses_partial, houses_total, cost_php, remarks, raw_dead, raw_injured, raw_missing, raw_affected_families, raw_affected_persons, raw_houses_partial, raw_houses_total, raw_cost_php, psgc_code, location_match_method, event_key, dq_issues, dq_status |
-| `staging.stg_ngo_distribution_line` | table | 11,529 | _batch_id, _source_file, _row_number, line_no, distribution_id, distributed_on, event_key, raw_event_ref, org_code, raw_organization, psgc_code, province, raw_municipality, location_match_method, beneficiary_families, item_code, source_item_code, source_unit, source_quantity, to_standard_factor, standard_unit, quantity_standard, value_php, header_issues, line_issues, dq_issues, dq_status |
+| `staging.stg_ndrrmc_lifeline` | table | 2,677 | _batch_id, _source_file, _row_number, incident_name, province, raw_city_muni, lifeline, units_affected, interrupted_at, restored_at, raw_restored_at, psgc_code, location_match_method, event_key, dq_issues, dq_status |
+| `staging.stg_ngo_distribution_line` | table | 15,277 | _batch_id, _source_file, _row_number, line_no, distribution_id, distributed_on, event_key, raw_event_ref, org_code, raw_organization, psgc_code, province, raw_municipality, location_match_method, beneficiary_families, item_code, source_item_code, source_unit, source_quantity, to_standard_factor, standard_unit, quantity_standard, value_php, header_issues, line_issues, dq_issues, dq_status |
 | `staging.stg_pagasa_event` | table | 39 | _batch_id, _source_file, _row_number, local_name, international_name, category, max_wind_kph, max_signal, start_date, end_date, affected_areas, event_key, copy_number, key_rank, dq_issues, dq_status |
-| `dq.dq_issue_log` | table | 17,722 | source_system, rule_code, field_name, severity, _batch_id, _source_file, _row_number, line_no |
+| `dq.dq_issue_log` | table | 20,507 | source_system, rule_code, field_name, severity, _batch_id, _source_file, _row_number, line_no |
 | `dq.dq_quarantine` | table | 925 | source_system, _source_file, _row_number, line_no, reject_reasons, all_issues, batch_source, batch_loaded_at |
 | `dq.dq_reconciliation` | table | 19 | source_system, planted_defect, detected_by, planted_count, detected_count, reconciliation_status |
-| `dq.dq_rule_summary` | table | 41 | source_system, rule_code, severity, action, description, issue_count, affected_rows, source_rows, pct_rows_affected |
-| `dq.dq_rules` | table | 41 | source_system, rule_code, severity, action, description, planted_defect |
+| `dq.dq_rule_summary` | table | 45 | source_system, rule_code, severity, action, description, issue_count, affected_rows, source_rows, pct_rows_affected |
+| `dq.dq_rules` | table | 45 | source_system, rule_code, severity, action, description, planted_defect |
 | `secure.regional_event_impact` | view | 168 | event_code, event_name, region_name, province_name, dead, affected_persons, houses_totally_damaged, damage_cost_php, relief_value_php, family_servings |
 | `secure.regional_response_summary` | view | 450 | event_code, event_name, region_name, response_type, requests, median_hours_to_dispatch, completion_rate |

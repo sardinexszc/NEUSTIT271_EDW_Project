@@ -1,11 +1,17 @@
 -- Data-quality scorecard: how often each rule fired, against how many source rows.
 
 with row_counts as (
-    select 'pagasa' as source_system, count(*) as source_rows from {{ ref('stg_pagasa_event') }}
-    union all select 'ndrrmc', count(*) from {{ ref('stg_ndrrmc_damage') }}
-    union all select 'dromic', count(*) from {{ ref('stg_dromic_evacuation') }}
-    union all select 'ngo', count(*) from {{ ref('stg_ngo_distribution_line') }}
-    union all select 'lgu', count(*) from {{ ref('stg_lgu_response') }}
+    select source_system, sum(n) as source_rows
+    from (
+        select 'pagasa' as source_system, count(*) as n from {{ ref('stg_pagasa_event') }}
+        union all select 'ndrrmc', count(*) from {{ ref('stg_ndrrmc_damage') }}
+        union all select 'ndrrmc', count(*) from {{ ref('stg_ndrrmc_lifeline') }}
+        union all select 'dromic', count(*) from {{ ref('stg_dromic_evacuation') }}
+        union all select 'dromic', count(*) from {{ ref('stg_dromic_displaced_outside') }}
+        union all select 'ngo', count(*) from {{ ref('stg_ngo_distribution_line') }}
+        union all select 'lgu', count(*) from {{ ref('stg_lgu_response') }}
+    ) c
+    group by 1
 ),
 
 fired as (

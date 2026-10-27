@@ -4,8 +4,8 @@
     "title": "Costliest events and their human toll (BQ1)",
     "operation": "Ranking (top-N)",
     "rows": 10,
-    "median_ms": 3.599,
-    "max_ms": 3.73,
+    "median_ms": 3.6029999999999998,
+    "max_ms": 3.643,
     "scans": "Seq Scan"
   },
   {
@@ -13,8 +13,8 @@
     "title": "Damage by year and category, with yearly subtotals (BQ2)",
     "operation": "Roll-up (GROUP BY ROLLUP)",
     "rows": 31,
-    "median_ms": 4.571,
-    "max_ms": 4.736,
+    "median_ms": 4.566000000000001,
+    "max_ms": 5.002,
     "scans": "Seq Scan"
   },
   {
@@ -22,8 +22,8 @@
     "title": "Drill-down: region -> province -> city/municipality for one event (BQ3)",
     "operation": "Drill-down",
     "rows": 15,
-    "median_ms": 1.2120000000000002,
-    "max_ms": 1.278,
+    "median_ms": 1.299,
+    "max_ms": 1.538,
     "scans": "Seq Scan"
   },
   {
@@ -31,8 +31,8 @@
     "title": "Tropical cyclone vs monsoon flood impact per region (BQ4)",
     "operation": "Pivot (FILTER) / dice",
     "rows": 15,
-    "median_ms": 4.0840000000000005,
-    "max_ms": 4.7,
+    "median_ms": 4.316,
+    "max_ms": 4.477,
     "scans": "Seq Scan"
   },
   {
@@ -40,8 +40,8 @@
     "title": "Every subtotal of impact by year x region x hazard (BQ2, BQ4)",
     "operation": "Cube (GROUP BY CUBE)",
     "rows": 160,
-    "median_ms": 11.481,
-    "max_ms": 11.63,
+    "median_ms": 11.344999999999999,
+    "max_ms": 12.113000000000001,
     "scans": "Seq Scan"
   },
   {
@@ -49,8 +49,8 @@
     "title": "Peak evacuees per event (semi-additive measure) (BQ5)",
     "operation": "Aggregate over a snapshot",
     "rows": 10,
-    "median_ms": 4.744,
-    "max_ms": 5.13,
+    "median_ms": 4.89,
+    "max_ms": 5.058999999999999,
     "scans": "Seq Scan"
   },
   {
@@ -58,8 +58,8 @@
     "title": "Evacuation centers most often over capacity (BQ6)",
     "operation": "Slice (is_over_capacity)",
     "rows": 10,
-    "median_ms": 17.543,
-    "max_ms": 18.163,
+    "median_ms": 17.538,
+    "max_ms": 17.903,
     "scans": "Seq Scan"
   },
   {
@@ -67,8 +67,8 @@
     "title": "Dispatch time by response type and priority (BQ7)",
     "operation": "Accumulating snapshot analysis",
     "rows": 15,
-    "median_ms": 30.845,
-    "max_ms": 31.275,
+    "median_ms": 30.934,
+    "max_ms": 31.587999999999997,
     "scans": "Seq Scan"
   },
   {
@@ -76,8 +76,8 @@
     "title": "Slowest-responding cities/municipalities for life-saving requests (BQ7)",
     "operation": "Slice + ranking",
     "rows": 10,
-    "median_ms": 31.976,
-    "max_ms": 32.943999999999996,
+    "median_ms": 31.799000000000003,
+    "max_ms": 33.189,
     "scans": "Seq Scan"
   },
   {
@@ -85,17 +85,17 @@
     "title": "Least relief per affected person, by province (BQ8)",
     "operation": "Integration of two facts",
     "rows": 10,
-    "median_ms": 6.91,
-    "max_ms": 8.296999999999999,
+    "median_ms": 7.881,
+    "max_ms": 7.979,
     "scans": "Seq Scan"
   },
   {
     "id": "Q11",
     "title": "Relief mix by organization and resource category (BQ9)",
     "operation": "Dice (org x category)",
-    "rows": 25,
-    "median_ms": 5.817,
-    "max_ms": 5.928,
+    "rows": 29,
+    "median_ms": 7.463,
+    "max_ms": 7.576,
     "scans": "Seq Scan"
   },
   {
@@ -103,8 +103,8 @@
     "title": "Year-over-year change in damage cost (BQ2)",
     "operation": "Window function (LAG)",
     "rows": 6,
-    "median_ms": 2.44,
-    "max_ms": 2.6079999999999997,
+    "median_ms": 2.422,
+    "max_ms": 2.536,
     "scans": "Seq Scan"
   },
   {
@@ -112,8 +112,8 @@
     "title": "Dashboard query served from a mart (BQ1, BQ5, BQ8)",
     "operation": "Pre-aggregated ROLAP mart",
     "rows": 10,
-    "median_ms": 0.048,
-    "max_ms": 0.049,
+    "median_ms": 0.046,
+    "max_ms": 0.065,
     "scans": "Seq Scan"
   },
   {
@@ -121,8 +121,8 @@
     "title": "What data was rejected, and why? (BQ10)",
     "operation": "Data-quality audit",
     "rows": 12,
-    "median_ms": 0.233,
-    "max_ms": 0.243,
+    "median_ms": 0.227,
+    "max_ms": 0.245,
     "scans": "Seq Scan"
   }
 ]

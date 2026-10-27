@@ -66,6 +66,36 @@ models:
               arguments:
                 values: [valid, warning, rejected, duplicate]
 
+  - name: stg_ndrrmc_lifeline
+    description: NDRRMC lifeline status (roads, bridges, power, water, communications), typed and checked.
+    columns:
+      - name: lifeline
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [ROAD, BRIDGE, POWER, WATER, COMMS]
+              config:
+                where: "dq_status in ('valid', 'warning')"
+      - name: interrupted_at
+        data_tests:
+          - not_null:
+              config:
+                where: "dq_status in ('valid', 'warning')"
+
+  - name: stg_dromic_displaced_outside
+    description: DROMIC families displaced outside evacuation centers, per city/municipality per day.
+    columns:
+      - name: report_date
+        data_tests:
+          - not_null:
+              config:
+                where: "dq_status in ('valid', 'warning')"
+      - name: dq_status
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [valid, rejected]
+
   - name: stg_dromic_evacuation
     description: DROMIC daily evacuation-center occupancy, typed and checked.
     columns:

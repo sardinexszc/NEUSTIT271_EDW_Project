@@ -21,6 +21,8 @@ MARTS = [
     "mart_evacuation_daily",
     "mart_response_performance",
     "mart_relief_by_org_category",
+    "mart_displacement_daily",
+    "mart_lifeline_restoration",
 ]
 
 

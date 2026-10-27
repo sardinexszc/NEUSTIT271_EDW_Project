@@ -32,6 +32,17 @@ PAGES = {
     "api_marts": ("/api/marts.php?name=mart_event_summary&event=TC2024-KRISTINE", 900),
     "dash_mobile": ("/operations/?event=TC2024-KRISTINE", PHONE_WIDTH),
 }
+# name -> (path, heading of the card, or None for the tile row): close-ups of single panels
+SECTIONS = {
+    "part_executive_tiles": ("/", None),
+    "part_executive_per100k": ("/", "Deaths per 100,000 people"),
+    "part_operations_tiles": ("/operations/?event=TC2024-KRISTINE", None),
+    "part_operations_displacement": ("/operations/?event=TC2024-KRISTINE",
+                                     "People displaced, inside and outside evacuation centers"),
+    "part_operations_lifelines": ("/operations/?event=TC2024-KRISTINE",
+                                  "Lifelines: roads, bridges, power, water, communications"),
+    "part_logistics_providers": ("/logistics/", "Cost of assistance by provider"),
+}
 
 
 def trim_bottom(png: Path) -> None:
@@ -84,6 +95,34 @@ def capture_exchange() -> None:
         browser.close()
 
 
+def capture_sections() -> None:
+    """Close-ups of single panels (the tile row, or one card found by its heading), with short
+    tables opened so the exact figures are in the picture too."""
+    from playwright.sync_api import sync_playwright
+
+    with sync_playwright() as p:
+        browser = p.chromium.launch(channel="msedge")
+        page = browser.new_context(viewport={"width": WIDTH, "height": 900}, device_scale_factor=SCALE,
+                                   color_scheme="light", reduced_motion="reduce").new_page()
+        for name, (path, heading) in SECTIONS.items():
+            page.goto(BASE + path)
+            page.wait_for_load_state("networkidle")
+            if heading is None:
+                part = page.locator("main div.grid").first
+            else:
+                part = page.locator("section", has=page.get_by_role("heading", name=heading, exact=True))
+                toggle = part.get_by_text("Show table")
+                if toggle.count() and "displacement" not in name:   # its 20-row table is too long
+                    toggle.first.click()
+                    # the table scrolls inside a fixed-height box; show every row for the printed figure
+                    page.add_style_tag(content=".overflow-auto { max-height: none !important; }")
+            page.wait_for_timeout(500)
+            out = OUT / f"{name}.png"
+            part.screenshot(path=str(out))
+            print(f"wrote {out.relative_to(ROOT)}")
+        browser.close()
+
+
 def main() -> None:
     OUT.mkdir(parents=True, exist_ok=True)
     for name, (path, width) in PAGES.items():
@@ -105,6 +144,7 @@ def main() -> None:
             trim_bottom(png)
         print(f"{'wrote' if png.exists() else 'FAILED'} {png.relative_to(ROOT)}")
     capture_exchange()
+    capture_sections()
 
 
 if __name__ == "__main__":

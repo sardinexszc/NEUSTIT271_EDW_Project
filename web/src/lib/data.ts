@@ -9,6 +9,8 @@ import provinceImpact from "@/data/mart_province_event_impact.json";
 import evacuationDaily from "@/data/mart_evacuation_daily.json";
 import responsePerformance from "@/data/mart_response_performance.json";
 import reliefByOrg from "@/data/mart_relief_by_org_category.json";
+import displacementDaily from "@/data/mart_displacement_daily.json";
+import lifelineRestoration from "@/data/mart_lifeline_restoration.json";
 import exportMeta from "@/data/export_meta.json";
 
 export type EventSummary = {
@@ -36,12 +38,23 @@ export type EventSummary = {
   agriculture_cost_php: number;
   cities_municipalities_affected: number;
   provinces_affected: number;
+  affected_area_population: number | null;
+  dead_per_100k: number | null;
+  missing_per_100k: number | null;
+  affected_per_100k: number | null;
+  dead_per_100k_national: number | null;
   peak_persons_in_centers: number | null;
   peak_families_in_centers: number | null;
   days_with_evacuees: number | null;
   centers_used: number | null;
   over_capacity_center_days: number | null;
+  peak_persons_outside_centers: number | null;
+  peak_persons_displaced: number | null;
   relief_value_php: number | null;
+  relief_national_government_php: number | null;
+  relief_lgu_php: number | null;
+  relief_ngo_php: number | null;
+  relief_international_php: number | null;
   families_served: number | null;
   distributions: number | null;
   relief_php_per_affected_person: number | null;
@@ -49,6 +62,9 @@ export type EventSummary = {
   median_hours_to_dispatch: number | null;
   median_hours_to_arrive: number | null;
   completion_rate: number | null;
+  lifeline_disruptions: number | null;
+  lifelines_still_down: number | null;
+  median_hours_to_restore: number | null;
 };
 
 export type ImpactCubeRow = {
@@ -74,6 +90,9 @@ export type ProvinceImpact = {
   affected_families: number;
   houses_totally_damaged: number;
   damage_cost_php: number;
+  province_population: number | null;
+  dead_per_100k: number | null;
+  affected_per_100k: number | null;
   relief_value_php: number;
   families_served: number;
   relief_php_per_affected_person: number | null;
@@ -117,12 +136,42 @@ export type ReliefByOrg = {
   families_served: number;
 };
 
+export type DisplacementDay = {
+  event_code: string;
+  snapshot_date: string;
+  day_of_event: number;
+  families_inside: number;
+  persons_inside: number;
+  families_outside: number;
+  persons_outside: number;
+  persons_displaced: number;
+  share_outside_centers: number | null;
+};
+
+export type LifelineRestoration = {
+  event_code: string;
+  lifeline_code: string;
+  lifeline_name: string;
+  lifeline_sector: string;
+  unit_of_measure: string;
+  places_disrupted: number;
+  units_affected: number;
+  places_restored: number;
+  places_still_down: number;
+  restored_within_72h: number;
+  share_restored_within_72h: number;
+  median_hours_to_restore: number | null;
+  p90_hours_to_restore: number | null;
+};
+
 export const events = (eventSummary as EventSummary[]).sort((a, b) => a.start_date.localeCompare(b.start_date));
 export const cube = impactCube as ImpactCubeRow[];
 export const provinces = provinceImpact as ProvinceImpact[];
 export const evacuation = evacuationDaily as EvacuationDay[];
 export const response = responsePerformance as ResponsePerformance[];
 export const relief = reliefByOrg as ReliefByOrg[];
+export const displacement = displacementDaily as DisplacementDay[];
+export const lifelines = lifelineRestoration as LifelineRestoration[];
 export const exportedAt: string = exportMeta.exported_at;
 
 /** The event options every dashboard filter offers, newest first. */

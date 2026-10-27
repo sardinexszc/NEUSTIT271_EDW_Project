@@ -5,7 +5,7 @@ import { EventSelect } from "@/components/event-select";
 import { CsvButton } from "@/components/csv-button";
 import { Card, DataTable, Legend, StatGrid, StatTile, TableView } from "@/components/ui";
 import type { EventSummary, ProvinceImpact, ReliefByOrg } from "@/lib/data";
-import { count, full, peso } from "@/lib/format";
+import { count, full, percent, peso } from "@/lib/format";
 import { useMart } from "@/lib/live";
 import { useEventParam } from "@/lib/use-event-param";
 
@@ -16,6 +16,14 @@ const CATEGORY_SERIES = [
   { key: "Water", label: "Water", color: "var(--series-3)" },
   { key: "Shelter", label: "Shelter", color: "var(--series-4)" },
   { key: "Medical", label: "Medical", color: "var(--series-5)" },
+];
+
+// DROMIC reports the cost of assistance by who provided it
+const PROVIDERS = [
+  { key: "National Government", label: "National government (DSWD)" },
+  { key: "LGU", label: "Local government units" },
+  { key: "NGO", label: "NGOs" },
+  { key: "International", label: "International (UN)" },
 ];
 
 export function LogisticsDashboard({ relief: reliefSnapshot, provinces: provincesSnapshot, events: eventsSnapshot, options }: {
@@ -42,6 +50,12 @@ export function LogisticsDashboard({ relief: reliefSnapshot, provinces: province
   const distributions = inScope(events).reduce((t, e) => t + (e.distributions ?? 0), 0);
   const affectedPersons = provinceRows.reduce((t, r) => t + r.affected_persons, 0);
   const affectedFamilies = provinceRows.reduce((t, r) => t + r.affected_families, 0);
+
+  const byProvider = PROVIDERS.map((p) => {
+    const rows = reliefRows.filter((r) => r.org_type === p.key);
+    const value = rows.reduce((t, r) => t + r.relief_value_php, 0);
+    return { provider: p.label, value, share: value / Math.max(1, totalValue), families: rows.reduce((t, r) => t + r.families_served, 0) };
+  });
 
   // short codes keep the bar labels on one line; the table shows full names
   const shortName = (code: string) => (code === "CARITAS" ? "Caritas" : code);
@@ -110,6 +124,28 @@ export function LogisticsDashboard({ relief: reliefSnapshot, provinces: province
               filename: `relief-by-organization-php-${scopeName}`,
               rows: byOrg.map((r) => ({ ...r, org: `${r.orgName} (${r.org})` })),
             }}
+          />
+        </Card>
+
+        <Card title="Cost of assistance by provider" subtitle="Who paid for the relief delivered (DSWD DROMIC breakdown)">
+          <BarList
+            data={byProvider}
+            labelKey="provider"
+            series={[{ key: "value", label: "Relief value", color: "var(--series-1)" }]}
+            format="peso"
+            labelWidth={190}
+          />
+          <TableView
+            columns={[
+              { key: "provider", label: "Provider" },
+              { key: "value", label: "Relief value", numeric: true },
+              { key: "share", label: "Share", numeric: true },
+              { key: "families", label: "Family servings", numeric: true },
+            ]}
+            rows={byProvider.map((p) => ({
+              provider: p.provider, value: peso(p.value), share: percent(p.share, 0), families: full(p.families),
+            }))}
+            csv={{ filename: `cost-of-assistance-by-provider-php-${scopeName}`, rows: byProvider }}
           />
         </Card>
 

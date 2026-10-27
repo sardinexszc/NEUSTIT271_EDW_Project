@@ -23,6 +23,24 @@ checks as (
            (select sum(relief_value_php) from {{ ref('mart_relief_by_org_category') }}),
            (select sum(value_php) from {{ ref('fact_resource_distribution') }})
     union all
+    select 'relief by provider type adds up',
+           (select sum(coalesce(relief_national_government_php, 0) + coalesce(relief_lgu_php, 0)
+                       + coalesce(relief_ngo_php, 0) + coalesce(relief_international_php, 0))
+            from {{ ref('mart_event_summary') }}),
+           (select sum(value_php) from {{ ref('fact_resource_distribution') }})
+    union all
+    select 'displacement outside centers',
+           (select sum(persons_outside) from {{ ref('mart_displacement_daily') }}),
+           (select sum(persons_outside) from {{ ref('fact_displacement_outside') }})
+    union all
+    select 'displacement inside centers',
+           (select sum(persons_inside) from {{ ref('mart_displacement_daily') }}),
+           (select sum(persons_inside) from {{ ref('fact_evacuation_snapshot') }})
+    union all
+    select 'lifeline disruptions',
+           (select sum(places_disrupted) from {{ ref('mart_lifeline_restoration') }}),
+           (select count(*) from {{ ref('fact_lifeline_disruption') }})
+    union all
     select 'response overall requests',
            (select requests from {{ ref('mart_response_performance') }}
             where event_code = 'All' and response_type = 'All' and priority = 'All'),

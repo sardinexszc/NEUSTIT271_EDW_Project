@@ -9,18 +9,28 @@ The ETL is a set of **custom Python and SQL scripts**: Python for extraction and
 .venv/Scripts/python ingestion/pipeline.py      # migrate → reference → psgc → generate → raw → dbt → export
 ```
 
+[Figure](#figure-etl-workflow) shows the workflow from source files to dashboards.
+
 ![ETL workflow](img/etl_workflow.png)
 
+**Figure: ETL workflow.** The source systems land unchanged in the raw layer, are typed, conformed and quality-checked in staging, and are loaded into the star schema and marts that the dashboards and exports read.
+
 ## 2. Data sources
+
+[Table](#table-data-sources-with-format-volume-and-planted-defects) lists every source with its format, volume and the defects it carries.
+
+**Table: Data sources with format, volume and planted defects.** Defects are planted on purpose and counted, so the transformation can be proven correct (Chapter 5).
 
 | Source system | Format | Files | Rows landed | Typical defects (planted and counted) |
 |---|---|---:|---:|---|
 | NDRRMC situation reports | CSV | 31 (one per event) | 16,151 | duplicate rows, blanks and "N/A", thousands separators, negative costs, swapped figures, misspelled towns |
-| DSWD DROMIC evacuation reports | Excel (.xlsx) | 31 | 31,241 | mixed date formats per field office, missing center codes, overcrowding, misspelled towns |
-| NGO / agency relief distributions | nested JSON | 6 (one per year) | 5,661 records | organization aliases, partner item codes and units, missing locations, unknown items |
+| NDRRMC lifeline status (roads, bridges, power, water, communications) | CSV | 31 | 2,677 | none planted; checked for unknown lifelines, unparseable times and restoration before interruption |
+| DSWD DROMIC evacuation reports, sheet "Inside ECs" | Excel (.xlsx) | 31 | 31,241 | mixed date formats per field office, missing center codes, overcrowding, misspelled towns |
+| DSWD DROMIC, sheet "Outside ECs" (families with relatives or friends) | same workbooks | 31 | 21,896 | none planted; same date, location and persons-vs-families checks |
+| NGO, UN and LGU relief distributions | nested JSON | 6 (one per year) | 8,438 records | organization aliases, partner item codes and units, missing locations, unknown items |
 | PAGASA bulletins | CSV | 1 | 39 | re-issued (duplicate) bulletins, local vs international names |
 | LGU / MDRRMO response logs | CSV | 1 | 32,749 | non-standard request types, arrival before dispatch, open requests, misspelled towns |
-| PSA PSGC geography | JSON (community API mirror of PSA codes) | 6 | 43,793 units | — (master data) |
+| PSA PSGC geography | JSON (community API mirror of PSA codes; PSGC API, n.d.) | 6 | 43,793 units | — (master data) |
 | Hand-curated reference data | CSV | 3 | events, 13 organizations, 10 relief items | — |
 
 **Mock vs real.** Event names, dates and geography are real; operational figures are synthetic,
@@ -59,7 +69,7 @@ each defect it plants in `_defect_manifest.json` so the transformation can be pr
   standard unit (e.g. 1 sack of rice = 50 kg).
 - NGO JSON is flattened from one record per distribution to one row per item line.
 
-**Data-quality rules.** 41 rules in `dq_rules` with severity *info* (corrected), *warning*
+**Data-quality rules.** 45 rules in `dq_rules` with severity *info* (corrected), *warning*
 (kept, flagged) or *reject* (quarantined). Every staging row gets `dq_issues` and `dq_status`;
 staging never drops a row. Details: [data-quality-framework.md](data-quality-framework.md).
 
@@ -79,16 +89,24 @@ staging never drops a row. Details: [data-quality-framework.md](data-quality-fra
 
 ## 6. Orchestration, scheduling and error handling
 
+[Table](#table-orchestration-scheduling-and-error-handling) summarizes how the pipeline is run, scheduled and protected against bad data.
+
+**Table: Orchestration, scheduling and error handling.** Row-level errors never stop a load, while a failing step or test stops the build before anything is published.
+
 | Concern | Design |
 |---|---|
 | Orchestration | `ingestion/pipeline.py` runs the steps in order; any step can be run alone (`pipeline.py dbt export`). |
 | Scheduling | Batch, on demand or by a scheduler (Windows Task Scheduler / cron) running `pipeline.py`; GitHub Actions runs the full pipeline on every push. |
 | Idempotency | Full reload plus dbt's rebuild make every run produce the same warehouse from the same inputs (tested). |
 | Row-level errors | Never stop the load: bad rows go to `dq.dq_quarantine` with their reasons and source file and row. |
-| Step failures | `pipeline.py` stops at the first failing step; `dbt build` fails if any of its 99 tests fail, so a bad build is never published. |
+| Step failures | `pipeline.py` stops at the first failing step; `dbt build` fails if any of its 76 data tests fail, so a bad build is never published. |
 | Monitoring | `dq.dq_rule_summary` (scorecard), `dq.dq_reconciliation`, `meta.load_batch` (row counts and times per file). |
 
 ## 7. Tools
+
+[Table](#table-tools-used-by-the-etl-pipeline) lists the tools used at each stage.
+
+**Table: Tools used by the ETL pipeline.** All are open source or free, so the pipeline runs on an agency's own hardware.
 
 | Purpose | Tool |
 |---|---|

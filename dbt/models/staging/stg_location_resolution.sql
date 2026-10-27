@@ -34,6 +34,10 @@ raw_pairs as (
     union
     select province, municipality from {{ source('raw', 'dromic_evacuation') }}
     union
+    select province, municipality from {{ source('raw', 'dromic_displaced_outside') }}
+    union
+    select province, city_muni from {{ source('raw', 'ndrrmc_lifeline_status') }}
+    union
     select record -> 'location' ->> 'province', record -> 'location' ->> 'municipality'
     from {{ source('raw', 'ngo_distribution') }}
     union
